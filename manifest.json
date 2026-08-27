@@ -1,31 +1,46 @@
 {
-  "source": "FunCombat_Authoritative_Rebuild.rbxl",
-  "source_sha256": "40d1eddf4f32e87e567e53665a5e2cea8e6910e2869cd2202dd1b1205ca3ed5c",
-  "architecture": "server-authoritative-v1",
-  "packs": {
-    "client_StarterGui.rbxm": {"instances": 409, "size": 1646565, "sha256": "0cdf330eef265075c768b09d5cd3f83e0510aa4b9d3e735a016bfba43a2c5d8e"},
-    "client_StarterPlayer.rbxm": {"instances": 89, "size": 1485472, "sha256": "c1b68462a25af4baa9aa5d399e121f79f562c695f5cf6f927533b459b1525603"},
-    "client_Lighting.rbxm": {"instances": 6, "size": 1411791, "sha256": "f94f7a69d59e63032d0de7d6f6645993bff8097517a6e95182c0b95b9f0f6eb4"},
-    "world_Workspace.rbxm": {"instances": 6763, "size": 2995178, "sha256": "6173a4ebec1afbcb3f650d2d87876aaa1f3ac8bba1797df6ebafe6bf63ac3417"},
-    "client_Animations_male.rbxm": {"instances": 11831, "size": 2829754, "sha256": "f969206e153fe432f67a2aaa9c01e701f3ba8cd83d873e3d0300100c2fffa092"},
-    "client_Animations_female.rbxm": {"instances": 9300, "size": 2540520, "sha256": "5ad2960d28f149ff76797adad7068ea1a988df9d80caee17c1fe56b589ff0996"},
-    "client_Animations_bat.rbxm": {"instances": 18325, "size": 3567108, "sha256": "566d49ec69c9e9dbd88ab1fccf34a5e594adea65832eb9bad8a3414369a7b7c2"},
-    "client_Animations_other.rbxm": {"instances": 5385, "size": 2001850, "sha256": "390bee192bf0dad4a1461609ace8a3cc3d0e52bdf47896c929ec79cddba83b34"},
-    "client_Animations_Emotes.rbxm": {"instances": 5093, "size": 2065985, "sha256": "f9eeaac0b84817b074eb985bd83ff19cbcfaf0bf5fb27534c210223bf9273e4e"},
-    "client_Maps_Crossroads.rbxm": {"instances": 6515, "size": 2837134, "sha256": "062fa3d26dd480308b2674528ea92f790b2a0d3cc52c4db9b2496fefb1e1a04f"},
-    "client_Maps_OriginalMap.rbxm": {"instances": 13972, "size": 3881795, "sha256": "d3e3ffae2f3da64a5c37be920128d78342a30cde1d27da9432745a526eb574e4"},
-    "client_VFX.rbxm": {"instances": 83, "size": 1445042, "sha256": "27b3a3118727fcf6fb1039511fc9387b0c1321473503b3ebdb72bb18e2b4b4a4"},
-    "client_Sounds.rbxm": {"instances": 9, "size": 1410146, "sha256": "0b52d03a884862a609360f8d779cc2e1d73904652ea789fbebbf33c7253b97f1"},
-    "client_Weather.rbxm": {"instances": 77, "size": 1426578, "sha256": "54da60e0d6201893d6995c7546c7a9cc08b8334e2827005b015d672feadcae97"},
-    "client_Rig.rbxm": {"instances": 84, "size": 1452438, "sha256": "4bf9679cc0bed2852ce2a39b6bff0e3f8640452710826d95691349d67763cfa8"},
-    "client_NewMorphs.rbxm": {"instances": 145, "size": 1450887, "sha256": "287e24b497fc97d074d54205d2202454b429ec49ac21d94e829cd818d3e3a272"},
-    "client_AnimationManager.rbxm": {"instances": 17, "size": 1419259, "sha256": "114a34830489354bb3dad0ca6c0a1e4311fee40c2d6edfebf52055f21479b18d"}
+  "server_build": {
+    "file": "FunCombat_ServerOnly_MapPrompts.rbxl",
+    "instances": 6752,
+    "scripts": 21,
+    "size": 3347876,
+    "sha256": "60f09b6f82f7e4f0759cd324456642324509a41ffe8e216513000df840f2850c",
+    "workspace_proximity_prompts": 138,
+    "prompt_templates": 6,
+    "starter_gui_children": 0,
+    "starter_player_children": 0,
+    "local_scripts": 0
   },
-  "runtime_dependency": "none",
-  "server_logic_public": false,
+  "architecture": "server-only-map-prompts-v2",
+  "replicated_surface": [
+    "opaque Remotes",
+    "opaque RemoteEvents",
+    "ProximityPrompt templates",
+    "Gender SetInfo endpoint"
+  ],
+  "server_modules": {
+    "location": "ServerStorage",
+    "names_obfuscated": true,
+    "public_source": false
+  },
+  "client_packs": {
+    "client_StarterGui.rbxm": {"instances": 409, "sha256": "0cdf330eef265075c768b09d5cd3f83e0510aa4b9d3e735a016bfba43a2c5d8e"},
+    "client_StarterPlayer.rbxm": {"instances": 89, "sha256": "c1b68462a25af4baa9aa5d399e121f79f562c695f5cf6f927533b459b1525603"},
+    "client_Animations_male.rbxm": {"instances": 11831, "sha256": "f969206e153fe432f67a2aaa9c01e701f3ba8cd83d873e3d0300100c2fffa092"},
+    "client_Animations_female.rbxm": {"instances": 9300, "sha256": "5ad2960d28f149ff76797adad7068ea1a988df9d80caee17c1fe56b589ff0996"},
+    "client_Animations_bat.rbxm": {"instances": 18325, "sha256": "566d49ec69c9e9dbd88ab1fccf34a5e594adea65832eb9bad8a3414369a7b7c2"},
+    "client_Animations_other.rbxm": {"instances": 5385, "sha256": "390bee192bf0dad4a1461609ace8a3cc3d0e52bdf47896c929ec79cddba83b34"},
+    "client_Animations_Emotes.rbxm": {"instances": 5093, "sha256": "f9eeaac0b84817b074eb985bd83ff19cbcfaf0bf5fb27534c210223bf9273e4e"},
+    "client_VFX.rbxm": {"instances": 83, "sha256": "27b3a3118727fcf6fb1039511fc9387b0c1321473503b3ebdb72bb18e2b4b4a4"},
+    "client_Sounds.rbxm": {"instances": 9, "sha256": "0b52d03a884862a609360f8d779cc2e1d73904652ea789fbebbf33c7253b97f1"},
+    "client_Weather.rbxm": {"instances": 77, "sha256": "54da60e0d6201893d6995c7546c7a9cc08b8334e2827005b015d672feadcae97"},
+    "client_Rig.rbxm": {"instances": 84, "sha256": "4bf9679cc0bed2852ce2a39b6bff0e3f8640452710826d95691349d67763cfa8"},
+    "client_NewMorphs.rbxm": {"instances": 145, "sha256": "287e24b497fc97d074d54205d2202454b429ec49ac21d94e829cd818d3e3a272"},
+    "client_AnimationManager.rbxm": {"instances": 17, "sha256": "114a34830489354bb3dad0ca6c0a1e4311fee40c2d6edfebf52055f21479b18d"}
+  },
   "notes": [
-    "Old Lua-serialized runtime removed.",
-    "Client packs preserve Roblox Instances/KeyframeSequences as RBXM.",
-    "Server-source RBXM backups are deliberately not published."
+    "The physical map stays in the Roblox place and is not a GitHub client pack.",
+    "Server gameplay source/RBXM is not published.",
+    "Old Lua instance serialization is not used."
   ]
 }
