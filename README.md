@@ -1,18 +1,22 @@
-# FunCombatAssets — authoritative rebuild
+# FunCombatAssets — server-only map/prompts rebuild
 
-This repository was reset on 2026-08-27. The old Lua-serialized runtime (`core.lua`, `data/*.lua`, `loader_*`, UI hotfixes) has been removed.
+The old Lua-serialized runtime (`core.lua`, `data/*.lua`, `loader_*`, UI hotfixes) is gone.
 
-## New architecture
+## Final architecture
 
-The Roblox place is self-contained and does **not** execute gameplay from GitHub.
+The published Roblox place contains only the physical world/map, ProximityPrompts, replicated networking endpoints, and hidden server gameplay code.
 
-- Server owns weapon issuance, hitboxes, combo order, damage, dash movement, ragdoll/downed, carry/execute, gender state and validation.
-- Client only handles input and presentation.
-- Animations/models are preserved as native Roblox RBXM assets rather than rewritten into Lua tables.
-- `Gender` is again the real player attribute and is rendered by the server-owned overhead Info billboard.
-- Weapon selection requests `EquipWeapon`; the server clones only allow-listed tools into Backpack.
-- Client attack input sends only move IDs (`SWING_1`, `SWING_2`, `BIG_SWING`). The server computes the hitbox and victims itself.
+- `StarterGui` is empty.
+- `StarterPlayer` contains no client scripts.
+- No LocalScripts are shipped in the server place.
+- Full animations, morphs, VFX, sounds, weapon visuals and GUI are client assets and are not stored in ReplicatedStorage.
+- Gameplay modules are hidden in ServerStorage under opaque names.
+- ReplicatedStorage exposes only opaque Remotes/RemoteEvents, prompt templates, and the Gender SetInfo endpoint.
+- Weapon selection is server state. The client does not give itself a Tool.
+- Client attacks send only an allowed move ID; the server validates combo/cooldown and computes hitboxes/victims with `workspace:GetPartBoundsInBox`.
+- Damage, ragdoll/downed, carry/execute, Gender, emote permission, killstreak/awaken and player interaction remain server-authoritative.
+- Presentation is broadcast as state/events so separate client RBXM assets can render it.
 
-`manifest.json` and `validation.json` list the rebuilt RBXM asset packs and SHA-256 hashes. Server-source RBXM backups are deliberately not published here.
+Deployable server build: `FunCombat_ServerOnly_MapPrompts.rbxl`.
 
-The deployable place build is `FunCombat_Authoritative_Rebuild.rbxl`.
+Server source is intentionally not published in this repository. Obfuscation is only source-hardening; server authority is the actual security boundary.
