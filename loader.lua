@@ -5,10 +5,15 @@ local function stage(name)
     print("[Null Protocol] " .. name)
 end
 
+local function insertAfter(src, needle, text)
+    local p = src:find(needle, 1, true)
+    if not p then return nil end
+    local after = p + #needle
+    return src:sub(1, after - 1) .. text .. src:sub(after)
+end
+
 local function patchCore(src)
-    -- A previous build accidentally wrote literal \\n sequences into the final
-    -- server-private presentation block. Repair only that tail so normal
-    -- escaped strings elsewhere in core.lua are left untouched.
+    -- Repair the malformed tail from the previous exporter build.
     local marker = "-- Server-private presentation is represented by state only; the actual UI exists here."
     local pos = src:find(marker, 1, true)
     if pos then
@@ -17,35 +22,66 @@ local function patchCore(src)
         if tail:find("\\n", 1, true) then
             tail = tail:gsub("\\n", "\n")
             src = head .. tail
-            stage("repaired core tail")
+            stage("repaired malformed core tail")
         end
     end
 
-    -- rig_assets.lua contains the large model/morph/visual tree that was
-    -- physically removed from the place. The old core forgot to mount it.
-    if not src:find('get("data/rig_assets.lua")', 1, true) then
-        local needle = "local coreBy=mount(core,RS)"
-        local p = src:find(needle, 1, true)
-        if not p then
-            error("core patch point for rig_assets was not found")
-        end
-        local after = p + #needle
-        local inject = '\nlocal rigPack=get("data/rig_assets.lua"); mount(rigPack,RS)\n'
-        src = src:sub(1, after - 1) .. inject .. src:sub(after)
-        stage("enabled rig_assets")
+    -- Remove the original early animation block. It downloaded ~13 MB before
+    -- PlayerGui even existed, making a working load look like a dead script.
+    local animStart = "-- Animation packs are mounted under one local Animations folder."
+    local animEnd = "-- Weather resources are local too."
+    local a = src:find(animStart, 1, true)
+    local b = a and src:find(animEnd, a, true)
+    if a and b then
+        src = src:sub(1, a - 1) .. src:sub(b)
+        stage("deferred heavy animation packs")
     end
 
-    -- Keep the tiny admin thumbnail asset available locally too. It is
-    -- intentionally mounted under the runtime-only asset folder.
+    local guiNeedle = 'local gui=get("data/starter_gui.lua"); local guiBy=mount(gui,plr:WaitForChild("PlayerGui"))'
+    local afterGui = [[
+print("[Null Protocol] GUI tree mounted")
+
+-- Large model/morph/visual tree removed from the physical place.
+do
+    print("[Null Protocol] loading rig_assets.lua")
+    local okRig,rigPack=pcall(get,"data/rig_assets.lua")
+    if okRig and rigPack then
+        mount(rigPack,RS)
+        print("[Null Protocol] rig assets mounted")
+    else
+        warn("[Null Protocol] rig_assets failed: "..tostring(rigPack))
+    end
+end
+
+-- Load the heavy keyframe trees only after GUI and model data are available.
+do
+    local animRoot=RS:FindFirstChild("Animations")
+    if not animRoot then animRoot=Instance.new("Folder");animRoot.Name="Animations";animRoot.Parent=RS end
+    local animFiles={"anim_male.lua","anim_female.lua","anim_bat.lua","anim_other.lua","anim_emotes.lua"}
+    for _,f in ipairs(animFiles) do
+        print("[Null Protocol] loading "..f)
+        local okAnim,pack=pcall(get,"data/"..f)
+        if okAnim and pack then
+            mount(pack,animRoot)
+            print("[Null Protocol] mounted "..f)
+        else
+            warn("[Null Protocol] "..f.." failed: "..tostring(pack))
+        end
+    end
+end
+]]
+    local patched = insertAfter(src, guiNeedle, "\n" .. afterGui .. "\n")
+    if not patched then
+        error("core patch point after starter_gui was not found")
+    end
+    src = patched
+
+    -- Tiny admin thumbnail asset was also physically removed.
     if not src:find('get("data/admin_thumbnail.lua")', 1, true) then
-        local needle = 'local rtAssets=Instance.new("Folder");rtAssets.Name="__rt_assets";rtAssets.Parent=RS'
-        local p = src:find(needle, 1, true)
-        if p then
-            local after = p + #needle
-            local inject = '\nlocal adminThumbPack=get("data/admin_thumbnail.lua"); mount(adminThumbPack,rtAssets)\n'
-            src = src:sub(1, after - 1) .. inject .. src:sub(after)
-            stage("enabled admin thumbnail")
-        end
+        local rtNeedle = 'local rtAssets=Instance.new("Folder");rtAssets.Name="__rt_assets";rtAssets.Parent=RS'
+        local addThumb = '\nlocal adminThumbPack=get("data/admin_thumbnail.lua"); mount(adminThumbPack,rtAssets)\n'
+        local p = insertAfter(src, rtNeedle, addThumb)
+        if p then src = p end
     end
 
     return src
