@@ -1,9 +1,10 @@
 {
   "build": {
-    "file": "FunCombat_ServerOnly_MapPrompts.rbxl",
+    "file": "FunCombat_ServerOnly_MapPrompts_FIXED.rbxl",
     "instances": 6752,
+    "classes": 93,
     "scripts": 21,
-    "sha256": "60f09b6f82f7e4f0759cd324456642324509a41ffe8e216513000df840f2850c",
+    "sha256": "4c45c1cf269c2d520a37171436057527f1c87487cc23f56b9ac5909a79044a68",
     "workspace_proximity_prompts": 138,
     "prompt_templates": 6,
     "starter_gui_children": 0,
@@ -12,8 +13,18 @@
     "server_hitbox": "workspace:GetPartBoundsInBox",
     "server_modules_location": "ServerStorage"
   },
-  "checks": {
+  "binary_checks": {
     "binary_reparse": true,
+    "header_instance_count_matches": true,
+    "instance_ids_exactly_0_to_n_minus_1": true,
+    "class_ids_compact": true,
+    "prnt_child_set_complete": true,
+    "prnt_parent_refs_valid": true,
+    "object_reference_properties_checked": 5484,
+    "object_reference_properties_valid": true,
+    "previous_invalid_id_27235_over_6752_removed": true
+  },
+  "architecture_checks": {
     "client_gui_in_place": false,
     "client_animation_data_in_replicated_storage": false,
     "client_morph_vfx_sound_assets_in_replicated_storage": false,
@@ -22,5 +33,12 @@
     "attack_combo_and_cooldown_validated_server_side": true,
     "gender_value_allowlisted_server_side": true,
     "gameplay_modules_hidden_from_clients": true
+  },
+  "client_pack_checks": {
+    "packs": 16,
+    "all_compact_id_exported": true,
+    "all_binary_reference_validated": true,
+    "map_included": false,
+    "server_gameplay_source_included": false
   }
 }
