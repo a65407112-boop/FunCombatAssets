@@ -73,6 +73,12 @@ local function insertAfter(src, needle, text)
     return src:sub(1, after - 1) .. text .. src:sub(after)
 end
 
+local function replaceOnce(src, needle, repl)
+    local p = src:find(needle, 1, true)
+    if not p then return src, false end
+    return src:sub(1, p - 1) .. repl .. src:sub(p + #needle), true
+end
+
 local function patchCore(src)
     stage("patching core")
 
@@ -97,10 +103,24 @@ end]]
     local newGet = [[local function get(path)
     print("[Null Protocol] downloading "..path)
     local s=game:HttpGet(BASE..path)
-    local fixed,count=s:gsub("%[%[%[([%w_%-]+)%]%]%]%s*=", '["%1"]=')
-    if count>0 then
-        print("[Null Protocol] repaired "..tostring(count).." serialized keys in "..path)
+
+    -- Repair table keys emitted as [[[token]]]=value.
+    local fixed,keyFixes=s:gsub("%[%[%[([%w_%-]+)%]%]%]%s*=", '["%1"]=')
+
+    -- Repair property string values whose intended text ends in ']'.
+    -- Example: {[[Text]],[[N/A [N/A]]]}, is invalid because the exporter
+    -- used raw [[...]] strings. Convert just this unambiguous property form
+    -- to a quoted Lua string.
+    local valueFixes=0
+    fixed,valueFixes=fixed:gsub("({%[%[[%w_]+%]%],)%[%[(.-)%]%]%](},)", function(prefix,body,suffix)
+        return prefix..string.format("%q",body.."]")..suffix
+    end)
+
+    local total=keyFixes+valueFixes
+    if total>0 then
+        print("[Null Protocol] repaired "..tostring(total).." serialized strings in "..path)
     end
+
     local f,e=loadstring(fixed,"@"..path)
     if not f then error("DATA COMPILE FAILED "..path..": "..tostring(e)) end
     return f()
@@ -139,6 +159,12 @@ end
         if not patched then error("rig_assets patch point not found") end
         src = patched
     end
+
+    -- info_gui is only a local overhead billboard. It must never abort the
+    -- entire runtime if an exported label contains awkward bracket text.
+    local oldInfo = 'local infoPack=get("data/info_gui.lua");local infoBy=mount(infoPack,infoStore);local infoTemplate=infoStore:FindFirstChildWhichIsA("BillboardGui")'
+    local newInfo = 'local infoTemplate=nil;local okInfo,infoPack=pcall(get,"data/info_gui.lua");if okInfo and infoPack then mount(infoPack,infoStore);infoTemplate=infoStore:FindFirstChildWhichIsA("BillboardGui") else warn("[Null Protocol] optional info_gui skipped: "..tostring(infoPack)) end'
+    src = select(1, replaceOnce(src, oldInfo, newInfo))
 
     local runNeedle = "runLocal()"
     local runPos = src:find(runNeedle, 1, true)
