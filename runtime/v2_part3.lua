@@ -56,11 +56,24 @@ local function mount(name,target)
     return roots
 end
 
--- Try to execute the original LocalScript source preserved inside RBXM. Xeno may
--- or may not expose Source; fallbacks below cover the critical UI if it does not.
+-- Critical GUI keeps its original RBXM visuals, but its old LocalScripts are not
+-- manually executed. They were written for the original place hierarchy and can
+-- half-start, yield on an old path, then leave a perfectly visible dead button.
+-- The server-authoritative bridge in parts 5/6 owns these controls instead.
+local criticalGui={Gender=true,Emotes=true,weapon=true,weaponGui=true,getUp=true,HitboxToggle=true,MapVoteGui=true,mobileButtons=true}
+local function isCriticalGuiScript(ls)
+    local sg=ls and ls:FindFirstAncestorWhichIsA("ScreenGui")
+    return sg and criticalGui[sg.Name] or false
+end
+
+-- Try to execute preserved non-critical LocalScript source when Xeno exposes it.
 local function runLocal(ls)
     if not ls or not ls:IsA("LocalScript") or ls:GetAttribute("__FCRan") then return false end
     if ls:FindFirstAncestorWhichIsA("Tool") then return false end
+    if isCriticalGuiScript(ls) then
+        ls:SetAttribute("__FCBridgeOwned",true)
+        return false
+    end
     if ls.Name=="main" and ls.Parent and ls.Parent.Name=="StarterCharacterScripts" then return false end
     runtime.localFound=runtime.localFound+1
     local okSrc,src=pcall(function()return ls.Source end)
@@ -76,7 +89,12 @@ local function runLocal(ls)
     ls:SetAttribute("__FCRan",true);runtime.localStarted=runtime.localStarted+1
     task.spawn(function()
         local okRun,runErr=xpcall(fn,function(e)return (debug and debug.traceback and debug.traceback(tostring(e),2)) or tostring(e) end)
-        if not okRun then runtime.localFailed=runtime.localFailed+1;warn("[FC local] "..ls:GetFullName()..": "..tostring(runErr)) end
+        if not okRun then
+            ls:SetAttribute("__FCRan",nil)
+            ls:SetAttribute("__FCRunFailed",true)
+            runtime.localFailed=runtime.localFailed+1
+            warn("[FC local] "..ls:GetFullName()..": "..tostring(runErr))
+        end
     end)
     return true
 end
