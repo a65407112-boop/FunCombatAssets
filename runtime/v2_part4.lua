@@ -7,20 +7,19 @@
     return findPath(animations,path)
 end
 
--- KeyframeSequence player used for the native exported sequences.
+-- Manual KeyframeSequence player. This follows the original AnimationManager/
+-- AnimationPlayer from the source place instead of the earlier approximation.
+local movementControllers=setmetatable({},{__mode="k"})
 local active=setmetatable({},{__mode="k"})
-local function jointsForPose(rig,pose,parentPose,out)
-    local parentPart=parentPose and rig:FindFirstChild(parentPose.Name,true)
-    local posePart=rig:FindFirstChild(pose.Name,true)
-    if parentPart and posePart then
-        for _,j in ipairs(rig:GetDescendants()) do
-            if j:IsA("Motor6D") and ((j.Part0==parentPart and j.Part1==posePart) or (j.Part1==parentPart and j.Part0==posePart)) then out[j]=pose.CFrame;break end
-        end
-    end
-    for _,sub in ipairs(pose:GetSubPoses()) do jointsForPose(rig,sub,pose,out) end
+local function getJointBetween(part0,part1)
+    if not part0 or not part1 then return nil end
+    for _,o in ipairs(part1:GetChildren()) do if o:IsA("Motor6D") and o.Part0==part0 then return o end end
+    for _,o in ipairs(part0:GetChildren()) do if o:IsA("Motor6D") and o.Part1==part1 then return o end end
 end
-local function frameMap(rig,kf)
-    local out={};for _,pose in ipairs(kf:GetPoses()) do jointsForPose(rig,pose,nil,out) end;return out
+local function findRigPart(rig,name)
+    for _,p in ipairs(rig:GetDescendants()) do
+        if p:IsA("BasePart") and not p:FindFirstAncestorWhichIsA("Accessory") and p.Name==name then return p end
+    end
 end
 local function resetRig(rig)
     if not rig then return end
@@ -28,36 +27,66 @@ local function resetRig(rig)
 end
 local Anim={}
 function Anim.PlayAnimation(seq,rig)
-    if not seq or not seq:IsA("KeyframeSequence") or not rig then return nil end
+    if not seq or not seq:IsA("KeyframeSequence") or not rig or not rig.Parent then return nil end
+    -- Original manager permits one manual animation per humanoid.
+    for h in pairs(active) do if h.rig==rig then Anim.StopAnimation(h) end end
     local frames=seq:GetKeyframes();table.sort(frames,function(a,b)return a.Time<b.Time end);if #frames==0 then return nil end
-    local h={speed=1,dead=false,rig=rig};active[h]=true
-    task.spawn(function()
-        local start=os.clock();local duration=frames[#frames].Time
-        while active[h] and not h.dead and rig.Parent do
-            local t=(os.clock()-start)*h.speed
-            if seq.Loop and duration>0 then t=t%duration elseif t>=duration then break end
-            local a,b=frames[1],frames[#frames]
-            for i=1,#frames-1 do if t>=frames[i].Time and t<=frames[i+1].Time then a,b=frames[i],frames[i+1];break end end
-            local span=math.max(b.Time-a.Time,1/240);local alpha=math.clamp((t-a.Time)/span,0,1)
-            local A=frameMap(rig,a);local B=frameMap(rig,b)
-            for j,cf in pairs(A) do if j.Parent then j.Transform=cf:Lerp(B[j] or cf,alpha) end end
-            RunService.RenderStepped:Wait()
+    local h={rig=rig,seq=seq,frames=frames,index=1,speed=50,dead=false,last={},desired={},base={}}
+    active[h]=true
+    local move=movementControllers[rig];if move then move:pause() end
+    local function updatePositions()
+        table.clear(h.desired)
+        local kf=h.frames[h.index];if not kf then return 0 end
+        local function recurse(parentPose,pose)
+            if parentPose then
+                local p0=findRigPart(rig,parentPose.Name);local p1=findRigPart(rig,pose.Name)
+                local joint=getJointBetween(p0,p1)
+                if joint then
+                    if h.base[joint]==nil then h.base[joint]=joint.Transform end
+                    h.last[joint]=joint.Transform;h.desired[joint]=pose.CFrame
+                end
+            end
+            for _,sub in ipairs(pose:GetSubPoses()) do recurse(pose,sub) end
         end
-        active[h]=nil;if not h.dead then resetRig(rig) end
+        for _,pose in ipairs(kf:GetPoses()) do recurse(nil,pose) end
+        return kf.Time
+    end
+    local timeNeeded=updatePositions();local t=0
+    h.connection=RunService.Stepped:Connect(function(_,step)
+        if h.dead or not rig.Parent then return end
+        t=t+(step*h.speed)
+        local alpha=timeNeeded==0 and 1 or math.min(1,t/math.max(.001,timeNeeded))
+        for joint,pos in pairs(h.desired) do if joint.Parent then joint.Transform=(h.last[joint] or CFrame.new()):Lerp(pos,alpha) end end
+        if alpha>=1 then
+            for joint,pos in pairs(h.desired) do h.last[joint]=pos end
+            h.index+=1
+            if h.index>#h.frames then
+                if seq.Loop then h.index=1 else Anim.StopAnimation(h);return end
+            end
+            timeNeeded=updatePositions();t=0
+        end
     end)
+    table.insert(runtime.connections,h.connection)
     return h
 end
-function Anim.StopAnimation(h) if type(h)=="table" then h.dead=true;active[h]=nil;resetRig(h.rig) end end
-function Anim.ChangeAnimationSpeed(h,s) if type(h)=="table" then h.speed=(tonumber(s) or 50)/50 end end
+function Anim.StopAnimation(h)
+    if type(h)~="table" or h.dead then return end
+    h.dead=true;active[h]=nil
+    if h.connection then pcall(function()h.connection:Disconnect()end) end
+    resetRig(h.rig)
+    local move=movementControllers[h.rig];if move then task.defer(function()if h.rig and h.rig.Parent then move:resume() end end) end
+end
+function Anim.ChangeAnimationSpeed(h,s) if type(h)=="table" then h.speed=tonumber(s) or 50 end end
 function Anim.StopCharacter(char) for h in pairs(active) do if h.rig==char then Anim.StopAnimation(h) end end end
 
--- Mount all GUI roots. This is the bug fixed in v2: expect 17, not one.
 status("loading all GUI roots",false)
 local guiRoots=import("StarterGui.rbxm")
 local guiCount=#guiRoots
 for _,root in ipairs(guiRoots) do freezeLocals(root);root:SetAttribute("__FunCombatImported",true);root.Parent=pg;track(root) end
 
--- StarterPlayer has three roots. Move PlayerScripts, retain character script templates.
+-- v2.1 loads StarterPlayer directly to avoid the Xeno packing stall. If only the
+-- first root is exposed, PlayerScripts still load and the exact classic fallback
+-- below supplies character movement without fighting manual emote/combat poses.
 status("loading player roots",false)
 local charScriptsTemplate;local importedPlayerRoots={};local starterRoots=import("StarterPlayer.rbxm")
 for _,root in ipairs(starterRoots) do
@@ -70,25 +99,42 @@ for _,root in ipairs(starterRoots) do
     elseif root:IsA("Model") and root.Name=="StarterCharacter" then track(root) end
 end
 
--- Reveal server proxy characters and restore the original classic movement scripts
--- when their Source can be executed. If not, use a tiny stock-R6 fallback.
 local function fallbackR6(char)
     if char:GetAttribute("__FCFallbackAnimate") then return end
     char:SetAttribute("__FCFallbackAnimate",true)
     local hum=char:FindFirstChildOfClass("Humanoid");if not hum then return end
     local animator=hum:FindFirstChildOfClass("Animator") or Instance.new("Animator",hum)
-    local tracks={}
+    local tracks={};local current;local paused=false;local lastMove=0
     local function load(key,id,priority,looped)
         local a=Instance.new("Animation");a.AnimationId="rbxassetid://"..id
         local ok,t=pcall(function()return animator:LoadAnimation(a)end);a:Destroy()
         if ok and t then t.Priority=priority;t.Looped=looped;tracks[key]=t end
     end
-    load("idle","180435571",Enum.AnimationPriority.Idle,true)
-    load("walk","180426354",Enum.AnimationPriority.Movement,true)
-    load("jump","125750702",Enum.AnimationPriority.Movement,false)
-    load("fall","180436148",Enum.AnimationPriority.Movement,true)
-    local current
-    local function play(k,speed)
-        local t=tracks[k];if not t or current==t then if t and speed then t:AdjustSpeed(speed) end;return end
-        if current then pcall(function()current:Stop(.15)end) end;current=t;pcall(function()t:Play(.15);if speed then t:AdjustSpeed(speed) end end)
+    load("idle","180435571",Enum.AnimationPriority.Core,true)
+    load("walk","180426354",Enum.AnimationPriority.Core,true)
+    load("jump","125750702",Enum.AnimationPriority.Core,false)
+    load("fall","180436148",Enum.AnimationPriority.Core,true)
+    load("climb","180436334",Enum.AnimationPriority.Core,true)
+    load("sit","178130996",Enum.AnimationPriority.Core,true)
+    local function play(k,fade,speed)
+        if paused then return end
+        local t=tracks[k];if not t then return end
+        if current~=t then if current then pcall(function()current:Stop(fade or .1)end) end;current=t;pcall(function()t:Play(fade or .1)end) end
+        if speed then pcall(function()t:AdjustSpeed(speed)end) end
     end
+    local ctl={}
+    function ctl:pause() paused=true;if current then pcall(function()current:Stop(.05)end) end;current=nil end
+    function ctl:resume()
+        paused=false
+        if hum.FloorMaterial==Enum.Material.Air then play("fall",.1,1)
+        elseif hum.MoveDirection.Magnitude>.03 then play("walk",.1,math.max(.2,hum.WalkSpeed/14.5))
+        else play("idle",.1,1) end
+    end
+    movementControllers[char]=ctl
+    connect(hum.Running,function(speed)
+        if paused then return end
+        if speed>.25 then lastMove=os.clock();play("walk",.1,math.max(.2,speed/14.5))
+        elseif speed<.05 then
+            local stamp=lastMove;task.delay(.08,function()if not paused and lastMove==stamp and hum.MoveDirection.Magnitude<.02 then play("idle",.1,1) end end)
+        end
+    end)
