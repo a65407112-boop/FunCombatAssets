@@ -1,17 +1,18 @@
 {
-  "architecture": "server-only-map-prompts-v3",
+  "architecture": "server-only-map-prompts-v3.1",
   "server_build": {
-    "file": "FunCombat_ServerOnly_MapPrompts_FIXED.rbxl",
+    "file": "FunCombat_ServerOnly_MapPrompts_EXECUTE_FIX.rbxl",
     "instances": 6752,
     "classes": 93,
     "scripts": 21,
-    "size": 3347876,
-    "sha256": "4c45c1cf269c2d520a37171436057527f1c87487cc23f56b9ac5909a79044a68",
+    "size": 3347888,
+    "sha256": "50053a5a5534b88e36bef1d8b91dbcc5c4060c68af68fdc6740caaccbc2847b6",
     "workspace_proximity_prompts": 138,
     "prompt_templates": 6,
     "starter_gui_children": 0,
     "starter_player_children": 0,
-    "local_scripts": 0
+    "local_scripts": 0,
+    "execute_ragdoll_path_fixed": true
   },
   "binary_reference_fix": {
     "compact_instance_ids": true,
@@ -47,7 +48,7 @@
   "notes": [
     "The map and ProximityPrompts stay in the Roblox place.",
     "No CombatFunctions, MoveData, Manager, Values, server hitbox code, or server scripts are in the public client package.",
-    "Every listed RBXM was exported with compact instance/class IDs and passed binary reference validation.",
+    "Execute/GetUp no longer stall on the removed clear ReplicatedStorage.Remotes/Ragdoll path.",
     "Raw GitHub RBXM files are storage/distribution artifacts; normal Luau HttpGet does not deserialize RBXM by itself."
   ]
 }
