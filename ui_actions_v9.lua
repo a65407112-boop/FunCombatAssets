@@ -1,4 +1,4 @@
--- Null Protocol UI/gameplay action bridge v9
+-- Null Protocol UI/gameplay action bridge v9.1
 -- Opens are handled by v8. This file wires the actual emote requests and
 -- completes server-approved weapon delivery. Gameplay authority stays server-side.
 
@@ -9,7 +9,7 @@ local pg=plr:WaitForChild("PlayerGui")
 local ENV=(getgenv and getgenv()) or _G
 
 local function status(text,bad)
-    print("[Null Protocol v9] "..tostring(text))
+    print("[Null Protocol v9.1] "..tostring(text))
     local g=pg:FindFirstChild("__NPBootstrap")
     local l=g and g:FindFirstChildWhichIsA("TextLabel",true)
     if l then
@@ -38,11 +38,11 @@ task.spawn(function()
     local gui=pg:WaitForChild("Emotes",10)
     local display=gui and gui:FindFirstChild("display")
     if not gui or not display then
-        status("v9: Emotes display missing",true)
+        status("v9.1: Emotes display missing",true)
         return
     end
     if not emoteRemote or not emoteRemote:IsA("RemoteEvent") then
-        status("v9: SERVER Emote remote missing",true)
+        status("v9.1: SERVER Emote remote missing",true)
         return
     end
 
@@ -85,15 +85,16 @@ task.spawn(function()
         end
     end
     if count==0 then
-        status("v9: no emote TextButtons found",true)
+        status("v9.1: no emote TextButtons found",true)
     else
-        print("[Null Protocol v9] wired "..count.." emote buttons")
+        print("[Null Protocol v9.1] wired "..count.." emote buttons")
     end
 end)
 
 -- WEAPONS --------------------------------------------------------------------
 local weaponGui=pg:FindFirstChild("weapon")
 local weaponAnimLoaded=false
+local weaponAnimLoading=false
 local weaponBusy=false
 
 local function findWeaponTool(name)
@@ -110,7 +111,7 @@ end
 task.spawn(function()
     weaponGui=pg:WaitForChild("weapon",10)
     if not weaponGui then
-        status("v9: weapon menu missing",true)
+        status("v9.1: weapon menu missing",true)
         return
     end
 
@@ -132,6 +133,29 @@ task.spawn(function()
     end
 end)
 
+local function loadWeaponAnimationsInBackground(name)
+    if weaponAnimLoaded or weaponAnimLoading then return end
+    weaponAnimLoading=true
+    task.spawn(function()
+        local loadAnim=ENV.__NULL_LOAD_ANIM
+        if type(loadAnim)~="function" then
+            status("weapon is in Backpack, but animation loader is missing",true)
+            weaponAnimLoading=false
+            return
+        end
+
+        status("weapon issued; preparing weapon animations",false)
+        local okAnim,animErr=loadAnim("anim_bat.lua")
+        if okAnim then
+            weaponAnimLoaded=true
+            status("weapon ready: "..tostring(name),false)
+        else
+            status("weapon is in Backpack; animation load failed: "..tostring(animErr),true)
+        end
+        weaponAnimLoading=false
+    end)
+end
+
 if bus and bus:IsA("RemoteEvent") then
     bus.OnClientEvent:Connect(function(op,...)
         local a={...}
@@ -149,31 +173,16 @@ if bus and bus:IsA("RemoteEvent") then
             return
         end
 
-        -- EQ means the SERVER approved this weapon. Only now do we load its heavy
-        -- animation pack and materialize the local presentation Tool in Backpack.
+        -- EQ means the SERVER approved this weapon. Materialize the Tool into
+        -- Backpack FIRST. The old v9 waited for the huge anim_bat pack before
+        -- parenting the Tool, which produced a server ACK while the inventory
+        -- stayed completely empty.
         if op=="EQ" then
             if weaponBusy then return end
             weaponBusy=true
             local name=tostring(a[1])
             task.spawn(function()
                 status("weapon ACK <- server: "..name,false)
-
-                if not weaponAnimLoaded then
-                    local loadAnim=ENV.__NULL_LOAD_ANIM
-                    if type(loadAnim)~="function" then
-                        status("WEAPON ACK BUT animation loader missing",true)
-                        weaponBusy=false
-                        return
-                    end
-                    status("server approved weapon; loading weapon animations",false)
-                    local okAnim,animErr=loadAnim("anim_bat.lua")
-                    if not okAnim then
-                        status("weapon animation load failed: "..tostring(animErr),true)
-                        weaponBusy=false
-                        return
-                    end
-                    weaponAnimLoaded=true
-                end
 
                 local tool=findWeaponTool(name)
                 if not tool then
@@ -186,18 +195,23 @@ if bus and bus:IsA("RemoteEvent") then
                 tool.Parent=backpack
                 if weaponGui then weaponGui.Enabled=false end
 
-                task.wait(.1)
-                if tool.Parent==backpack then
-                    status("weapon issued -> Backpack: "..name,false)
-                else
+                task.wait(.05)
+                if tool.Parent~=backpack then
                     status("weapon approval received but Backpack move failed: "..name,true)
+                    weaponBusy=false
+                    return
                 end
+
+                status("weapon issued -> Backpack: "..name,false)
                 weaponBusy=false
+
+                -- Heavy animation restoration must never block inventory delivery.
+                loadWeaponAnimationsInBackground(name)
             end)
         end
     end)
 else
-    status("v9: server visual bus missing; emote/weapon ACK unavailable",true)
+    status("v9.1: server visual bus missing; emote/weapon ACK unavailable",true)
 end
 
 return true
