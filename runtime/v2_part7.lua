@@ -44,5 +44,16 @@ connect(bus.OnClientEvent,function(op,...)
     elseif op=="EQ" then local p,n=a[1],a[2];if typeof(p)=="Instance" and p:IsA("Player") then presentWeapon(p,n) end end
 end)
 
+ENV.__FC_NATIVE_API={
+    ensureAnimation=ensureAnimation,
+    Anim=Anim,
+    remotes=remotes,
+    runtime=runtime,
+    status=status,
+    player=player,
+    playerGui=pg,
+    connect=connect,
+    track=track,
+}
 status(string.format("READY | GUI=%d/17 | locals=%d started=%d unreadable=%d failed=%d",guiCount,runtime.localFound,runtime.localStarted,runtime.localUnreadable,runtime.localFailed),guiCount~=17)
 return true
