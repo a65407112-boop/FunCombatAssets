@@ -1,78 +1,18 @@
-# Fun Combat GitHub Runtime
+# FunCombatAssets — authoritative rebuild
 
-This folder is the client/runtime side of the split build. The matching place is `FunCombat_ServerLogicOnly.rbxl`.
+This repository was reset on 2026-08-27. The old Lua-serialized runtime (`core.lua`, `data/*.lua`, `loader_*`, UI hotfixes) has been removed.
 
-## GitHub layout
-Upload this folder **without renaming files**. GitHub Pages is not required; raw.githubusercontent.com is enough.
+## New architecture
 
-Set the raw folder URL and execute `loader.lua`:
+The Roblox place is self-contained and does **not** execute gameplay from GitHub.
 
-```lua
-getgenv().FUNCOMBAT_RUNTIME_URL = "https://raw.githubusercontent.com/YOURNAME/YOURREPO/main/FunCombat_GitHub_Runtime_Thin/"
-loadstring(game:HttpGet(getgenv().FUNCOMBAT_RUNTIME_URL .. "loader.lua"))()
-```
+- Server owns weapon issuance, hitboxes, combo order, damage, dash movement, ragdoll/downed, carry/execute, gender state and validation.
+- Client only handles input and presentation.
+- Animations/models are preserved as native Roblox RBXM assets rather than rewritten into Lua tables.
+- `Gender` is again the real player attribute and is rendered by the server-owned overhead Info billboard.
+- Weapon selection requests `EquipWeapon`; the server clones only allow-listed tools into Backpack.
+- Client attack input sends only move IDs (`SWING_1`, `SWING_2`, `BIG_SWING`). The server computes the hitbox and victims itself.
 
-What the place sends on join: maps/world geometry, server-authoritative state/remotes, and ProximityPrompts. GUI, client scripts, morphs, VFX, sounds and keyframe animation trees are stored here and mounted locally by the runtime.
+`manifest.json` and `validation.json` list the rebuilt RBXM asset packs and SHA-256 hashes. Server-source RBXM backups are deliberately not published here.
 
-The server uses opaque names. The runtime translates them locally before the original client scripts start.
-
-Object groups exported: {
-  "starter_gui": {
-    "file": "data/starter_gui.lua",
-    "objects": 409,
-    "scripts": 41
-  },
-  "player_scripts": {
-    "file": "data/player_scripts.lua",
-    "objects": 27,
-    "scripts": 5
-  },
-  "character_scripts": {
-    "file": "data/character_scripts.lua",
-    "objects": 24,
-    "scripts": 4
-  },
-  "replicated_core": {
-    "file": "data/replicated_core.lua",
-    "objects": 290,
-    "scripts": 9
-  },
-  "weather": {
-    "file": "data/weather.lua",
-    "objects": 77,
-    "scripts": 0
-  },
-  "anim_male": {
-    "file": "data/anim_male.lua",
-    "objects": 11831,
-    "scripts": 0
-  },
-  "anim_female": {
-    "file": "data/anim_female.lua",
-    "objects": 9300,
-    "scripts": 0
-  },
-  "anim_bat": {
-    "file": "data/anim_bat.lua",
-    "objects": 18325,
-    "scripts": 0
-  },
-  "anim_other": {
-    "file": "data/anim_other.lua",
-    "objects": 5385,
-    "scripts": 0
-  },
-  "anim_emotes": {
-    "file": "data/anim_emotes.lua",
-    "objects": 5093,
-    "scripts": 0
-  }
-}
-
-
-## Thin physical build
-`FunCombat_ServerLogicOnly.rbxl` physically removes the external client/visual trees. `ServerStorage` is empty, `StarterGui` is empty, there are no stored LocalScripts, KeyframeSequences, Keyframes, Poses, ScreenGuis or BillboardGuis. Maps and ProximityPrompts are the intentional asset exceptions. Global lighting/post effects, UI, character presentation, sounds, VFX, morphs and animations are reconstructed only by the runtime.
-
-
-## Opaque server build
-The matching `FunCombat_ServerOpaque.rbxl` stores all physical server Script/ModuleScript source as encrypted hex payloads behind a minimal server-side loader. Server gameplay ModuleScripts were moved out of ReplicatedStorage into ServerScriptService. Gameplay attributes and MoveData keys use opaque protocol tokens. ProximityPrompt instance names/text remain opaque in the place and are translated locally by the runtime. The development `scripts_original` archive is intentionally absent.
+The deployable place build is `FunCombat_Authoritative_Rebuild.rbxl`.

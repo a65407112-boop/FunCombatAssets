@@ -1,0 +1,18 @@
+{
+  "build": {
+    "instances": 87157,
+    "scripts": 119,
+    "sha256": "40d1eddf4f32e87e567e53665a5e2cea8e6910e2869cd2202dd1b1205ca3ed5c",
+    "server_hitbox": "workspace:GetPartBoundsInBox",
+    "equip_remote": "ReplicatedStorage/Remotes/EquipWeapon",
+    "gender_attribute": "Gender",
+    "server_modules_location": "ServerStorage"
+  },
+  "checks": {
+    "binary_reparse": true,
+    "source_instance_count_preserved": true,
+    "server_hit_accepts_victim_from_client": false,
+    "server_hit_accepts_damage_table_from_client": false,
+    "client_runtime_depends_on_github_lua": false
+  }
+}
