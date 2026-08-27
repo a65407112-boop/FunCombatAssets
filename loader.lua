@@ -2,8 +2,6 @@
 local Players = game:GetService("Players")
 local plr = Players.LocalPlayer
 
--- This GUI is created before core.lua is downloaded or compiled. If this is
--- visible, loader.lua itself definitely executed.
 local diagGui
 local diagLabel
 pcall(function()
@@ -23,7 +21,7 @@ pcall(function()
     frame.Name = "Panel"
     frame.AnchorPoint = Vector2.new(0.5, 0)
     frame.Position = UDim2.new(0.5, 0, 0, 18)
-    frame.Size = UDim2.new(0, 560, 0, 78)
+    frame.Size = UDim2.new(0, 620, 0, 84)
     frame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
     frame.BackgroundTransparency = 0.08
     frame.BorderSizePixel = 0
@@ -39,7 +37,7 @@ pcall(function()
     diagLabel.Position = UDim2.new(0, 14, 0, 8)
     diagLabel.Size = UDim2.new(1, -28, 1, -16)
     diagLabel.Font = Enum.Font.Code
-    diagLabel.TextSize = 17
+    diagLabel.TextSize = 16
     diagLabel.TextWrapped = true
     diagLabel.TextXAlignment = Enum.TextXAlignment.Left
     diagLabel.TextYAlignment = Enum.TextYAlignment.Center
@@ -78,7 +76,7 @@ end
 local function patchCore(src)
     stage("patching core")
 
-    -- Repair only the malformed exporter tail.
+    -- Repair malformed literal \\n sequences from an older exporter tail.
     local marker = "-- Server-private presentation is represented by state only; the actual UI exists here."
     local pos = src:find(marker, 1, true)
     if pos then
@@ -91,8 +89,35 @@ local function patchCore(src)
         end
     end
 
-    -- Remove the original early animation block. These packs are huge and
-    -- should not hold the first visible UI hostage.
+    -- The exporter accidentally emitted table keys like [[[abc]]]=value.
+    -- That is invalid Lua. Patch core's data loader so every downloaded pack
+    -- is normalized to ["abc"]=value before loadstring sees it.
+    local oldGet = [[local function get(path)
+    local s=game:HttpGet(BASE..path)
+    local f,e=loadstring(s,"@"..path); if not f then error(e) end
+    return f()
+end]]
+
+    local newGet = [[local function get(path)
+    print("[Null Protocol] downloading "..path)
+    local s=game:HttpGet(BASE..path)
+    local fixed,count=s:gsub("%%[%%[%%[([%%w_%%-]+)%%]%%]%%]%%s*=", '["%%1"]=')
+    if count>0 then
+        print("[Null Protocol] repaired "..tostring(count).." serialized keys in "..path)
+    end
+    local f,e=loadstring(fixed,"@"..path)
+    if not f then error("DATA COMPILE FAILED "..path..": "..tostring(e)) end
+    return f()
+end]]
+
+    local gp = src:find(oldGet, 1, true)
+    if not gp then
+        error("data-loader patch point not found")
+    end
+    src = src:sub(1, gp - 1) .. newGet .. src:sub(gp + #oldGet)
+    stage("enabled serialized-data repair")
+
+    -- Defer huge animation packs until after the initial UI exists.
     local animStart = "-- Animation packs are mounted under one local Animations folder."
     local animEnd = "-- Weather resources are local too."
     local a = src:find(animStart, 1, true)
@@ -102,8 +127,7 @@ local function patchCore(src)
         stage("deferred animation packs")
     end
 
-    -- Mount the missing large rig asset tree immediately after the normal
-    -- replicated core is present.
+    -- Mount the model/morph/visual tree removed from the physical place.
     if not src:find('get("data/rig_assets.lua")', 1, true) then
         local needle = "local coreBy=mount(core,RS)"
         local text = [[
@@ -122,7 +146,7 @@ end
         src = patched
     end
 
-    -- Start GUI LocalScripts before downloading the huge animation trees.
+    -- Load heavy keyframe trees after the runtime LocalScripts have started.
     local runNeedle = "runLocal()"
     local runPos = src:find(runNeedle, 1, true)
     if not runPos then error("runLocal patch point not found") end
