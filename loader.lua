@@ -8,9 +8,6 @@ for i=1,7 do
     if not ok or type(src)~="string" then
         error("FunCombat v2.2 download failed at part "..i..": "..tostring(src))
     end
-    -- StarterPlayer is left un-packed at runtime because Xeno's pure-Lua LZ4
-    -- wrapper can stall on it. The base loads its first root; v2.2 supplies the
-    -- original presentation behavior that matters on the live character.
     if i==2 then
         src=src:gsub('%["StarterPlayer%.rbxm"%]%s*=%s*true,%s*','')
     end
@@ -28,8 +25,8 @@ end)
 if not okPatch or type(patchSrc)~="string" then
     error("FunCombat v2.2 polish download failed: "..tostring(patchSrc))
 end
--- Defensive compatibility for the Highlight property name.
 patchSrc=patchSrc:gsub("OutlineColor3","OutlineColor")
+patchSrc=patchSrc:gsub("currentSound%.Volume=%.5","currentSound.Volume=.2")
 local patchFn,patchErr=loadstring(patchSrc,"FunCombatOriginalPresentationV22")
 if not patchFn then error("FunCombat v2.2 polish compile failed: "..tostring(patchErr)) end
 local okRun,runErr=pcall(patchFn)
