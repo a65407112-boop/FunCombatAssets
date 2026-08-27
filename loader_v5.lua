@@ -91,16 +91,25 @@ local ok,result = xpcall(function()
         for _,name in ipairs(body) do
             local p=c:FindFirstChild(name)
             if p and p:IsA("BasePart") then
-                pcall(function() p.Transparency=0 p.LocalTransparencyModifier=0 end)
+                pcall(function()
+                    p.Transparency=0
+                    p.LocalTransparencyModifier=0
+                end)
             end
         end
         local hrp=c:FindFirstChild("HumanoidRootPart")
         if hrp and hrp:IsA("BasePart") then
-            pcall(function() hrp.Transparency=1 hrp.LocalTransparencyModifier=0 end)
+            pcall(function()
+                hrp.Transparency=1
+                hrp.LocalTransparencyModifier=0
+            end)
         end
     end
     if plr.Character then task.defer(fixCharacter,plr.Character) end
-    plr.CharacterAdded:Connect(function(c) task.wait(1.2) fixCharacter(c) end)
+    plr.CharacterAdded:Connect(function(c)
+        task.wait(1.2)
+        fixCharacter(c)
+    end)
 
     -- Hitbox visualizer always begins OFF. Remove leftovers from previous runtime runs.
     local hitGui=pg:FindFirstChild("HitboxToggle")
