@@ -1,9 +1,72 @@
 -- Null Protocol / Fun Combat external runtime loader
-local BASE = "https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/"
+local Players = game:GetService("Players")
+local plr = Players.LocalPlayer
+
+-- This GUI is created before core.lua is downloaded or compiled. If this is
+-- visible, loader.lua itself definitely executed.
+local diagGui
+local diagLabel
+pcall(function()
+    local pg = plr and plr:WaitForChild("PlayerGui", 10)
+    if not pg then return end
+    local old = pg:FindFirstChild("__NullProtocolLoader")
+    if old then old:Destroy() end
+
+    diagGui = Instance.new("ScreenGui")
+    diagGui.Name = "__NullProtocolLoader"
+    diagGui.ResetOnSpawn = false
+    diagGui.DisplayOrder = 1000000
+    diagGui.IgnoreGuiInset = true
+    diagGui.Parent = pg
+
+    local frame = Instance.new("Frame")
+    frame.Name = "Panel"
+    frame.AnchorPoint = Vector2.new(0.5, 0)
+    frame.Position = UDim2.new(0.5, 0, 0, 18)
+    frame.Size = UDim2.new(0, 560, 0, 78)
+    frame.BackgroundColor3 = Color3.fromRGB(15, 15, 18)
+    frame.BackgroundTransparency = 0.08
+    frame.BorderSizePixel = 0
+    frame.Parent = diagGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, 10)
+    corner.Parent = frame
+
+    diagLabel = Instance.new("TextLabel")
+    diagLabel.Name = "Status"
+    diagLabel.BackgroundTransparency = 1
+    diagLabel.Position = UDim2.new(0, 14, 0, 8)
+    diagLabel.Size = UDim2.new(1, -28, 1, -16)
+    diagLabel.Font = Enum.Font.Code
+    diagLabel.TextSize = 17
+    diagLabel.TextWrapped = true
+    diagLabel.TextXAlignment = Enum.TextXAlignment.Left
+    diagLabel.TextYAlignment = Enum.TextYAlignment.Center
+    diagLabel.TextColor3 = Color3.new(1,1,1)
+    diagLabel.Text = "Null Protocol: loader started"
+    diagLabel.Parent = frame
+end)
 
 local function stage(name)
     print("[Null Protocol] " .. name)
+    pcall(function()
+        if diagLabel then diagLabel.Text = "Null Protocol: " .. name end
+    end)
 end
+
+local function fail(msg)
+    local text = tostring(msg)
+    warn("[Null Protocol] " .. text)
+    pcall(function()
+        if diagLabel then
+            diagLabel.TextColor3 = Color3.fromRGB(255, 125, 125)
+            diagLabel.Text = "Null Protocol ERROR:\n" .. text
+        end
+    end)
+end
+
+local BASE = "https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/"
 
 local function insertAfter(src, needle, text)
     local p = src:find(needle, 1, true)
@@ -13,7 +76,9 @@ local function insertAfter(src, needle, text)
 end
 
 local function patchCore(src)
-    -- Repair the malformed tail from the previous exporter build.
+    stage("patching core")
+
+    -- Repair only the malformed exporter tail.
     local marker = "-- Server-private presentation is represented by state only; the actual UI exists here."
     local pos = src:find(marker, 1, true)
     if pos then
@@ -26,35 +91,46 @@ local function patchCore(src)
         end
     end
 
-    -- Remove the original early animation block. It downloaded ~13 MB before
-    -- PlayerGui even existed, making a working load look like a dead script.
+    -- Remove the original early animation block. These packs are huge and
+    -- should not hold the first visible UI hostage.
     local animStart = "-- Animation packs are mounted under one local Animations folder."
     local animEnd = "-- Weather resources are local too."
     local a = src:find(animStart, 1, true)
     local b = a and src:find(animEnd, a, true)
     if a and b then
         src = src:sub(1, a - 1) .. src:sub(b)
-        stage("deferred heavy animation packs")
+        stage("deferred animation packs")
     end
 
-    local guiNeedle = 'local gui=get("data/starter_gui.lua"); local guiBy=mount(gui,plr:WaitForChild("PlayerGui"))'
-    local afterGui = [[
-print("[Null Protocol] GUI tree mounted")
+    -- Mount the missing large rig asset tree immediately after the normal
+    -- replicated core is present.
+    if not src:find('get("data/rig_assets.lua")', 1, true) then
+        local needle = "local coreBy=mount(core,RS)"
+        local text = [[
 
--- Large model/morph/visual tree removed from the physical place.
-do
-    print("[Null Protocol] loading rig_assets.lua")
-    local okRig,rigPack=pcall(get,"data/rig_assets.lua")
-    if okRig and rigPack then
-        mount(rigPack,RS)
-        print("[Null Protocol] rig assets mounted")
-    else
-        warn("[Null Protocol] rig_assets failed: "..tostring(rigPack))
-    end
+print("[Null Protocol] loading rig_assets.lua")
+local okRig,rigPack=pcall(get,"data/rig_assets.lua")
+if okRig and rigPack then
+    mount(rigPack,RS)
+    print("[Null Protocol] rig assets mounted")
+else
+    warn("[Null Protocol] rig_assets failed: "..tostring(rigPack))
 end
+]]
+        local patched = insertAfter(src, needle, text)
+        if not patched then error("rig_assets patch point not found") end
+        src = patched
+    end
 
--- Load the heavy keyframe trees only after GUI and model data are available.
-do
+    -- Start GUI LocalScripts before downloading the huge animation trees.
+    local runNeedle = "runLocal()"
+    local runPos = src:find(runNeedle, 1, true)
+    if not runPos then error("runLocal patch point not found") end
+    local afterRun = runPos + #runNeedle
+    local deferred = [[
+
+-- Heavy animation data is intentionally loaded after the initial local UI has started.
+task.spawn(function()
     local animRoot=RS:FindFirstChild("Animations")
     if not animRoot then animRoot=Instance.new("Folder");animRoot.Name="Animations";animRoot.Parent=RS end
     local animFiles={"anim_male.lua","anim_female.lua","anim_bat.lua","anim_other.lua","anim_emotes.lua"}
@@ -67,49 +143,49 @@ do
         else
             warn("[Null Protocol] "..f.." failed: "..tostring(pack))
         end
+        task.wait()
     end
-end
+end)
 ]]
-    local patched = insertAfter(src, guiNeedle, "\n" .. afterGui .. "\n")
-    if not patched then
-        error("core patch point after starter_gui was not found")
-    end
-    src = patched
-
-    -- Tiny admin thumbnail asset was also physically removed.
-    if not src:find('get("data/admin_thumbnail.lua")', 1, true) then
-        local rtNeedle = 'local rtAssets=Instance.new("Folder");rtAssets.Name="__rt_assets";rtAssets.Parent=RS'
-        local addThumb = '\nlocal adminThumbPack=get("data/admin_thumbnail.lua"); mount(adminThumbPack,rtAssets)\n'
-        local p = insertAfter(src, rtNeedle, addThumb)
-        if p then src = p end
-    end
+    src = src:sub(1, afterRun - 1) .. deferred .. src:sub(afterRun)
 
     return src
 end
 
 local ok, result = xpcall(function()
     stage("downloading core.lua")
-    local src = game:HttpGet(BASE .. "core.lua")
-    stage("core downloaded (" .. tostring(#src) .. " bytes)")
+    local url = BASE .. "core.lua?cb=" .. tostring(math.floor(os.clock()*1000000))
+    local src = game:HttpGet(url)
+    stage("core downloaded: " .. tostring(#src) .. " bytes")
 
     src = patchCore(src)
 
-    local fn, err = loadstring(src, "NullProtocolRuntime")
-    if not fn then
-        error("CORE COMPILE FAILED: " .. tostring(err))
-    end
+    stage("compiling core")
+    local fn, err = loadstring(src)
+    if not fn then error("CORE COMPILE FAILED: " .. tostring(err)) end
 
-    stage("core compiled")
-    local value = fn()(BASE)
+    stage("starting runtime")
+    local factory = fn()
+    if type(factory) ~= "function" then
+        error("core.lua did not return a function")
+    end
+    local value = factory(BASE)
     stage("runtime mounted")
+
+    task.delay(2, function()
+        pcall(function()
+            if diagGui then diagGui:Destroy() end
+        end)
+    end)
     return value
 end, function(err)
-    local trace = debug and debug.traceback and debug.traceback(tostring(err), 2) or tostring(err)
-    warn("[Null Protocol] RUNTIME ERROR:\n" .. trace)
+    local trace = tostring(err)
+    pcall(function()
+        if debug and debug.traceback then trace = debug.traceback(trace, 2) end
+    end)
+    fail(trace)
     return trace
 end)
 
-if not ok then
-    return nil, result
-end
+if not ok then return nil, result end
 return result
