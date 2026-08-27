@@ -1,0 +1,107 @@
+{
+  "format": 1,
+  "groups": {
+    "starter_gui": {
+      "file": "data/starter_gui.lua",
+      "objects": 409,
+      "scripts": 41
+    },
+    "player_scripts": {
+      "file": "data/player_scripts.lua",
+      "objects": 27,
+      "scripts": 5
+    },
+    "character_scripts": {
+      "file": "data/character_scripts.lua",
+      "objects": 24,
+      "scripts": 4
+    },
+    "replicated_core": {
+      "file": "data/replicated_core.lua",
+      "objects": 290,
+      "scripts": 9
+    },
+    "weather": {
+      "file": "data/weather.lua",
+      "objects": 77,
+      "scripts": 0
+    },
+    "anim_male": {
+      "file": "data/anim_male.lua",
+      "objects": 11831,
+      "scripts": 0
+    },
+    "anim_female": {
+      "file": "data/anim_female.lua",
+      "objects": 9300,
+      "scripts": 0
+    },
+    "anim_bat": {
+      "file": "data/anim_bat.lua",
+      "objects": 18325,
+      "scripts": 0
+    },
+    "anim_other": {
+      "file": "data/anim_other.lua",
+      "objects": 5385,
+      "scripts": 0
+    },
+    "anim_emotes": {
+      "file": "data/anim_emotes.lua",
+      "objects": 5093,
+      "scripts": 0
+    }
+  },
+  "aliases": 56,
+  "source_place": "fun combat v1.2 fixed torso.rbxl",
+  "thin_build": true,
+  "extra_groups": {
+    "starter_character": {
+      "file": "data/starter_character.lua",
+      "objects": 36,
+      "scripts": 0
+    },
+    "world_fx": {
+      "file": "data/world_fx.lua",
+      "objects": 3,
+      "scripts": 0
+    },
+    "lighting_fx": {
+      "file": "data/lighting_fx.lua",
+      "objects": 6,
+      "scripts": 0
+    },
+    "admin_gui": {
+      "file": "data/admin_gui.lua",
+      "objects": 124,
+      "scripts": 20
+    },
+    "info_gui": {
+      "file": "data/info_gui.lua",
+      "objects": 5,
+      "scripts": 0
+    },
+    "owner_tag": {
+      "file": "data/owner_tag.lua",
+      "objects": 2,
+      "scripts": 0
+    },
+    "rig_assets": {
+      "file": "data/rig_assets.lua",
+      "objects": 8948,
+      "scripts": 10
+    },
+    "admin_thumbnail": {
+      "file": "data/admin_thumbnail.lua",
+      "objects": 4,
+      "scripts": 0
+    }
+  },
+  "place_objects": 27269,
+  "removed_objects": 59888,
+  "opaque_build": true,
+  "server_source_encrypted": true,
+  "server_modules_private": true,
+  "protocol_tokens": 35,
+  "development_source_archive_removed": true
+}

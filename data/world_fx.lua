@@ -1,0 +1,25 @@
+return {
+nodes={
+{id=1,c=[[BloomEffect]],n=[[Bloom]],p=0,pr={
+ {[[Enabled]],true},
+ {[[Intensity]],1.0},
+ {[[Size]],56.0},
+ {[[Threshold]],0.5},
+},rf={
+}},
+{id=2,c=[[ColorCorrectionEffect]],n=[[ColorCorrection]],p=0,pr={
+ {[[Brightness]],0.0},
+ {[[Contrast]],0.30000001192092896},
+ {[[Enabled]],true},
+ {[[Saturation]],0.10000000149011612},
+ {[[TintColor]],Color3.new(1.0,1.0,1.0)},
+},rf={
+}},
+{id=3,c=[[SunRaysEffect]],n=[[SunRays]],p=0,pr={
+ {[[Enabled]],true},
+ {[[Intensity]],0.053300000727176666},
+ {[[Spread]],2.0},
+},rf={
+}},
+},sources={
+},roots={1,2,3}}
