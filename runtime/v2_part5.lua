@@ -13,8 +13,7 @@ local function revealCharacter(char)
     end
 end
 
--- Original source-place overhead presentation. The nickname/health/fun widget is
--- the native ReplicatedStorage.stats RBXM, not a replacement drawn by this loader.
+-- Source-place overhead presentation. stats itself comes from the native RBXM.
 local genderFront={Female=Color3.fromRGB(170,86,162),Male=Color3.fromRGB(27,175,158),Fembxy=Color3.fromRGB(72,0,130)}
 local genderBack={Female=Color3.fromRGB(35,23,34),Male=Color3.fromRGB(26,42,53),Fembxy=Color3.fromRGB(26,42,53)}
 local denk=Font.new("rbxasset://fonts/families/DenkOne.json",Enum.FontWeight.Bold,Enum.FontStyle.Normal)
@@ -82,65 +81,76 @@ end
 for _,p in ipairs(Players:GetPlayers()) do hookPlayer(p) end
 connect(Players.PlayerAdded,hookPlayer)
 
--- Run preserved client code only after every available native root is mounted.
+-- Run preserved non-critical client code only after roots are mounted.
 for _,root in ipairs(guiRoots) do runTree(root) end
 for _,root in ipairs(importedPlayerRoots) do runTree(root) end
 
 local function bindOnce(button,key,fn)
     if not button or not button:IsA("GuiButton") or button:GetAttribute(key) then return end
-    button:SetAttribute(key,true);connect(button.Activated,fn)
+    button:SetAttribute(key,true)
+    pcall(function()button.Active=true end)
+    connect(button.Activated,fn)
 end
 
--- Original Gender contract: SetInfo("Gender", value). Wait for server ACK before
--- hiding the selector, matching the source place rather than hiding optimistically.
+-- Critical controls always use the authoritative bridge. Their original visuals
+-- are untouched, but old path-dependent handlers no longer get veto power.
 local setInfo=attrSystem:WaitForChild("SetInfo")
 local genderGui=pg:FindFirstChild("Gender")
 if genderGui then
-    local native=genderGui:FindFirstChild("Buttons",true);local nativeRan=native and native:IsA("LocalScript") and native:GetAttribute("__FCRan")
-    genderGui.Enabled=not not (not player:GetAttribute("Gender"))
-    if not nativeRan then
-        for _,b in ipairs(genderGui:GetDescendants()) do
-            if b:IsA("TextButton") and (b.Text=="Male" or b.Text=="Female" or b.Text=="Fembxy") then
-                bindOnce(b,"__FCGender",function()setInfo:FireServer("Gender",b.Text)end)
-            end
+    genderGui.Enabled=not player:GetAttribute("Gender")
+    for _,b in ipairs(genderGui:GetDescendants()) do
+        if b:IsA("TextButton") and (b.Text=="Male" or b.Text=="Female" or b.Text=="Fembxy") then
+            bindOnce(b,"__FCGenderV22",function()
+                status("gender request -> "..b.Text,false)
+                setInfo:FireServer("Gender",b.Text)
+            end)
         end
     end
-    connect(player:GetAttributeChangedSignal("Gender"),function()if player:GetAttribute("Gender") then genderGui.Enabled=false end end)
+    connect(player:GetAttributeChangedSignal("Gender"),function()
+        local g=player:GetAttribute("Gender")
+        if g then genderGui.Enabled=false;status("gender ACK <- "..tostring(g),false) end
+    end)
 end
 
--- Exact original Emotes menu motion/sounds and server request flow.
 local emoteRemote=remotes:WaitForChild("Emote")
 local emotes=pg:FindFirstChild("Emotes")
 if emotes then
     emotes.Enabled=true
     local display=emotes:FindFirstChild("display");local buttonFrame=emotes:FindFirstChild("button")
     local opener=buttonFrame and buttonFrame:FindFirstChildWhichIsA("GuiButton",true)
-    local native=buttonFrame and buttonFrame:FindFirstChildWhichIsA("LocalScript",true);local nativeRan=native and native:GetAttribute("__FCRan")
-    if display and opener and not nativeRan then
-        local open=false;local debounce=false
-        bindOnce(opener,"__FCEmoteOpen",function()
+    if display and opener then
+        display.Visible=true
+        local open=display.Position.Y.Scale<1
+        local debounce=false
+        bindOnce(opener,"__FCEmoteOpenV22",function()
             if debounce then return end;debounce=true;open=not open
             local sid=open and "rbxassetid://4850864425" or "rbxassetid://1524543584"
             local s=Instance.new("Sound");s.SoundId=sid;s.Parent=opener;s:Play();Debris:AddItem(s,4)
             TweenService:Create(display,TweenInfo.new(.5,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Position=open and UDim2.new(.5,0,.6,0) or UDim2.new(.5,0,1.3,0)}):Play()
+            status("emotes menu "..(open and "OPEN" or "CLOSED"),false)
             task.delay(1,function()debounce=false end)
         end)
         for _,b in ipairs(display:GetDescendants()) do
-            if b:IsA("TextButton") then bindOnce(b,"__FCEmote",function()
-                local c=player.Character;if not c or c:GetAttribute("downed")==true or c:GetAttribute("carrying")==true or c:FindFirstChild("stun") then return end
-                emoteRemote:FireServer(b.Name)
-            end) end
+            if b:IsA("TextButton") then
+                bindOnce(b,"__FCEmoteV22",function()
+                    local c=player.Character
+                    if not c or c:GetAttribute("downed")==true or c:GetAttribute("carrying")==true or c:FindFirstChild("stun") then
+                        status("emote blocked by character state",true);return
+                    end
+                    status("emote request -> "..b.Name,false)
+                    emoteRemote:FireServer(b.Name)
+                end)
+            end
         end
         TweenService:Create(buttonFrame,TweenInfo.new(1.3,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{Position=UDim2.new(0,30,0,10)}):Play()
         task.delay(.4,function()if buttonFrame.Parent then TweenService:Create(buttonFrame,TweenInfo.new(1.3,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut,-1,true),{Rotation=-2}):Play() end end)
     end
 end
 
--- Original Workspace/Music playlist, restored as presentation because the thin
--- server build intentionally contains no client audio hierarchy.
+-- Original Workspace/Music playlist from the source place.
 local musicIds={1845341094,9046863253,9046864509,9043887091,1847506405,1837871067,1843468325,1845490105}
 local musicFolder=Instance.new("Folder");musicFolder.Name="__FCMusic";musicFolder.Parent=game:GetService("SoundService");track(musicFolder)
-local music=Instance.new("Sound");music.Name="currentSound";music.Parent=musicFolder
+local music=Instance.new("Sound");music.Name="currentSound";music.Volume=.5;music.Parent=musicFolder
 local function chooseMusic()music.SoundId="rbxassetid://"..tostring(musicIds[math.random(1,#musicIds)])end
 chooseMusic();music:Play()
 task.spawn(function()
