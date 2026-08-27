@@ -2,64 +2,86 @@ local equipRemote=remotes:WaitForChild("EquipWeapon")
 local weaponGui=pg:FindFirstChild("weapon")
 local weaponOpen=pg:FindFirstChild("weaponGui")
 if weaponGui and weaponOpen then
-    local native=weaponOpen:FindFirstChildWhichIsA("LocalScript",true);local nativeRan=native and native:GetAttribute("__FCRan")
     local opener=weaponOpen:FindFirstChildWhichIsA("GuiButton",true)
-    if not nativeRan then
-        bindOnce(opener,"__FCWeaponOpen",function()weaponGui.Enabled=not weaponGui.Enabled end)
-        for _,b in ipairs(weaponGui:GetDescendants()) do
-            if b:IsA("TextButton") then
-                local t=b:FindFirstChildWhichIsA("Tool",true)
-                if t then bindOnce(b,"__FCWeaponPick",function()equipRemote:FireServer(t.Name)end) end
+    bindOnce(opener,"__FCWeaponOpenV22",function()
+        weaponGui.Enabled=not weaponGui.Enabled
+        status("weapon menu "..(weaponGui.Enabled and "OPEN" or "CLOSED"),false)
+    end)
+    for _,b in ipairs(weaponGui:GetDescendants()) do
+        if b:IsA("TextButton") then
+            local t=b:FindFirstChildWhichIsA("Tool",true)
+            if t then
+                bindOnce(b,"__FCWeaponPickV22",function()
+                    status("weapon request -> "..t.Name,false)
+                    equipRemote:FireServer(t.Name)
+                end)
             end
         end
     end
-    connect(player:GetAttributeChangedSignal("EquippedWeapon"),function()if player:GetAttribute("EquippedWeapon") then weaponGui.Enabled=false end end)
+    connect(player:GetAttributeChangedSignal("EquippedWeapon"),function()
+        local n=player:GetAttribute("EquippedWeapon")
+        if n then weaponGui.Enabled=false;status("weapon ACK <- "..tostring(n),false) end
+    end)
 end
 
 local hitGui=pg:FindFirstChild("HitboxToggle")
 if hitGui then
     local toggle=hitGui:FindFirstChild("Toggle");local btn=hitGui:FindFirstChildWhichIsA("GuiButton",true)
     if toggle and toggle:IsA("BoolValue") then
-        local native=hitGui:FindFirstChildWhichIsA("LocalScript",true);local nativeRan=native and native:GetAttribute("__FCRan")
-        if not nativeRan then bindOnce(btn,"__FCHitbox",function()
+        bindOnce(btn,"__FCHitboxV22",function()
             toggle.Value=not toggle.Value
-            local label=btn and btn:FindFirstChildWhichIsA("TextLabel",true);if label then label.Text=toggle.Value and "Hitboxes: On" or "Hitboxes: Off" end
-        end) end
+            local label=btn and btn:FindFirstChildWhichIsA("TextLabel",true)
+            if label then label.Text=toggle.Value and "Hitboxes: On" or "Hitboxes: Off" end
+            status("hitboxes -> "..tostring(toggle.Value),false)
+        end)
     end
 end
 
 local getUpRemote=remotes:WaitForChild("GetUp")
 local mobile=pg:FindFirstChild("mobileButtons")
 if mobile then
-    local g=pg:FindFirstChild("getUp");local native=g and g:FindFirstChildWhichIsA("LocalScript",true);local nativeRan=native and native:GetAttribute("__FCRan")
-    local b=mobile:FindFirstChild("GetUp");if not nativeRan then bindOnce(b,"__FCGetUp",function()getUpRemote:FireServer()end) end
+    local b=mobile:FindFirstChild("GetUp",true)
+    bindOnce(b,"__FCGetUpV22",function()
+        status("GetUp request",false)
+        getUpRemote:FireServer()
+    end)
+end
+local getUpGui=pg:FindFirstChild("getUp")
+if getUpGui then
+    for _,b in ipairs(getUpGui:GetDescendants()) do
+        if b:IsA("GuiButton") then
+            bindOnce(b,"__FCGetUpGuiV22",function()
+                status("GetUp request",false)
+                getUpRemote:FireServer()
+            end)
+        end
+    end
 end
 
 local voteGui=pg:FindFirstChild("MapVoteGui")
 if voteGui and remoteEvents then
     local frame=voteGui:FindFirstChild("MapVoteFrame");local voting=voteGui:FindFirstChild("VotingClient");local template=voting and voting:FindFirstChild("MapFrame")
     if frame and template then
-        local nativeRan=voting:IsA("LocalScript") and voting:GetAttribute("__FCRan");local container=frame:FindFirstChild("MapsContainer")
-        if not nativeRan then
-            connect(remoteEvents:WaitForChild("VotingBegun").OnClientEvent,function(maps)
-                if not container then return end
-                for _,c in ipairs(container:GetChildren()) do if c:IsA(template.ClassName) then c:Destroy() end end
-                for _,map in ipairs(maps or {}) do
-                    local f=template:Clone();f.Name=map.Name
-                    if f:FindFirstChild("MapName") then f.MapName.Text=map.Name end
-                    if f:FindFirstChild("NumVotes") then f.NumVotes.Text="Votes: 0" end
-                    local vb=f:FindFirstChild("VoteButton");if vb then connect(vb.Activated,function()remoteEvents.Voted:FireServer(map.Name)end) end
-                    f.Parent=container
-                end
-                frame.Visible=true
-            end)
-            connect(remoteEvents:WaitForChild("VotingEnded").OnClientEvent,function()frame.Visible=false end)
-            connect(remoteEvents:WaitForChild("Voted").OnClientEvent,function(plrVotes)
-                if not container then return end
-                local votes={};for _,vote in pairs(plrVotes or {}) do votes[vote]=(votes[vote] or 0)+1 end
-                for _,f in ipairs(container:GetChildren()) do if f:FindFirstChild("NumVotes") then f.NumVotes.Text="Votes: "..tostring(votes[f.Name] or 0) end end
-            end)
-        end
+        local container=frame:FindFirstChild("MapsContainer")
+        connect(remoteEvents:WaitForChild("VotingBegun").OnClientEvent,function(maps)
+            if not container then return end
+            for _,c in ipairs(container:GetChildren()) do if c:IsA(template.ClassName) then c:Destroy() end end
+            for _,map in ipairs(maps or {}) do
+                local f=template:Clone();f.Name=map.Name
+                if f:FindFirstChild("MapName") then f.MapName.Text=map.Name end
+                if f:FindFirstChild("NumVotes") then f.NumVotes.Text="Votes: 0" end
+                local vb=f:FindFirstChild("VoteButton")
+                if vb then bindOnce(vb,"__FCVoteV22",function()status("vote -> "..map.Name,false);remoteEvents.Voted:FireServer(map.Name)end) end
+                f.Parent=container
+            end
+            frame.Visible=true
+        end)
+        connect(remoteEvents:WaitForChild("VotingEnded").OnClientEvent,function()frame.Visible=false end)
+        connect(remoteEvents:WaitForChild("Voted").OnClientEvent,function(plrVotes)
+            if not container then return end
+            local votes={};for _,vote in pairs(plrVotes or {}) do votes[vote]=(votes[vote] or 0)+1 end
+            for _,f in ipairs(container:GetChildren()) do if f:FindFirstChild("NumVotes") then f.NumVotes.Text="Votes: "..tostring(votes[f.Name] or 0) end end
+        end)
     end
 end
 
@@ -133,27 +155,32 @@ local function wireLocalWeapon(tool,state)
         if not state.equipped or not state.ready or state.busy then return end
         local c=validLocalWeaponState();if not c then return end
         local combo=state.combo or 1;local move=combo==1 and "SWING_1" or combo==2 and "SWING_2" or "BIG_SWING"
-        state.busy=true;state.pending=move;hitRemote:FireServer(move)
+        state.busy=true;state.pending=move;status("attack request -> "..move,false);hitRemote:FireServer(move)
         task.delay(move=="BIG_SWING" and 1.12 or .42,function()if state.pending==move then state.pending=nil end;state.busy=false end)
     end)
     local function requestDash()
         if not state.equipped or state.dashBusy then return end
         local c=validLocalWeaponState();if not c then return end
-        state.dashBusy=true;hitRemote:FireServer("DASH");task.delay(1.35,function()state.dashBusy=false end)
+        state.dashBusy=true;status("dash request",false);hitRemote:FireServer("DASH");task.delay(1.35,function()state.dashBusy=false end)
     end
     connect(UIS.InputBegan,function(input,gp)if not gp and input.KeyCode==Enum.KeyCode.Q then requestDash() end end)
-    local dashButton=mobile and mobile:FindFirstChild("Dash",true);if dashButton and dashButton:IsA("GuiButton") then bindOnce(dashButton,"__FCDash",requestDash) end
+    local dashButton=mobile and mobile:FindFirstChild("Dash",true);if dashButton and dashButton:IsA("GuiButton") then bindOnce(dashButton,"__FCDashV22",requestDash) end
 end
 
 local function presentWeapon(plr,name)
     clearVisualWeapon(plr);if not name then return end
-    local template=weaponTemplates[tostring(name)];local char=plr.Character;if not template or not char then return end
+    local template=weaponTemplates[tostring(name)];local char=plr.Character
+    if not template or not char then
+        if plr==player then status("weapon template missing -> "..tostring(name),true) end
+        return
+    end
     local tool=template:Clone();sanitizeTool(tool);track(tool);visualWeapons[plr]=tool
     local state={combo=1,busy=false,dashBusy=false,equipped=false,ready=false};weaponStates[plr]=state
     local hum=char:FindFirstChildOfClass("Humanoid")
     if plr==player then
         tool.Parent=player:WaitForChild("Backpack");wireLocalWeapon(tool,state)
         if hum then task.defer(function()pcall(function()hum:EquipTool(tool)end)end) end
+        status("weapon presented -> "..tostring(name),false)
     else
         tool.Parent=char
         task.delay(.05,function()if tool.Parent and char.Parent then convertGrip(char,tool) end end)
