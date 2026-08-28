@@ -53,8 +53,11 @@ https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/
 Upload the contents of this folder to the root of that repository, then execute:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260828-01", true))()
 ```
+
+The query tag forces a fresh runtime after an update. Rejoin the server before running a newer
+runtime build so callbacks from an already-running older loader cannot remain connected.
 
 `FUNCOMBAT_RUNTIME_BASE` remains available as an optional override for forks or local mirrors.
 
@@ -70,6 +73,11 @@ Runtime controls preserve the source behavior: tool activation cycles the three-
 During an interaction, `R` requests the next phase; the server independently validates the
 authoritative meter threshold before accepting it. Exported morphs are applied and cleared
 locally from opaque server presentation events.
+
+The runtime directly replaces the removed GUI LocalScripts: WEAPONS opens/closes the picker,
+weapon choices equip the selected local Tool, the emote drawer and buttons work, gender choices
+are submitted through opaque actions, mobile dash/recovery/phase and shift-lock controls are
+wired, hitbox visualization is presentation-only, and the map-vote GUI reflects server votes.
 
 ## Boundary and trust model
 

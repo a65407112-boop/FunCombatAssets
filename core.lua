@@ -102,7 +102,7 @@ local function destination(name, playerGui, storage)
 	return storage
 end
 
-local function instantiate(pack, playerGui, storage, objects, warnings)
+local function instantiate(pack, playerGui, storage, objects, warnings, marker)
 	local localObjects = {}
 	for _, record in pack.records do
 		local ok, instance = pcall(Instance.new, record[3])
@@ -130,6 +130,7 @@ local function instantiate(pack, playerGui, storage, objects, warnings)
 		if instance then
 			local parent = record[2] and localObjects[record[2]] or target
 			pcall(function() instance.Parent = parent end)
+			if not record[2] and marker then pcall(function() instance:SetAttribute(marker, true) end) end
 		end
 	end
 	return localObjects
@@ -301,26 +302,36 @@ local function cloneVisual(objects, id, parent, lifetime)
 	return clone
 end
 
-local function wireTools(playerGui, player, send, objects, assetIndex)
+local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview)
 	local currentTool
 	local function connectTool(tool)
-		if tool:GetAttribute("fc_wired") then return end
-		tool:SetAttribute("fc_wired", true)
-		tool.Activated:Connect(function() send(23) end)
+		if tool:GetAttribute(names.runtime_marker) then return end
+		tool:SetAttribute(names.runtime_marker, true)
+		tool.Activated:Connect(function()
+			if not guard() then return end
+			if attackPreview then attackPreview() end
+			send(23)
+		end)
 	end
-	local selectionByTool = {}
-	for index, id in assetIndex.weapons or {} do
-		if objects[id] then selectionByTool[objects[id]] = index end
+	local gui = assetIndex.gui or {}
+	local picker = objects[gui.weapon_picker]
+	local opener = objects[gui.weapon_open]
+	if picker and picker:IsA("ScreenGui") then picker.Enabled = false end
+	if opener and opener:IsA("GuiButton") then
+		opener.Activated:Connect(function()
+			if not guard() or not picker or not picker.Parent then return end
+			picker.Enabled = not picker.Enabled
+		end)
 	end
-	for _, button in playerGui:GetDescendants() do
-		if button:IsA("TextButton") or button:IsA("ImageButton") then
-			local tool = button:FindFirstChildWhichIsA("Tool", true)
-			local selection = tool and selectionByTool[tool]
-			if tool and selection then
-				button.Activated:Connect(function()
-					send(121, selection)
-				end)
-			end
+	for selection, id in assetIndex.weapon_buttons or {} do
+		local chosen = selection
+		local button = objects[id]
+		if button and button:IsA("GuiButton") then
+			button.Activated:Connect(function()
+				if not guard() then return end
+				if picker and picker.Parent then picker.Enabled = false end
+				send(121, chosen)
+			end)
 		end
 	end
 	return function(selection)
@@ -332,37 +343,236 @@ local function wireTools(playerGui, player, send, objects, assetIndex)
 		currentTool.Name = source.Name
 		connectTool(currentTool)
 		currentTool.Parent = player:WaitForChild("Backpack")
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+		if humanoid then pcall(function() humanoid:EquipTool(currentTool) end) end
 	end
 end
 
-local function wireVisibleButtons(playerGui, send)
-	local emoteCode = 81
-	for _, button in playerGui:GetDescendants() do
-		if button:IsA("TextButton") then
-			local text = string.lower(button.Text or "")
-			local childLabel = button:FindFirstChildWhichIsA("TextLabel", true)
-			local visibleText = childLabel and string.lower(childLabel.Text or "") or text
-			if text:find("breakdance", 1, true) then button.Activated:Connect(function() send(81) end)
-			elseif text == "flex" then button.Activated:Connect(function() send(82) end)
-			elseif text == "rat" then button.Activated:Connect(function() send(83) end)
-			elseif text == "akiyama" then button.Activated:Connect(function() send(84) end)
-			elseif text == "idk" then button.Activated:Connect(function() send(85) end)
-			elseif text == "female" then button.Activated:Connect(function() send(113) end)
-			elseif text == "male" then button.Activated:Connect(function() send(114) end)
-			elseif text == "fembxy" then button.Activated:Connect(function() send(115) end)
-			elseif visibleText:find("dash", 1, true) then button.Activated:Connect(function() send(49) end)
-			elseif visibleText:find("get up", 1, true) or visibleText:find("recover", 1, true) then
-				button.Activated:Connect(function() send(65) end)
-			end
+local function wireInterface(player, send, objects, assetIndex, names, guard)
+	local gui = assetIndex.gui or {}
+	local function get(key) return objects[gui[key]] end
+	local function connect(button, callback)
+		if button and button:IsA("GuiButton") then
+			button.Activated:Connect(function(...)
+				if guard() then callback(...) end
+			end)
 		end
 	end
-	return emoteCode
+	local function play(sound)
+		if sound and sound:IsA("Sound") then
+			pcall(function() sound.TimePosition = 0; sound:Play() end)
+		end
+	end
+
+	local hitboxes = false
+	local hitboxLabel = get("hitbox_label")
+	local function setHitboxes(value)
+		hitboxes = value
+		if hitboxLabel and hitboxLabel:IsA("TextLabel") then
+			hitboxLabel.Text = value and "Hitboxes: On" or "Hitboxes: Off"
+		end
+	end
+	setHitboxes(false)
+	connect(get("hitbox_button"), function()
+		setHitboxes(not hitboxes)
+		play(get("hitbox_sound"))
+	end)
+	local function attackPreview()
+		if not hitboxes then return end
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not root then return end
+		local box = Instance.new("Part")
+		box.Name = names.transient_visual
+		box.Anchored = true
+		box.CanCollide = false
+		box.CanQuery = false
+		box.CanTouch = false
+		box.Material = Enum.Material.ForceField
+		box.Color = Color3.fromRGB(255, 64, 96)
+		box.Transparency = 0.62
+		box.Size = Vector3.new(3, 5, 3)
+		box.CFrame = root.CFrame * CFrame.new(0, 0, -2)
+		box.Parent = workspace
+		game:GetService("Debris"):AddItem(box, 0.10)
+	end
+
+	local emoteDisplay = get("emotes_display")
+	local emotesOpen = false
+	connect(get("emotes_toggle"), function()
+		emotesOpen = not emotesOpen
+		if emoteDisplay and emoteDisplay:IsA("GuiObject") then
+			TweenService:Create(emoteDisplay, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+				Position = emotesOpen and UDim2.new(0.5, 0, 0.6, 0) or UDim2.new(0.5, 0, 1.3, 0),
+			}):Play()
+		end
+	end)
+	for index, id in assetIndex.emote_buttons or {} do
+		local code = 80 + index
+		connect(objects[id], function() send(code) end)
+	end
+
+	local genderGui = get("gender_gui")
+	if genderGui and genderGui:IsA("ScreenGui") then
+		genderGui.Enabled = player:GetAttribute(names.state_gender) == nil
+	end
+	for index, id in assetIndex.gender_buttons or {} do
+		local code = 112 + index
+		connect(objects[id], function() send(code) end)
+	end
+	local function genderSelected()
+		if genderGui and genderGui.Parent then genderGui.Enabled = false end
+	end
+
+	local mobileGui = get("mobile_gui")
+	if mobileGui and mobileGui:IsA("ScreenGui") then mobileGui.Enabled = UserInputService.TouchEnabled end
+	connect(get("mobile_dash"), function() play(get("mobile_dash") and get("mobile_dash"):FindFirstChildWhichIsA("Sound")); send(49) end)
+	connect(get("mobile_getup"), function() play(get("mobile_getup") and get("mobile_getup"):FindFirstChildWhichIsA("Sound")); send(65) end)
+
+	local meter = 0
+	local meterBar = get("meter_bar")
+	local meterLabel = get("meter_label")
+	local meterFlash = get("meter_flash")
+	local function setMeter(value)
+		meter = math.clamp(tonumber(value) or 0, 0, 1)
+		if meterBar and meterBar:IsA("GuiObject") then
+			TweenService:Create(meterBar, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				Size = UDim2.new(1, 0, meter, 0),
+			}):Play()
+		end
+		if meterLabel and meterLabel:IsA("TextLabel") then
+			meterLabel.Visible = meter >= 0.26
+			meterLabel.Text = meter >= 0.98 and "R - RELEASE" or (meter >= 0.26 and "R - Faster" or "")
+		end
+	end
+	local function phaseFeedback()
+		if meter < 0.26 then return end
+		play(get("meter_sound"))
+		if meterLabel and meterLabel:IsA("TextLabel") then
+			TweenService:Create(meterLabel, TweenInfo.new(0.25), {TextTransparency = 1}):Play()
+			task.delay(0.28, function()
+				if guard() and meterLabel.Parent then meterLabel.TextTransparency = 0 end
+			end)
+		end
+		if meter >= 0.98 and meterFlash and meterFlash:IsA("ImageLabel") then
+			meterFlash.Visible = true
+			meterFlash.ImageTransparency = 0
+			TweenService:Create(meterFlash, TweenInfo.new(1), {ImageTransparency = 1}):Play()
+			task.delay(1, function() if meterFlash.Parent then meterFlash.Visible = false end end)
+		end
+	end
+	connect(get("mobile_phase"), function() phaseFeedback(); send(97) end)
+
+	local getupPanel = get("getup_panel")
+	local getupBar = get("getup_bar")
+	local function recoveryProgress(count)
+		local progress = math.clamp((tonumber(count) or 0) / 20, 0, 1)
+		if getupPanel and getupPanel:IsA("GuiObject") then
+			TweenService:Create(getupPanel, TweenInfo.new(0.25), {
+				Position = progress > 0 and UDim2.new(0.5, 0, 1, -50) or UDim2.new(0.5, 0, 1, 50),
+			}):Play()
+		end
+		if getupBar and getupBar:IsA("GuiObject") then
+			TweenService:Create(getupBar, TweenInfo.new(0.2), {Size = UDim2.new(progress, 0, 1, 0)}):Play()
+		end
+	end
+
+	local shiftGui = get("shiftlock_gui")
+	local shiftButton = get("shiftlock_button")
+	if shiftGui and shiftGui:IsA("ScreenGui") then shiftGui.Enabled = UserInputService.TouchEnabled end
+	local shiftConnection
+	connect(shiftButton, function()
+		if shiftConnection then
+			shiftConnection:Disconnect()
+			shiftConnection = nil
+			local character = player.Character
+			local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+			if humanoid then humanoid.AutoRotate = true end
+			if shiftButton:IsA("ImageButton") then shiftButton.Image = "rbxasset://textures/ui/mouseLock_off@2x.png" end
+			return
+		end
+		if shiftButton:IsA("ImageButton") then shiftButton.Image = "rbxasset://textures/ui/mouseLock_on@2x.png" end
+		shiftConnection = RunService.RenderStepped:Connect(function()
+			if not guard() then shiftConnection:Disconnect(); shiftConnection = nil; return end
+			local character = player.Character
+			local root = character and character:FindFirstChild("HumanoidRootPart")
+			local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
+			local camera = workspace.CurrentCamera
+			if root and humanoid and camera then
+				humanoid.AutoRotate = false
+				local look = camera.CFrame.LookVector
+				root.CFrame = CFrame.lookAt(root.Position, root.Position + Vector3.new(look.X, 0, look.Z))
+			end
+		end)
+	end)
+
+	local voteGui = get("vote_gui")
+	local voteFrame = get("vote_frame")
+	local voteContainer = get("vote_container")
+	local voteTemplate = get("vote_template")
+	if voteGui and voteGui:IsA("ScreenGui") then voteGui.Enabled = false end
+	if voteTemplate and voteTemplate:IsA("GuiObject") then voteTemplate.Visible = false end
+	local voteFrames = {}
+	local function clearVotes()
+		for _, entry in voteFrames do
+			if entry[1] and entry[1].Parent then entry[1]:Destroy() end
+		end
+		table.clear(voteFrames)
+	end
+	local function beginVote(tokens, labels)
+		clearVotes()
+		if not voteGui or not voteFrame or not voteContainer or not voteTemplate then return end
+		voteGui.Enabled = true
+		voteFrame.Visible = true
+		local sourceName = get("vote_map_name")
+		local sourceButton = get("vote_button")
+		local sourceCount = get("vote_count")
+		for index, token in tokens do
+			local choice = index
+			local frame = voteTemplate:Clone()
+			frame.Name = voteTemplate.Name
+			frame.Visible = true
+			local label = sourceName and frame:FindFirstChild(sourceName.Name, true)
+			local button = sourceButton and frame:FindFirstChild(sourceButton.Name, true)
+			local count = sourceCount and frame:FindFirstChild(sourceCount.Name, true)
+			if label and label:IsA("TextLabel") then label.Text = labels[token] or ("Map " .. index) end
+			if count and count:IsA("TextLabel") then count.Text = "Votes: 0" end
+			connect(button, function() send(96, choice) end)
+			frame.Parent = voteContainer
+			voteFrames[index] = {frame, count}
+		end
+	end
+	local function updateVotes(public)
+		local totals = {}
+		local votes = type(public) == "table" and public or {}
+		for _, choice in votes do totals[choice] = (totals[choice] or 0) + 1 end
+		for index, entry in voteFrames do
+			if entry[2] and entry[2].Parent then entry[2].Text = "Votes: " .. tostring(totals[index] or 0) end
+		end
+	end
+	local function endVote()
+		if voteGui and voteGui.Parent then voteGui.Enabled = false end
+		clearVotes()
+	end
+
+	return {
+		attackPreview = attackPreview,
+		genderSelected = genderSelected,
+		setMeter = setMeter,
+		phaseFeedback = phaseFeedback,
+		recoveryProgress = recoveryProgress,
+		beginVote = beginVote,
+		updateVotes = updateVotes,
+		endVote = endVote,
+	}
 end
 
-local function worldWeaponBridge(objects, assetIndex, names, localPlayer)
+local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard)
 	local current = setmetatable({}, {__mode = "k"})
 	local selected = setmetatable({}, {__mode = "k"})
 	local function attach(owner, selection)
+		if not guard() then return end
 		selected[owner] = selection
 		if owner == localPlayer then return end
 		local previous = current[owner]
@@ -396,6 +606,7 @@ local function worldWeaponBridge(objects, assetIndex, names, localPlayer)
 	end
 	local function track(owner)
 		owner.CharacterAdded:Connect(function()
+			if not guard() then return end
 			local selection = selected[owner] or owner:GetAttribute(names.state_weapon)
 			if selection and selection > 0 then task.delay(0.2, attach, owner, selection) end
 		end)
@@ -471,6 +682,10 @@ end
 
 function Core.start(context)
 	local protocol, names, module = context.protocol, context.names, context.module
+	local environment = context.environment or ((getgenv and getgenv()) or _G)
+	local runToken = context.run_token or HttpService:GenerateGUID(false)
+	environment.FUNCOMBAT_RUNTIME_RUN = runToken
+	local function guard() return environment.FUNCOMBAT_RUNTIME_RUN == runToken end
 	local player = Players.LocalPlayer
 	assert(player, "Fun Combat runtime requires a local player")
 	local playerGui = player:WaitForChild("PlayerGui")
@@ -490,13 +705,27 @@ function Core.start(context)
 		:format(tostring(gameBuild), tostring(protocolVersion), tostring(runtimeVersion), tostring(assetVersion),
 			tostring(protocol.GAME_BUILD), tostring(protocol.PROTOCOL_VERSION), tostring(protocol.RUNTIME_VERSION), tostring(protocol.ASSET_VERSION)))
 
-	local old = playerGui:FindFirstChild(names.runtime_root)
-	if old then old:Destroy() end
+	local assetIndex = module("assets/index.lua")
+	local cleanupNames = {
+		[names.runtime_root] = true,
+		[names.runtime_notice] = true,
+		[names.runtime_status] = true,
+		[names.transient_visual] = true,
+	}
+	for _, name in assetIndex.cleanup_root_names or {} do cleanupNames[name] = true end
+	for _, service in {playerGui, Lighting, SoundService, workspace} do
+		for _, item in service:GetChildren() do
+			if cleanupNames[item.Name] or item:GetAttribute(names.runtime_marker) then item:Destroy() end
+		end
+	end
 	local storage = Instance.new("Folder")
 	storage.Name = names.runtime_root
+	storage:SetAttribute(names.runtime_marker, true)
 	storage.Parent = playerGui
 	local notice = makeNotice(playerGui, names.runtime_notice)
 	local status = makeStatus(playerGui, names.runtime_status)
+	notice.Parent:SetAttribute(names.runtime_marker, true)
+	status.Parent:SetAttribute(names.runtime_marker, true)
 	local statusState = {
 		health = 100,
 		kills = player:GetAttribute(names.state_kills) or 0,
@@ -511,9 +740,8 @@ function Core.start(context)
 	local assetManifest = module("assets/manifest.lua")
 	for _, path in assetManifest do
 		local pack = module(path)
-		instantiate(pack, playerGui, storage, objects, warnings)
+		instantiate(pack, playerGui, storage, objects, warnings, names.runtime_marker)
 	end
-	local assetIndex = module("assets/index.lua")
 	local animationIndex = module("animations/index.lua")
 	local animations = animationPlayer(module, animationIndex)
 	local activeWeather = {}
@@ -528,6 +756,7 @@ function Core.start(context)
 		for _, item in source:GetChildren() do
 			local copy = item:Clone()
 			copy.Name = item.Name
+			copy:SetAttribute(names.runtime_marker, true)
 			copy.Parent = copy:IsA("Model") and workspace or Lighting
 			activeWeather[#activeWeather + 1] = copy
 		end
@@ -536,9 +765,10 @@ function Core.start(context)
 	if musicTemplate and musicTemplate:IsA("Sound") then
 		local music = musicTemplate:Clone()
 		music.Name = names.transient_visual
+		music:SetAttribute(names.runtime_marker, true)
 		music.Parent = SoundService
 		task.spawn(function()
-			while music.Parent do
+			while music.Parent and guard() do
 				local list = assetIndex.playlist
 				if list and #list > 0 then music.SoundId = "rbxassetid://" .. list[math.random(1, #list)] end
 				music:Play()
@@ -550,10 +780,12 @@ function Core.start(context)
 	applyWeather(1)
 
 	local function send(code, value) actionEvent:FireServer(code, value) end
-	local equipLocalWeapon = wireTools(playerGui, player, send, objects, assetIndex)
-	local attachWorldWeapon = worldWeaponBridge(objects, assetIndex, names, player)
+	local interface = wireInterface(player, send, objects, assetIndex, names, guard)
+	local equipLocalWeapon = wireTools(
+		playerGui, player, send, objects, assetIndex, names, guard, interface.attackPreview
+	)
+	local attachWorldWeapon = worldWeaponBridge(objects, assetIndex, names, player, guard)
 	local applyMorph, clearMorph = morphBridge(objects, assetIndex, names)
-	wireVisibleButtons(playerGui, send)
 
 	local function translatePrompt(prompt)
 		local translation = names.prompt_text[prompt.Name]
@@ -565,15 +797,20 @@ function Core.start(context)
 		end
 	end
 	for _, item in game:GetDescendants() do if item:IsA("ProximityPrompt") then translatePrompt(item) end end
-	game.DescendantAdded:Connect(function(item) if item:IsA("ProximityPrompt") then translatePrompt(item) end end)
+	game.DescendantAdded:Connect(function(item)
+		if guard() and item:IsA("ProximityPrompt") then translatePrompt(item) end
+	end)
 
 	local decorated = setmetatable({}, {__mode = "k"})
 	local function decorate(character)
+		if not guard() then return end
 		task.wait()
+		if not guard() then return end
 		restoreCharacter(character)
 		if not decorated[character] then
 			decorated[character] = true
 			character.DescendantAdded:Connect(function(item)
+				if not guard() then return end
 				if item:IsA("BasePart") or item:IsA("Decal") then
 					task.defer(function()
 						if item.Parent and not item:FindFirstAncestor(names.transient_visual) then restoreCharacter(character) end
@@ -586,7 +823,8 @@ function Core.start(context)
 			if humanoid then
 				statusState.health = humanoid.Health
 				updateStatus()
-				humanoid.HealthChanged:Connect(function(value)
+					humanoid.HealthChanged:Connect(function(value)
+						if not guard() then return end
 					statusState.health = value
 					updateStatus()
 				end)
@@ -608,10 +846,12 @@ function Core.start(context)
 	end
 
 	actionEvent.OnClientEvent:Connect(function(code, a, b, c, d, e)
+		if not guard() then return end
 		if code == 129 then
 			if b == names.state_weapon then
 				if a == player then equipLocalWeapon(c) else attachWorldWeapon(a, c) end
 			end
+			if b == names.state_gender and a == player then interface.genderSelected() end
 			if a == player then
 				if b == names.state_kills then statusState.kills = c end
 				if b == names.state_streak then statusState.streak = c end
@@ -620,6 +860,7 @@ function Core.start(context)
 			end
 			if a == player.Character and b == names.state_meter then
 				local meter = tonumber(c) or 0
+				interface.setMeter(meter)
 				if meter >= 0.98 then showNotice(notice, "R - RELEASE", 0.5)
 				elseif meter >= 0.60 then showNotice(notice, "R - Faster", 0.5)
 				elseif meter >= 0.26 then showNotice(notice, "R - Faster", 0.5) end
@@ -656,6 +897,7 @@ function Core.start(context)
 				game:GetService("Debris"):AddItem(highlight, 0.8)
 			end
 		elseif code == 134 and a == 1 then
+			interface.recoveryProgress(b)
 			showNotice(notice, ("Recover: %d/20"):format(b), 0.4)
 		elseif code == 134 and a == 2 then
 			showNotice(notice, b == 1 and "You can't hide forever." or "...", 3)
@@ -672,10 +914,12 @@ function Core.start(context)
 		elseif code == 144 then
 			local labels = {}
 			for index, token in a do labels[index] = names.maps[token] or ("Map " .. index) end
+			interface.beginVote(a, names.maps)
 			showNotice(notice, "Vote: 1=" .. (labels[1] or "-") .. "  2=" .. (labels[2] or "-"), 15)
 		elseif code == 145 then
-			-- Vote counts are available to reconstructed GUI packs.
+			interface.updateVotes(a)
 		elseif code == 146 then
+			interface.endVote()
 			showNotice(notice, "Map selected", 3)
 		elseif code == 147 then
 			applyWeather(a)
@@ -686,7 +930,7 @@ function Core.start(context)
 	end)
 
 	UserInputService.InputBegan:Connect(function(input, processed)
-		if processed then return end
+		if not guard() or processed then return end
 		local character = player.Character
 		if input.KeyCode == Enum.KeyCode.Q then send(49)
 		elseif input.KeyCode == Enum.KeyCode.G then
@@ -695,7 +939,7 @@ function Core.start(context)
 		elseif input.KeyCode == Enum.KeyCode.J then send(83)
 		elseif input.KeyCode == Enum.KeyCode.K then send(84)
 		elseif input.KeyCode == Enum.KeyCode.L then send(85)
-		elseif input.KeyCode == Enum.KeyCode.R then send(97)
+		elseif input.KeyCode == Enum.KeyCode.R then interface.phaseFeedback(); send(97)
 		elseif input.KeyCode == Enum.KeyCode.One and UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) then send(96, 1)
 		elseif input.KeyCode == Enum.KeyCode.Two and UserInputService:IsKeyDown(Enum.KeyCode.LeftAlt) then send(96, 2)
 		end

@@ -4,6 +4,7 @@ local environment = (getgenv and getgenv()) or _G
 local base = environment.FUNCOMBAT_RUNTIME_BASE
 	or "https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/"
 local localRoot = environment.FUNCOMBAT_RUNTIME_LOCAL_ROOT
+local cacheTag = tostring(environment.FUNCOMBAT_RUNTIME_CACHE_TAG or "fc-ui-20260828-01")
 local cache = {}
 
 local function read(path)
@@ -11,7 +12,7 @@ local function read(path)
 		assert(readfile, "readfile is required for local runtime mode")
 		return readfile(localRoot .. "/" .. path)
 	end
-	return game:HttpGet(base .. path, true)
+	return game:HttpGet(base .. path .. "?v=" .. cacheTag, true)
 end
 
 local function module(path)
@@ -27,4 +28,13 @@ end
 local protocol = module("protocol.lua")
 local names = module("names.lua")
 local core = module("core.lua")
-return core.start({module = module, protocol = protocol, names = names, base = base})
+local runToken = game:GetService("HttpService"):GenerateGUID(false)
+environment.FUNCOMBAT_RUNTIME_RUN = runToken
+return core.start({
+	module = module,
+	protocol = protocol,
+	names = names,
+	base = base,
+	environment = environment,
+	run_token = runToken,
+})
