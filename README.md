@@ -1,26 +1,86 @@
-# FunCombatAssets — server-only map/prompts rebuild
+# FunCombat Runtime
 
-The old Lua-serialized runtime (`core.lua`, `data/*.lua`, `loader_*`, UI hotfixes) is gone.
+External presentation/input runtime generated only from `fun combat v1.2 fixed torso.rbxl`.
 
-## Final architecture
+Versions: `GAME_BUILD=fc-20260828-02`, `PROTOCOL_VERSION=2`,
+`RUNTIME_VERSION=1.1.0`, `ASSET_VERSION=2`.
 
-The published Roblox place contains the physical world/map, ProximityPrompts, replicated networking endpoints, and hidden server gameplay code.
+## GitHub layout
 
-- `StarterGui` is empty.
-- `StarterPlayer` contains no client scripts.
-- No LocalScripts are shipped in the server place.
-- Full animations, morphs, VFX, sounds, weapon visuals and GUI are client RBXM assets.
-- Gameplay modules are hidden in ServerStorage under opaque names.
-- ReplicatedStorage exposes only opaque Remotes/RemoteEvents, prompt templates, and the Gender SetInfo endpoint.
-- Client attacks send only an allow-listed move ID. The server validates combo/cooldown and computes victims with `workspace:GetPartBoundsInBox`.
-- Damage, ragdoll/downed, carry/execute, Gender, emote permission, killstreak/awaken and player interaction remain server-authoritative.
+```text
+FunCombat_Runtime/
+├── loader.lua
+├── loader_local.lua
+├── core.lua
+├── protocol.lua
+├── names.lua
+├── README.md
+├── assets/
+│   ├── manifest.lua
+│   └── index.lua
+├── gui/
+│   ├── pack.lua
+│   └── admin_templates.lua
+├── characters/pack.lua
+├── weapons/pack.lua
+├── morphs/pack.lua
+├── vfx/
+│   ├── pack.lua
+│   ├── weather.lua
+│   └── lighting.lua
+├── sounds/pack.lua
+├── animations/
+│   ├── index.lua
+│   ├── manifest.lua
+│   └── data/*.lua
+└── scripts/original/
+    ├── manifest.json
+    └── *.lua.txt
+```
 
-Deployable server build: `FunCombat_ServerOnly_MapPrompts_EXECUTE_FIX.rbxl`.
+`animations/data/` contains 55 original KeyframeSequence/Pose exports
+(47 runtime sequences + 8 development-save sequences).
+Playback uses the exported transforms, not AnimationId.
 
-The build uses compact Roblox binary IDs: all 6,752 instance referents are remapped to `0..6751`, class IDs are compact, PRNT links are remapped, and Object-reference properties are remapped/nullified when their target is outside the thin build.
+## Publish and execute
 
-The execute/get-up interaction fix also removes the stale clear `ReplicatedStorage.Remotes.Ragdoll` lookup from the server Ragdoll module. It now uses the opaque server network path `xaf2bb0d97d5d/xc7720e51b46a`, so `CombatFunctions:grip()` no longer stalls inside `UnRagdoll()` when a player presses Execute.
+1. Upload the contents of this folder to a GitHub repository.
+2. Either replace `REPLACE_ME` in `loader.lua`, or set:
 
-The public client package is `FunCombat_GitHub_Client_FIXED.zip`. The physical map and server source are intentionally not duplicated in that package.
+```lua
+getgenv().FUNCOMBAT_RUNTIME_BASE = "https://raw.githubusercontent.com/OWNER/REPO/BRANCH/"
+```
 
-Server source is intentionally not published in this repository. Obfuscation is source-hardening only; server authority is the security boundary.
+3. Execute:
+
+```lua
+loadstring(game:HttpGet(getgenv().FUNCOMBAT_RUNTIME_BASE .. "loader.lua"))()
+```
+
+For a local checkout with `readfile`, set `FUNCOMBAT_RUNTIME_LOCAL_ROOT` and execute
+`loader_local.lua`.
+
+The loader performs the four-field handshake before loading any asset pack. A mismatch
+stops with a clear error. Runtime-created instance names stay opaque; only player-facing
+text (prompt labels and UI text) is translated locally.
+
+Runtime controls preserve the source behavior: tool activation cycles the three-hit combo,
+`Q` dashes, `G/H/J/K/L` play the five emotes, and `G` becomes recovery input while downed.
+During an interaction, `R` requests the next phase; the server independently validates the
+authoritative meter threshold before accepting it. Exported morphs are applied and cleared
+locally from opaque server presentation events.
+
+## Boundary and trust model
+
+The runtime sends numeric action identifiers. The server chooses timing, target hitbox,
+health changes, lock duration, launch, physics state, interaction validity and cooldowns.
+Client assets are presentation only. The archived original scripts are never executed.
+
+The only deliberately readable runtime instance name is Roblox's structural Tool child
+`Handle`; gameplay/protocol/prompt/runtime instance names remain opaque.
+
+## Compatibility notes
+
+This build is structurally verified but was not play-tested in Roblox Studio. Hidden
+UnionOperation payload properties may require an execution environment that exposes
+`sethiddenproperty`; other MeshPart/texture/sound properties use ordinary Roblox APIs.
