@@ -1,3 +1,0 @@
--- Hello! My name is samuel
--- Thanks for use my model
--- Bye!:)

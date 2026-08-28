@@ -33,9 +33,7 @@ FunCombat_Runtime/
 │   ├── index.lua
 │   ├── manifest.lua
 │   └── data/*.lua
-└── scripts/original/
-    ├── manifest.json
-    └── *.lua.txt
+└── scripts/README.md
 ```
 
 `animations/data/` contains 55 original KeyframeSequence/Pose exports
@@ -83,7 +81,8 @@ wired, hitbox visualization is presentation-only, and the map-vote GUI reflects 
 
 The runtime sends numeric action identifiers. The server chooses timing, target hitbox,
 health changes, lock duration, launch, physics state, interaction validity and cooldowns.
-Client assets are presentation only. The archived original scripts are never executed.
+Client assets are presentation only. Original place script sources are not shipped in this
+public runtime; `core.lua` is the generated presentation/input bridge.
 
 The only deliberately readable runtime instance name is Roblox's structural Tool child
 `Handle`; gameplay/protocol/prompt/runtime instance names remain opaque.
