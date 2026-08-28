@@ -7,6 +7,7 @@ local UIS=game:GetService("UserInputService")
 local Workspace=game:GetService("Workspace")
 local player=Players.LocalPlayer
 local charConn, guiConn, viewConn
+local extraConnections={}
 local touched={}
 
 local function silence(char)
@@ -19,7 +20,9 @@ local function silence(char)
     local hum=char:FindFirstChildOfClass("Humanoid")
     local animator=hum and hum:FindFirstChildOfClass("Animator")
     if animator then
-        for _,track in ipairs(animator:GetPlayingAnimationTracks()) do pcall(function() track:Stop(0.08) end) end
+        for _,track in ipairs(animator:GetPlayingAnimationTracks()) do
+            pcall(function() track:Stop(0.08) end)
+        end
     end
 end
 
@@ -30,6 +33,7 @@ local function restoreAnimate()
     if charConn then charConn:Disconnect() end
     if guiConn then guiConn:Disconnect() end
     if viewConn then viewConn:Disconnect() end
+    for _,c in ipairs(extraConnections) do pcall(function() c:Disconnect() end) end
     for animate,wasDisabled in pairs(touched) do
         if animate and animate.Parent then animate.Disabled=wasDisabled end
     end
@@ -53,102 +57,123 @@ if not ok then restoreAnimate(); error(runErr) end
 
 local playerGui=player:FindFirstChildOfClass("PlayerGui")
 local gui=CoreGui:FindFirstChild("FEAnimPack") or (playerGui and playerGui:FindFirstChild("FEAnimPack"))
+if not gui then return end
 
-if gui then
-    guiConn=gui.AncestryChanged:Connect(function(_,parent)
-        if parent==nil then restoreAnimate() end
-    end)
+guiConn=gui.AncestryChanged:Connect(function(_,parent)
+    if parent==nil then restoreAnimate() end
+end)
 
-    local main=gui:FindFirstChildOfClass("Frame")
-    local camera=Workspace.CurrentCamera
+local main=gui:FindFirstChildOfClass("Frame")
+local camera=Workspace.CurrentCamera
+if not main or not camera then return end
 
-    if main and camera then
-        -- Keep the window inside the phone/tablet viewport.
-        local function fitToScreen(recenter)
-            local viewport=camera.ViewportSize
-            local width=math.min(430, math.max(300, viewport.X-20))
-            local height=math.min(520, math.max(300, viewport.Y-28))
-            main.Size=UDim2.fromOffset(width,height)
+-- Make the menu fit phones and tablets.
+local function fitToScreen(recenter)
+    local viewport=camera.ViewportSize
+    local width=math.min(430, math.max(280, viewport.X-16))
+    local height=math.min(520, math.max(280, viewport.Y-20))
+    main.Size=UDim2.fromOffset(width,height)
 
-            if recenter then
-                local x=math.max(0, math.floor((viewport.X-width)/2))
-                local y=math.max(0, math.floor((viewport.Y-height)/2))
-                main.Position=UDim2.fromOffset(x,y)
-            else
-                local pos=main.AbsolutePosition
-                local maxX=math.max(0,viewport.X-width)
-                local maxY=math.max(0,viewport.Y-height)
-                main.Position=UDim2.fromOffset(math.clamp(pos.X,0,maxX),math.clamp(pos.Y,0,maxY))
-            end
-        end
-
-        fitToScreen(true)
-        viewConn=camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-            task.defer(function()
-                if main and main.Parent then fitToScreen(false) end
-            end)
-        end)
-
-        -- Dedicated drag layer. The original desktop drag code can miss touch-move events.
-        local dragHandle=Instance.new("TextButton")
-        dragHandle.Name="MobileDragHandle"
-        dragHandle.Text=""
-        dragHandle.AutoButtonColor=false
-        dragHandle.BackgroundTransparency=1
-        dragHandle.Active=true
-        dragHandle.Size=UDim2.new(1,-58,0,44)
-        dragHandle.Position=UDim2.fromOffset(0,0)
-        dragHandle.ZIndex=25
-        dragHandle.Parent=main
-
-        local dragging=false
-        local dragInput=nil
-        local dragStart=nil
-        local startAbs=nil
-
-        local function updateDrag(input)
-            if not dragging or not dragStart or not startAbs then return end
-            local delta=input.Position-dragStart
-            local viewport=camera.ViewportSize
-            local size=main.AbsoluteSize
-            local x=math.clamp(startAbs.X+delta.X,0,math.max(0,viewport.X-size.X))
-            local y=math.clamp(startAbs.Y+delta.Y,0,math.max(0,viewport.Y-size.Y))
-            main.Position=UDim2.fromOffset(x,y)
-        end
-
-        dragHandle.InputBegan:Connect(function(input)
-            if input.UserInputType==Enum.UserInputType.Touch or input.UserInputType==Enum.UserInputType.MouseButton1 then
-                dragging=true
-                dragInput=input
-                dragStart=input.Position
-                startAbs=main.AbsolutePosition
-
-                input.Changed:Connect(function()
-                    if input.UserInputState==Enum.UserInputState.End then
-                        dragging=false
-                        dragInput=nil
-                    end
-                end)
-            end
-        end)
-
-        dragHandle.InputChanged:Connect(function(input)
-            if input.UserInputType==Enum.UserInputType.Touch or input.UserInputType==Enum.UserInputType.MouseMovement then
-                dragInput=input
-            end
-        end)
-
-        UIS.InputChanged:Connect(function(input)
-            if dragging and input==dragInput then
-                updateDrag(input)
-            end
-        end)
-
-        UIS.InputEnded:Connect(function(input)
-            if input==dragInput or input.UserInputType==Enum.UserInputType.Touch or input.UserInputType==Enum.UserInputType.MouseButton1 then
-                dragging=false
-                dragInput=nil
-            end
-        end)
+    if recenter then
+        main.Position=UDim2.fromOffset(
+            math.max(0,math.floor((viewport.X-width)/2)),
+            math.max(0,math.floor((viewport.Y-height)/2))
+        )
+    else
+        local p=main.AbsolutePosition
+        main.Position=UDim2.fromOffset(
+            math.clamp(p.X,0,math.max(0,viewport.X-width)),
+            math.clamp(p.Y,0,math.max(0,viewport.Y-height))
+        )
     end
 end
+fitToScreen(true)
+viewConn=camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+    task.defer(function()
+        if main and main.Parent then fitToScreen(false) end
+    end)
+end)
+
+-- Big explicit drag control for mobile. It sits above the title so the old
+-- desktop drag handler in loader.lua never receives this touch.
+local move=Instance.new("TextButton")
+move.Name="MoveHandle"
+move.Size=UDim2.fromOffset(112,34)
+move.Position=UDim2.new(.5,-56,0,4)
+move.BackgroundColor3=Color3.fromRGB(58,58,69)
+move.BorderSizePixel=0
+move.Text="☰  MOVE"
+move.TextColor3=Color3.fromRGB(245,245,248)
+move.Font=Enum.Font.GothamBold
+move.TextSize=12
+move.AutoButtonColor=false
+move.Active=true
+move.ZIndex=100
+move.Parent=main
+local mc=Instance.new("UICorner")
+mc.CornerRadius=UDim.new(0,8)
+mc.Parent=move
+
+local dragging=false
+local activeTouch=nil
+local startTouch=nil
+local startWindow=nil
+
+local function moveFrom(screenPos)
+    if not dragging or not startTouch or not startWindow then return end
+    local delta=screenPos-startTouch
+    local viewport=camera.ViewportSize
+    local size=main.AbsoluteSize
+    local x=math.clamp(startWindow.X+delta.X,0,math.max(0,viewport.X-size.X))
+    local y=math.clamp(startWindow.Y+delta.Y,0,math.max(0,viewport.Y-size.Y))
+    main.Position=UDim2.fromOffset(x,y)
+end
+
+-- Start drag on the MOVE control.
+extraConnections[#extraConnections+1]=move.InputBegan:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.Touch then
+        dragging=true
+        activeTouch=input
+        startTouch=input.Position
+        startWindow=main.AbsolutePosition
+    elseif input.UserInputType==Enum.UserInputType.MouseButton1 then
+        dragging=true
+        activeTouch=nil
+        startTouch=input.Position
+        startWindow=main.AbsolutePosition
+    end
+end)
+
+-- Direct mobile events. These are much more reliable than generic InputChanged
+-- on several Android executors.
+extraConnections[#extraConnections+1]=UIS.TouchMoved:Connect(function(input)
+    if dragging and activeTouch then
+        -- Some executors wrap touch InputObjects strangely, so do not require
+        -- strict object identity here. While MOVE is held, the moving finger wins.
+        moveFrom(input.Position)
+    end
+end)
+extraConnections[#extraConnections+1]=UIS.TouchEnded:Connect(function(input)
+    if dragging and activeTouch then
+        dragging=false
+        activeTouch=nil
+        startTouch=nil
+        startWindow=nil
+    end
+end)
+
+-- Desktop fallback.
+extraConnections[#extraConnections+1]=UIS.InputChanged:Connect(function(input)
+    if dragging and not activeTouch and input.UserInputType==Enum.UserInputType.MouseMovement then
+        moveFrom(input.Position)
+    end
+end)
+extraConnections[#extraConnections+1]=UIS.InputEnded:Connect(function(input)
+    if input.UserInputType==Enum.UserInputType.MouseButton1 and not activeTouch then
+        dragging=false
+        startTouch=nil
+        startWindow=nil
+    end
+end)
+
+print("[FEAnimPack] mobile drag v3 ready")
