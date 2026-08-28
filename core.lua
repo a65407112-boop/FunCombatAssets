@@ -304,9 +304,10 @@ end
 
 local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview)
 	local currentTool
+	local connectedTools = setmetatable({}, {__mode = "k"})
 	local function connectTool(tool)
-		if tool:GetAttribute(names.runtime_marker) then return end
-		tool:SetAttribute(names.runtime_marker, true)
+		if connectedTools[tool] then return end
+		connectedTools[tool] = true
 		tool.Activated:Connect(function()
 			if not guard() then return end
 			if attackPreview then attackPreview() end
