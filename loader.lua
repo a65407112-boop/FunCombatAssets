@@ -1,8 +1,8 @@
--- Configure FUNCOMBAT_RUNTIME_BASE before executing if the repository is not
--- published at the placeholder URL below. The value must end with a slash.
+-- The generated build is preconfigured for the project's public runtime repository.
+-- FUNCOMBAT_RUNTIME_BASE can still override it and must end with a slash.
 local environment = (getgenv and getgenv()) or _G
 local base = environment.FUNCOMBAT_RUNTIME_BASE
-	or "https://raw.githubusercontent.com/REPLACE_ME/FunCombat_Runtime/main/"
+	or "https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/"
 local localRoot = environment.FUNCOMBAT_RUNTIME_LOCAL_ROOT
 local cache = {}
 

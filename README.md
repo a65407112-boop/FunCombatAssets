@@ -2,7 +2,7 @@
 
 External presentation/input runtime generated only from `fun combat v1.2 fixed torso.rbxl`.
 
-Versions: `GAME_BUILD=fc-20260828-02`, `PROTOCOL_VERSION=2`,
+Versions: `GAME_BUILD=fc-20260828-03`, `PROTOCOL_VERSION=2`,
 `RUNTIME_VERSION=1.1.0`, `ASSET_VERSION=2`.
 
 ## GitHub layout
@@ -44,18 +44,19 @@ Playback uses the exported transforms, not AnimationId.
 
 ## Publish and execute
 
-1. Upload the contents of this folder to a GitHub repository.
-2. Either replace `REPLACE_ME` in `loader.lua`, or set:
+The generated loader is already pointed at:
 
-```lua
-getgenv().FUNCOMBAT_RUNTIME_BASE = "https://raw.githubusercontent.com/OWNER/REPO/BRANCH/"
+```text
+https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/
 ```
 
-3. Execute:
+Upload the contents of this folder to the root of that repository, then execute:
 
 ```lua
-loadstring(game:HttpGet(getgenv().FUNCOMBAT_RUNTIME_BASE .. "loader.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua"))()
 ```
+
+`FUNCOMBAT_RUNTIME_BASE` remains available as an optional override for forks or local mirrors.
 
 For a local checkout with `readfile`, set `FUNCOMBAT_RUNTIME_LOCAL_ROOT` and execute
 `loader_local.lua`.
