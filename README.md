@@ -53,7 +53,7 @@ https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/
 Upload the contents of this folder to the root of that repository, then execute:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260828-01", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260828-02", true))()
 ```
 
 The query tag forces a fresh runtime after an update. Rejoin the server before running a newer
