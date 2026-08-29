@@ -4,7 +4,7 @@ local environment = (getgenv and getgenv()) or _G
 local base = environment.FUNCOMBAT_RUNTIME_BASE
 	or "https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/"
 local localRoot = environment.FUNCOMBAT_RUNTIME_LOCAL_ROOT
-local cacheTag = tostring(environment.FUNCOMBAT_RUNTIME_CACHE_TAG or "fc-ui-20260829-05")
+local cacheTag = tostring(environment.FUNCOMBAT_RUNTIME_CACHE_TAG or "fc-ui-20260829-06")
 local cache = {}
 
 local function read(path)

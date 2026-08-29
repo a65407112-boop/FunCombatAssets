@@ -1002,23 +1002,38 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 	local function apply(character)
 		if not guard() or not character or not character.Parent or not source or not source:IsA("Model") then return end
 		clear(character)
-		local copy = source:Clone()
+		for _, item in character:GetChildren() do
+			if item:IsA("BasePart") then item.LocalTransparencyModifier = 1
+			elseif item:IsA("Decal") then item.Transparency = 1 end
+		end
+		local copy
+		local owner = Players:GetPlayerFromCharacter(character)
+		if owner then
+			local ok, avatar = pcall(function()
+				local description = Players:GetHumanoidDescriptionFromUserId(owner.UserId)
+				return Players:CreateHumanoidModelFromDescription(description, Enum.HumanoidRigType.R6)
+			end)
+			if ok and avatar and avatar:IsA("Model") then copy = avatar end
+		end
+		copy = copy or source:Clone()
 		copy.Name = names.transient_visual
 		copy:SetAttribute(names.runtime_marker, true)
 		for _, item in copy:GetDescendants() do
-			if item:IsA("Humanoid") or item:IsA("Animator") then item:Destroy() end
+			if item:IsA("Humanoid") or item:IsA("Animator") or item:IsA("Script")
+				or item:IsA("LocalScript") then item:Destroy() end
 		end
 		local proxyRoot = character:FindFirstChild("HumanoidRootPart")
 		local sourceRoot
 		for _, item in copy:GetDescendants() do
-			if item:IsA("BasePart") and partTargets[item.Name] == "HumanoidRootPart" then sourceRoot = item; break end
+			local targetName = partTargets[item.Name] or item.Name
+			if item:IsA("BasePart") and targetName == "HumanoidRootPart" then sourceRoot = item; break end
 		end
 		if not proxyRoot or not sourceRoot then copy:Destroy(); return end
 		local delta = proxyRoot.CFrame * sourceRoot.CFrame:Inverse()
 		local visualParts = {}
 		for _, item in copy:GetDescendants() do
 			if item:IsA("BasePart") then
-				local targetName = partTargets[item.Name]
+				local targetName = partTargets[item.Name] or item.Name
 				item.Anchored = false
 				item.CanCollide = false
 				item.CanQuery = false
@@ -1038,7 +1053,7 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 		local visualMotors = {}
 		for _, item in copy:GetDescendants() do
 			if item:IsA("Motor6D") and item.Part1 then
-				local targetName = partTargets[item.Part1.Name]
+				local targetName = partTargets[item.Part1.Name] or item.Part1.Name
 				if targetName then visualMotors[targetName] = item end
 			end
 		end
