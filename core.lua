@@ -224,7 +224,7 @@ local function motorMap(character)
 	return map
 end
 
-local function animationPlayer(module, index)
+local function animationPlayer(module, index, visualMotorMap)
 	local loaded = {}
 	local tracks = setmetatable({}, {__mode = "k"})
 	local function get(animationCode)
@@ -246,6 +246,9 @@ local function animationPlayer(module, index)
 		if not character or not sequence or #sequence.frames == 0 then return end
 		stop(character)
 		local motors = motorMap(character)
+		if visualMotorMap then
+			for key, motor in visualMotorMap(character) or {} do motors[key] = motor end
+		end
 		local track = {cancelled = false, tweens = {}, motors = motors}
 		tracks[character] = track
 		local started = os.clock()
@@ -385,9 +388,11 @@ local function newWindowController()
 	return {register = register, closeAll = closeAll}
 end
 
-local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview, windows)
+local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview, windows, characterVisuals)
 	local currentTool
+	local currentJoint
 	local lastActivation = 0
+	local lastDash = 0
 	local connectedTools = setmetatable({}, {__mode = "k"})
 	local function activate()
 		if not guard() or os.clock() - lastActivation < 0.08 then return end
@@ -403,8 +408,13 @@ local function wireTools(playerGui, player, send, objects, assetIndex, names, gu
 		end)
 	end
 	UserInputService.InputBegan:Connect(function(input, processed)
-		if processed or input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
-		if currentTool and player.Character and currentTool.Parent == player.Character then activate() end
+		if not currentTool or not player.Character or currentTool.Parent ~= player.Character then return end
+		if input.UserInputType == Enum.UserInputType.MouseButton1 and not processed then
+			activate()
+		elseif input.KeyCode == Enum.KeyCode.Q and os.clock() - lastDash >= 0.12 then
+			lastDash = os.clock()
+			send(49)
+		end
 	end)
 	local gui = assetIndex.gui or {}
 	local picker = objects[gui.weapon_picker]
@@ -440,6 +450,7 @@ local function wireTools(playerGui, player, send, objects, assetIndex, names, gu
 		local id = assetIndex.weapons and assetIndex.weapons[selection]
 		local source = id and objects[id]
 		if not source or not source:IsA("Tool") then return end
+		if currentJoint then currentJoint:Destroy(); currentJoint = nil end
 		if currentTool then currentTool:Destroy() end
 		currentTool = source:Clone()
 		currentTool.Name = source.Name
@@ -451,7 +462,28 @@ local function wireTools(playerGui, player, send, objects, assetIndex, names, gu
 		currentTool.Parent = player:WaitForChild("Backpack")
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
-		if humanoid then pcall(function() humanoid:EquipTool(currentTool) end) end
+		if humanoid then
+			pcall(function() humanoid:EquipTool(currentTool) end)
+			task.defer(function()
+				if not currentTool or not currentTool.Parent or not character then return end
+				local handle = currentTool:FindFirstChild("Handle", true)
+				local visualHand = characterVisuals and characterVisuals.part(character, "Right Arm")
+				if not handle or not handle:IsA("BasePart") or not visualHand then return end
+				for _, item in character:GetDescendants() do
+					if item:IsA("Motor6D") and item.Part1 == handle then item:Destroy() end
+				end
+				handle.CFrame = visualHand.CFrame
+				local joint = Instance.new("Motor6D")
+				joint.Name = names.transient_visual
+				joint:SetAttribute(names.runtime_marker, true)
+				joint.Part0 = visualHand
+				joint.Part1 = handle
+				joint.C0 = CFrame.new(0, -1, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
+				joint.C1 = source.Grip
+				joint.Parent = visualHand
+				currentJoint = joint
+			end)
+		end
 	end
 	local function pulse()
 		if not currentTool or not currentTool.Parent then return end
@@ -959,11 +991,13 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 	local partTargets = assetIndex.character_part_targets or {}
 	local active = setmetatable({}, {__mode = "k"})
 	local partsByCharacter = setmetatable({}, {__mode = "k"})
+	local motorsByCharacter = setmetatable({}, {__mode = "k"})
 	local function clear(character)
 		local visual = active[character]
 		if visual and visual.Parent then visual:Destroy() end
 		active[character] = nil
 		partsByCharacter[character] = nil
+		motorsByCharacter[character] = nil
 	end
 	local function apply(character)
 		if not guard() or not character or not character.Parent or not source or not source:IsA("Model") then return end
@@ -972,35 +1006,45 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 		copy.Name = names.transient_visual
 		copy:SetAttribute(names.runtime_marker, true)
 		for _, item in copy:GetDescendants() do
-			if item:IsA("Humanoid") or item:IsA("Animator") or item:IsA("Motor6D") then item:Destroy() end
+			if item:IsA("Humanoid") or item:IsA("Animator") then item:Destroy() end
 		end
-		copy.Parent = character
+		local proxyRoot = character:FindFirstChild("HumanoidRootPart")
+		local sourceRoot
+		for _, item in copy:GetDescendants() do
+			if item:IsA("BasePart") and partTargets[item.Name] == "HumanoidRootPart" then sourceRoot = item; break end
+		end
+		if not proxyRoot or not sourceRoot then copy:Destroy(); return end
+		local delta = proxyRoot.CFrame * sourceRoot.CFrame:Inverse()
 		local visualParts = {}
 		for _, item in copy:GetDescendants() do
 			if item:IsA("BasePart") then
 				local targetName = partTargets[item.Name]
-				local target = targetName and character:FindFirstChild(targetName)
-				if target and target:IsA("BasePart") then
-					item.Anchored = false
-					item.CanCollide = false
-					item.CanQuery = false
-					item.CanTouch = false
-					item.Massless = true
-					item.CFrame = target.CFrame
-					local weld = Instance.new("WeldConstraint")
-					weld.Name = names.transient_visual
-					weld:SetAttribute(names.runtime_marker, true)
-					weld.Part0 = target
-					weld.Part1 = item
-					weld.Parent = item
-					visualParts[targetName] = item
-				else
-					item:Destroy()
-				end
+				item.Anchored = false
+				item.CanCollide = false
+				item.CanQuery = false
+				item.CanTouch = false
+				item.Massless = true
+				item.CFrame = delta * item.CFrame
+				if targetName then visualParts[targetName] = item end
+			end
+		end
+		copy.Parent = character
+		local rootWeld = Instance.new("WeldConstraint")
+		rootWeld.Name = names.transient_visual
+		rootWeld:SetAttribute(names.runtime_marker, true)
+		rootWeld.Part0 = proxyRoot
+		rootWeld.Part1 = sourceRoot
+		rootWeld.Parent = sourceRoot
+		local visualMotors = {}
+		for _, item in copy:GetDescendants() do
+			if item:IsA("Motor6D") and item.Part1 then
+				local targetName = partTargets[item.Part1.Name]
+				if targetName then visualMotors[targetName] = item end
 			end
 		end
 		active[character] = copy
 		partsByCharacter[character] = visualParts
+		motorsByCharacter[character] = visualMotors
 		return copy
 	end
 	local function setTorsoVisible(character, visible)
@@ -1008,10 +1052,15 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 		local torso = parts and (parts.Torso or parts.UpperTorso)
 		if torso and torso.Parent then torso.LocalTransparencyModifier = visible and 0 or 1 end
 	end
-	return {apply = apply, clear = clear, setTorsoVisible = setTorsoVisible}
+	local function motors(character) return motorsByCharacter[character] end
+	local function part(character, targetName)
+		local parts = partsByCharacter[character]
+		return parts and parts[targetName] or nil
+	end
+	return {apply = apply, clear = clear, setTorsoVisible = setTorsoVisible, motors = motors, part = part}
 end
 
-local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard)
+local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard, characterVisuals)
 	local current = setmetatable({}, {__mode = "k"})
 	local selected = setmetatable({}, {__mode = "k"})
 	local function attach(owner, selection)
@@ -1027,7 +1076,8 @@ local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard)
 		local character = owner.Character
 		local source = objects[assetIndex.weapons and assetIndex.weapons[selection]]
 		if not character or not source or not source:IsA("Tool") then return end
-		local hand = character:FindFirstChild("Right Arm") or character:FindFirstChild("RightHand")
+		local hand = characterVisuals and characterVisuals.part(character, "Right Arm")
+			or character:FindFirstChild("Right Arm") or character:FindFirstChild("RightHand")
 		local copy = source:Clone()
 		local handle = copy:FindFirstChild("Handle", true)
 		if not hand or not handle or not handle:IsA("BasePart") then copy:Destroy(); return end
@@ -1391,8 +1441,9 @@ function Core.start(context)
 	for _, instance in objects do
 		if instance:IsA("Sound") then pcall(function() instance:Stop(); instance.TimePosition = 0 end) end
 	end
+	local characterVisuals = characterVisualBridge(objects, assetIndex, names, guard)
 	local animationIndex = module("animations/index.lua")
-	local animations = animationPlayer(module, animationIndex)
+	local animations = animationPlayer(module, animationIndex, characterVisuals.motors)
 	locomotionBridge(animations, names, guard)
 	local activeWeather = {}
 	local rainConnection
@@ -1496,10 +1547,9 @@ function Core.start(context)
 	local windows = newWindowController()
 	local interface = wireInterface(player, send, objects, assetIndex, names, guard, windows)
 	local localTools = wireTools(
-		playerGui, player, send, objects, assetIndex, names, guard, interface.attackPreview, windows
+		playerGui, player, send, objects, assetIndex, names, guard, interface.attackPreview, windows, characterVisuals
 	)
-	local worldTools = worldWeaponBridge(objects, assetIndex, names, player, guard)
-	local characterVisuals = characterVisualBridge(objects, assetIndex, names, guard)
+	local worldTools = worldWeaponBridge(objects, assetIndex, names, player, guard, characterVisuals)
 	local applyMorph, clearMorph = morphBridge(objects, assetIndex, names, characterVisuals)
 	local feedback = feedbackBridge(playerGui, player, objects, assetIndex, names, guard)
 	wireAdmin(playerGui, player, send, objects, assetIndex, names, guard, windows, adminAllowed == true)
@@ -1525,6 +1575,11 @@ function Core.start(context)
 		if not guard() then return end
 		characterVisuals.apply(character)
 		feedback.decorate(character, Players:GetPlayerFromCharacter(character))
+		local owner = Players:GetPlayerFromCharacter(character)
+		local selection = owner and owner:GetAttribute(names.state_weapon)
+		if selection and selection > 0 then
+			if owner == player then localTools.equip(selection) else worldTools.attach(owner, selection) end
+		end
 		decorated[character] = true
 		if character == player.Character then
 			windows.closeAll()
