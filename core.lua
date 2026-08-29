@@ -387,16 +387,25 @@ end
 
 local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview, windows)
 	local currentTool
+	local lastActivation = 0
 	local connectedTools = setmetatable({}, {__mode = "k"})
+	local function activate()
+		if not guard() or os.clock() - lastActivation < 0.08 then return end
+		lastActivation = os.clock()
+		if attackPreview then attackPreview() end
+		send(23)
+	end
 	local function connectTool(tool)
 		if connectedTools[tool] then return end
 		connectedTools[tool] = true
 		tool.Activated:Connect(function()
-			if not guard() then return end
-			if attackPreview then attackPreview() end
-			send(23)
+			activate()
 		end)
 	end
+	UserInputService.InputBegan:Connect(function(input, processed)
+		if processed or input.UserInputType ~= Enum.UserInputType.MouseButton1 then return end
+		if currentTool and player.Character and currentTool.Parent == player.Character then activate() end
+	end)
 	local gui = assetIndex.gui or {}
 	local picker = objects[gui.weapon_picker]
 	local opener = objects[gui.weapon_open]
@@ -486,6 +495,9 @@ local function wireInterface(player, send, objects, assetIndex, names, guard, wi
 	float(get("title_primary"), UDim2.new(0.5, 0, 0, 50), -5, 0.3, 1)
 	float(get("title_secondary"), UDim2.new(0.5, 0, 0, 75), -5, 0.3, 1)
 	float(get("title_tertiary"), UDim2.new(0.5, 0, 0, 100), -5, 0.3, 1)
+	float(get("hitbox_button"), UDim2.new(1, -150, 0.75, 0), 4, 0.6, 1.7)
+	float(get("meter_frame"), UDim2.new(0, 30, 0.55, 0), -3, 0.6, 2)
+	float(get("emotes_toggle") and get("emotes_toggle").Parent, UDim2.new(0, 30, 0, 10), -2, 0.4, 1.3)
 	local subtitle = get("subtitle_label")
 	local subtitleSerial = 0
 	if subtitle and subtitle:IsA("TextLabel") then
@@ -590,7 +602,18 @@ local function wireInterface(player, send, objects, assetIndex, names, guard, wi
 		local button = objects[id]
 		if button and button:IsA("GuiButton") then
 			button.MouseEnter:Connect(function()
-				if guard() then play(get("gender_hover_sound")) end
+				if not guard() then return end
+				play(get("gender_hover_sound"))
+				TweenService:Create(button, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+					Rotation = -3,
+				}):Play()
+			end)
+			button.MouseLeave:Connect(function()
+				if guard() then
+					TweenService:Create(button, TweenInfo.new(0.1, Enum.EasingStyle.Linear, Enum.EasingDirection.In), {
+						Rotation = 0,
+					}):Play()
+				end
 			end)
 		end
 		connect(button, function()
@@ -1142,6 +1165,7 @@ local function feedbackBridge(playerGui, player, objects, assetIndex, names, gua
 		if not record then return end
 		for _, connection in record.connections do connection:Disconnect() end
 		if record.gui and record.gui.Parent then record.gui:Destroy() end
+		if record.info and record.info.Parent then record.info:Destroy() end
 		decorated[character] = nil
 	end
 	local function decorate(character, owner)
@@ -1150,15 +1174,45 @@ local function feedbackBridge(playerGui, player, objects, assetIndex, names, gua
 		local head = character:FindFirstChild("Head")
 		local humanoid = character:FindFirstChildWhichIsA("Humanoid")
 		local copy = markedClone(refs.stats)
-		if not head or not humanoid or not copy then if copy then copy:Destroy() end; return end
+		local info = markedClone(refs.info)
+		if not head or not humanoid or not copy then
+			if copy then copy:Destroy() end
+			if info then info:Destroy() end
+			return
+		end
 		if copy:IsA("BillboardGui") then copy.Adornee = head end
 		copy.Parent = head
+		if info then
+			if info:IsA("BillboardGui") then info.Adornee = head end
+			info.Parent = head
+		end
 		local nameLabel = clonedDescendant(copy, refs.stats_name)
 		local healthBar = clonedDescendant(copy, refs.stats_health)
 		local meterBar = clonedDescendant(copy, refs.stats_meter)
 		if nameLabel and nameLabel:IsA("TextLabel") then
 			nameLabel.Text = owner and owner.DisplayName or "Player"
 		end
+		local infoName = info and clonedDescendant(info, refs.info_name)
+		local infoNameBackground = info and clonedDescendant(info, refs.info_name_background)
+		local genderLabel = info and clonedDescendant(info, refs.info_gender)
+		local genderBackground = info and clonedDescendant(info, refs.info_gender_background)
+		if infoName and infoName:IsA("TextLabel") then infoName.Text = owner and owner.DisplayName or "Player" end
+		if infoNameBackground and infoNameBackground:IsA("TextLabel") then infoNameBackground.Text = owner and owner.DisplayName or "Player" end
+		local function updateGender()
+			local value = owner and tonumber(owner:GetAttribute(names.state_gender))
+			local labels = {[1] = "Female", [2] = "Male", [3] = "Fembxy"}
+			local foreground = {[1] = Color3.fromRGB(170, 86, 162), [2] = Color3.fromRGB(27, 175, 158), [3] = Color3.fromRGB(72, 0, 130)}
+			local background = value == 1 and Color3.fromRGB(35, 23, 34) or Color3.fromRGB(26, 42, 53)
+			if genderLabel and genderLabel:IsA("TextLabel") then
+				genderLabel.Text = labels[value] or ""
+				if foreground[value] then genderLabel.TextColor3 = foreground[value] end
+			end
+			if genderBackground and genderBackground:IsA("TextLabel") then
+				genderBackground.Text = labels[value] or ""
+				genderBackground.TextColor3 = background
+			end
+		end
+		updateGender()
 		local function updateHealth(value)
 			if healthBar and healthBar:IsA("GuiObject") then
 				local ratio = math.clamp(value / math.max(1, humanoid.MaxHealth), 0, 1)
@@ -1173,10 +1227,12 @@ local function feedbackBridge(playerGui, player, objects, assetIndex, names, gua
 		end
 		updateHealth(humanoid.Health)
 		updateMeter()
-		decorated[character] = {gui = copy, connections = {
+		local connections = {
 			humanoid.HealthChanged:Connect(updateHealth),
 			character:GetAttributeChangedSignal(names.state_meter):Connect(updateMeter),
-		}}
+		}
+		if owner then connections[#connections + 1] = owner:GetAttributeChangedSignal(names.state_gender):Connect(updateGender) end
+		decorated[character] = {gui = copy, info = info, connections = connections}
 	end
 	local function refreshTags()
 		for _, owner in Players:GetPlayers() do

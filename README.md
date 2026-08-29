@@ -2,8 +2,8 @@
 
 External presentation/input runtime generated only from `fun combat v1.2 fixed torso.rbxl`.
 
-Versions: `GAME_BUILD=fc-20260828-04`, `PROTOCOL_VERSION=3`,
-`RUNTIME_VERSION=1.2.0`, `ASSET_VERSION=3`.
+Versions: `GAME_BUILD=fc-20260829-05`, `PROTOCOL_VERSION=4`,
+`RUNTIME_VERSION=1.3.0`, `ASSET_VERSION=4`.
 
 ## GitHub layout
 
@@ -27,8 +27,7 @@ FunCombat_Runtime/
 ├── morphs/pack.lua
 ├── vfx/
 │   ├── pack.lua
-│   ├── weather.lua
-│   └── lighting.lua
+│   └── weather.lua
 ├── sounds/pack.lua
 ├── animations/
 │   ├── index.lua
@@ -52,7 +51,7 @@ https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/
 Upload the contents of this folder to the root of that repository, then execute:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260828-03", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260829-04", true))()
 ```
 
 The query tag forces a fresh runtime after an update. Rejoin the server before running a newer
