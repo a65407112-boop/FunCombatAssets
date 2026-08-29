@@ -260,25 +260,32 @@ local function animationPlayer(module, index, visualMotorMap)
 				for _, frame in sequence.frames do
 					if track.cancelled or not character.Parent then return end
 					local frameDuration = math.max(0, frame[1] - previousTime) / speed
-					table.clear(track.tweens)
+					local transitions = {}
 					for _, pose in frame[2] do
 						local motor = motors[pose[1]]
 						if motor then
 							local target = CFrame.new(table.unpack(pose[2]))
-							if frameDuration > 0 then
-								local style = enumFromValue(Enum.EasingStyle.Linear, pose[3])
-								local direction = enumFromValue(Enum.EasingDirection.In, pose[4])
-								pcall(function()
-									local tween = TweenService:Create(motor, TweenInfo.new(frameDuration, style, direction), {Transform = target})
-									track.tweens[#track.tweens + 1] = tween
-									tween:Play()
-								end)
-							else
-								motor.Transform = target
+							transitions[#transitions + 1] = {
+								motor, motor.Transform, target,
+								enumFromValue(Enum.EasingStyle.Linear, pose[3]),
+								enumFromValue(Enum.EasingDirection.In, pose[4]),
+							}
+						end
+					end
+					if frameDuration <= 0 then
+						for _, transition in transitions do transition[1].Transform = transition[3] end
+					else
+						local elapsed = 0
+						while elapsed < frameDuration do
+							if track.cancelled or not character.Parent then return end
+							elapsed += RunService.RenderStepped:Wait()
+							local alpha = math.clamp(elapsed / frameDuration, 0, 1)
+							for _, transition in transitions do
+								local eased = TweenService:GetValue(alpha, transition[4], transition[5])
+								transition[1].Transform = transition[2]:Lerp(transition[3], eased)
 							end
 						end
 					end
-					if frameDuration > 0 then task.wait(frameDuration) end
 					previousTime = frame[1]
 				end
 			until not sequence.looped or track.cancelled
@@ -469,18 +476,26 @@ local function wireTools(playerGui, player, send, objects, assetIndex, names, gu
 				local handle = currentTool:FindFirstChild("Handle", true)
 				local visualHand = characterVisuals and characterVisuals.part(character, "Right Arm")
 				if not handle or not handle:IsA("BasePart") or not visualHand then return end
+				local joint
 				for _, item in character:GetDescendants() do
-					if item:IsA("Motor6D") and item.Part1 == handle then item:Destroy() end
+					if item:IsA("Motor6D") and item.Part1 == handle then
+						joint = item
+						break
+					end
 				end
-				handle.CFrame = visualHand.CFrame
-				local joint = Instance.new("Motor6D")
-				joint.Name = names.transient_visual
+				if joint then
+					joint.Part0 = visualHand
+				else
+					handle.CFrame = visualHand.CFrame
+					joint = Instance.new("Motor6D")
+					joint.Name = names.transient_visual
+					joint.Part0 = visualHand
+					joint.Part1 = handle
+					joint.C0 = CFrame.new(0, -1, 0)
+					joint.C1 = source.Grip
+					joint.Parent = visualHand
+				end
 				joint:SetAttribute(names.runtime_marker, true)
-				joint.Part0 = visualHand
-				joint.Part1 = handle
-				joint.C0 = CFrame.new(0, -1, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
-				joint.C1 = source.Grip
-				joint.Parent = visualHand
 				currentJoint = joint
 			end)
 		end
@@ -1030,6 +1045,7 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 		end
 		if not proxyRoot or not sourceRoot then copy:Destroy(); return end
 		local delta = proxyRoot.CFrame * sourceRoot.CFrame:Inverse()
+		copy:PivotTo(delta * copy:GetPivot())
 		local visualParts = {}
 		for _, item in copy:GetDescendants() do
 			if item:IsA("BasePart") then
@@ -1039,7 +1055,6 @@ local function characterVisualBridge(objects, assetIndex, names, guard)
 				item.CanQuery = false
 				item.CanTouch = false
 				item.Massless = true
-				item.CFrame = delta * item.CFrame
 				if targetName then visualParts[targetName] = item end
 			end
 		end
