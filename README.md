@@ -2,8 +2,8 @@
 
 External presentation/input runtime generated only from `fun combat v1.2 fixed torso.rbxl`.
 
-Versions: `GAME_BUILD=fc-20260829-07`, `PROTOCOL_VERSION=4`,
-`RUNTIME_VERSION=1.4.0`, `ASSET_VERSION=6`.
+Versions: `GAME_BUILD=fc-20260829-08`, `PROTOCOL_VERSION=4`,
+`RUNTIME_VERSION=1.4.1`, `ASSET_VERSION=7`.
 
 ## GitHub layout
 
