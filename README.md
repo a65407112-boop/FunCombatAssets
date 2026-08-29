@@ -2,8 +2,8 @@
 
 External presentation/input runtime generated only from `fun combat v1.2 fixed torso.rbxl`.
 
-Versions: `GAME_BUILD=fc-20260828-03`, `PROTOCOL_VERSION=2`,
-`RUNTIME_VERSION=1.1.0`, `ASSET_VERSION=2`.
+Versions: `GAME_BUILD=fc-20260828-04`, `PROTOCOL_VERSION=3`,
+`RUNTIME_VERSION=1.2.0`, `ASSET_VERSION=3`.
 
 ## GitHub layout
 
@@ -20,7 +20,8 @@ FunCombat_Runtime/
 │   └── index.lua
 ├── gui/
 │   ├── pack.lua
-│   └── admin_templates.lua
+│   ├── admin_templates.lua
+│   └── feedback.lua
 ├── characters/pack.lua
 ├── weapons/pack.lua
 ├── morphs/pack.lua
@@ -37,7 +38,7 @@ FunCombat_Runtime/
 ```
 
 `animations/data/` contains 55 original KeyframeSequence/Pose exports
-(47 runtime sequences + 8 development-save sequences).
+(45 presentation sequences wired by the runtime + 10 reference/development sequences).
 Playback uses the exported transforms, not AnimationId.
 
 ## Publish and execute
@@ -51,7 +52,7 @@ https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/
 Upload the contents of this folder to the root of that repository, then execute:
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260828-02", true))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?ui=20260828-03", true))()
 ```
 
 The query tag forces a fresh runtime after an update. Rejoin the server before running a newer
@@ -72,10 +73,22 @@ During an interaction, `R` requests the next phase; the server independently val
 authoritative meter threshold before accepting it. Exported morphs are applied and cleared
 locally from opaque server presentation events.
 
-The runtime directly replaces the removed GUI LocalScripts: WEAPONS opens/closes the picker,
-weapon choices equip the selected local Tool, the emote drawer and buttons work, gender choices
-are submitted through opaque actions, mobile dash/recovery/phase and shift-lock controls are
-wired, hitbox visualization is presentation-only, and the map-vote GUI reflects server votes.
+The runtime directly replaces the removed GUI LocalScripts. Windows are mutually exclusive and
+survive respawn: WEAPONS toggles the picker, weapon selection equips the local presentation Tool,
+the emote drawer closes after selection, gender closes after a valid choice, and the custom admin
+panel opens/closes and switches tabs. Mobile dash/recovery/phase, shift-lock, hitbox preview and
+map voting are wired. One guarded music controller owns the playlist, stops stale runtime tracks,
+and never imports a Sound with `Playing=true`.
+
+Every compatible client reconstructs the source R6 presentation shell over the invisible server
+physics proxy. Weapon selection, trails, embedded keyframe animation, impact VFX/sounds, morphs,
+carry/execute presentation, awaken effects and current state are broadcast by the authoritative
+server and resynchronized after runtime startup. Therefore two players running the same build see
+each other's presentation and interact through the same server state.
+
+The custom admin panel is returned only to Studio users, the user/group owner, and the source
+allowlist. Kick/kill/remove commands use prefix resolution and rate limits and are authorized and
+executed by the server; the original unauthenticated admin remote is not retained.
 
 ## Boundary and trust model
 

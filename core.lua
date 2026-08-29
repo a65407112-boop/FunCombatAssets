@@ -122,6 +122,13 @@ local function instantiate(pack, playerGui, storage, objects, warnings, marker)
 					warnings[#warnings + 1] = record[3] .. "." .. property
 				end
 			end
+			if instance:IsA("ScreenGui") then instance.ResetOnSpawn = false end
+			if instance:IsA("Sound") then
+				pcall(function()
+					instance:Stop()
+					instance.TimePosition = 0
+				end)
+			end
 		end
 	end
 	local target = destination(pack.target, playerGui, storage)
@@ -130,6 +137,12 @@ local function instantiate(pack, playerGui, storage, objects, warnings, marker)
 		if instance then
 			local parent = record[2] and localObjects[record[2]] or target
 			pcall(function() instance.Parent = parent end)
+			if instance:IsA("Sound") then
+				pcall(function()
+					instance:Stop()
+					instance.TimePosition = 0
+				end)
+			end
 			if not record[2] and marker then pcall(function() instance:SetAttribute(marker, true) end) end
 		end
 	end
@@ -200,20 +213,6 @@ local function showNotice(label, text, duration)
 	end)
 end
 
-local function restoreCharacter(character)
-	if not character then return end
-	for _, item in character:GetDescendants() do
-		if item:IsA("BasePart") then
-			pcall(function()
-				item.Transparency = item.Name == "HumanoidRootPart" and 1 or 0
-				item.LocalTransparencyModifier = 0
-			end)
-		elseif item:IsA("Decal") then
-			pcall(function() item.Transparency = 0 end)
-		end
-	end
-end
-
 local function motorMap(character)
 	local map = {}
 	for _, item in character:GetDescendants() do
@@ -236,25 +235,29 @@ local function animationPlayer(module, index)
 	end
 	local function stop(character)
 		local track = tracks[character]
-		if track then track.cancelled = true; tracks[character] = nil end
+		if not track then return end
+		track.cancelled = true
+		for _, tween in track.tweens do pcall(function() tween:Cancel() end) end
+		for _, motor in track.motors do pcall(function() motor.Transform = CFrame.identity end) end
+		tracks[character] = nil
 	end
 	local function play(character, animationCode, speed)
 		local sequence = get(animationCode)
 		if not character or not sequence or #sequence.frames == 0 then return end
 		stop(character)
-		local track = {cancelled = false}
-		tracks[character] = track
 		local motors = motorMap(character)
+		local track = {cancelled = false, tweens = {}, motors = motors}
+		tracks[character] = track
 		local started = os.clock()
 		local length = sequence.frames[#sequence.frames][1]
 		speed = math.max(0.05, tonumber(speed) or 1)
 		task.spawn(function()
 			repeat
-				for frameIndex, frame in sequence.frames do
+				local previousTime = 0
+				for _, frame in sequence.frames do
 					if track.cancelled or not character.Parent then return end
-					local nextFrame = sequence.frames[frameIndex + 1]
-					local frameStart = frame[1]
-					local frameDuration = nextFrame and math.max(0, nextFrame[1] - frameStart) / speed or 0
+					local frameDuration = math.max(0, frame[1] - previousTime) / speed
+					table.clear(track.tweens)
 					for _, pose in frame[2] do
 						local motor = motors[pose[1]]
 						if motor then
@@ -262,13 +265,18 @@ local function animationPlayer(module, index)
 							if frameDuration > 0 then
 								local style = enumFromValue(Enum.EasingStyle.Linear, pose[3])
 								local direction = enumFromValue(Enum.EasingDirection.In, pose[4])
-								pcall(function() TweenService:Create(motor, TweenInfo.new(frameDuration, style, direction), {Transform = target}):Play() end)
+								pcall(function()
+									local tween = TweenService:Create(motor, TweenInfo.new(frameDuration, style, direction), {Transform = target})
+									track.tweens[#track.tweens + 1] = tween
+									tween:Play()
+								end)
 							else
 								motor.Transform = target
 							end
 						end
 					end
 					if frameDuration > 0 then task.wait(frameDuration) end
+					previousTime = frame[1]
 				end
 			until not sequence.looped or track.cancelled
 			if not track.cancelled then
@@ -278,20 +286,82 @@ local function animationPlayer(module, index)
 		end)
 		return length / speed, started
 	end
-	return {play = play, stop = stop}
+	local function isPlaying(character) return tracks[character] ~= nil end
+	return {play = play, stop = stop, isPlaying = isPlaying}
+end
+
+local function locomotionBridge(animations, names, guard)
+	local cached = setmetatable({}, {__mode = "k"})
+	local clock = 0
+	local function target(motor, transform, alpha)
+		if motor and motor.Enabled then motor.Transform = motor.Transform:Lerp(transform, alpha) end
+	end
+	RunService.RenderStepped:Connect(function(delta)
+		if not guard() then return end
+		clock += delta
+		local alpha = math.clamp(delta * 12, 0, 1)
+		for _, owner in Players:GetPlayers() do
+			local character = owner.Character
+			if not character or animations.isPlaying(character) then continue end
+			local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+			local root = character:FindFirstChild("HumanoidRootPart")
+			if not humanoid or not root or humanoid.Health <= 0 then continue end
+			local animator = humanoid:FindFirstChildWhichIsA("Animator")
+			local hasEngineTrack = false
+			if animator then pcall(function() hasEngineTrack = #animator:GetPlayingAnimationTracks() > 0 end) end
+			if hasEngineTrack then continue end
+			local motors = cached[character]
+			if not motors then motors = motorMap(character); cached[character] = motors end
+			local blocked = character:GetAttribute(names.state_down) or character:GetAttribute(names.state_busy)
+			local velocity = root.AssemblyLinearVelocity
+			local speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+			local state = humanoid:GetState()
+			local airborne = state == Enum.HumanoidStateType.Jumping or state == Enum.HumanoidStateType.Freefall
+			local rightArm, leftArm = motors["Right Arm"], motors["Left Arm"]
+			local rightLeg, leftLeg = motors["Right Leg"], motors["Left Leg"]
+			if blocked then
+				target(rightArm, CFrame.identity, alpha); target(leftArm, CFrame.identity, alpha)
+				target(rightLeg, CFrame.identity, alpha); target(leftLeg, CFrame.identity, alpha)
+			elseif airborne then
+				target(rightArm, CFrame.Angles(-0.35, 0, 0.15), alpha)
+				target(leftArm, CFrame.Angles(-0.35, 0, -0.15), alpha)
+				target(rightLeg, CFrame.Angles(0.2, 0, 0), alpha)
+				target(leftLeg, CFrame.Angles(-0.2, 0, 0), alpha)
+			elseif speed > 1 then
+				local phase = clock * math.clamp(speed * 0.75, 6, 13)
+				local swing = math.sin(phase) * math.clamp(speed / 16, 0.35, 1) * 0.85
+				target(rightArm, CFrame.Angles(swing, 0, 0), alpha)
+				target(leftArm, CFrame.Angles(-swing, 0, 0), alpha)
+				target(rightLeg, CFrame.Angles(-swing, 0, 0), alpha)
+				target(leftLeg, CFrame.Angles(swing, 0, 0), alpha)
+			else
+				local breathe = math.sin(clock * 1.8) * 0.035
+				target(rightArm, CFrame.Angles(breathe, 0, 0.03), alpha)
+				target(leftArm, CFrame.Angles(-breathe, 0, -0.03), alpha)
+				target(rightLeg, CFrame.identity, alpha)
+				target(leftLeg, CFrame.identity, alpha)
+			end
+		end
+	end)
 end
 
 local function findVisual(objects, id)
 	return id and objects[id] or nil
 end
 
-local function cloneVisual(objects, id, parent, lifetime)
+local function cloneVisual(objects, id, parent, lifetime, marker)
 	local source = findVisual(objects, id)
 	if not source or not parent then return nil end
 	local clone = source:Clone()
 	clone.Name = source.Name
+	if marker then clone:SetAttribute(marker, true) end
 	clone.Parent = parent
-	if clone:IsA("Sound") then clone:Play() end
+	if clone:IsA("ParticleEmitter") then
+		clone:Emit(clone:GetAttribute("EmitCount") or clone:GetAttribute("emitCount") or 8)
+	elseif clone:IsA("Sound") then
+		clone.TimePosition = 0
+		clone:Play()
+	end
 	for _, item in clone:GetDescendants() do
 		if item:IsA("ParticleEmitter") then
 			local count = item:GetAttribute("EmitCount") or item:GetAttribute("emitCount") or 8
@@ -302,7 +372,20 @@ local function cloneVisual(objects, id, parent, lifetime)
 	return clone
 end
 
-local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview)
+local function newWindowController()
+	local closers = {}
+	local function register(key, closer)
+		closers[key] = closer
+	end
+	local function closeAll(except)
+		for key, closer in closers do
+			if key ~= except then pcall(closer, true) end
+		end
+	end
+	return {register = register, closeAll = closeAll}
+end
+
+local function wireTools(playerGui, player, send, objects, assetIndex, names, guard, attackPreview, windows)
 	local currentTool
 	local connectedTools = setmetatable({}, {__mode = "k"})
 	local function connectTool(tool)
@@ -317,11 +400,20 @@ local function wireTools(playerGui, player, send, objects, assetIndex, names, gu
 	local gui = assetIndex.gui or {}
 	local picker = objects[gui.weapon_picker]
 	local opener = objects[gui.weapon_open]
-	if picker and picker:IsA("ScreenGui") then picker.Enabled = false end
+	local function closePicker()
+		if picker and picker:IsA("ScreenGui") and picker.Parent then picker.Enabled = false end
+	end
+	closePicker()
+	windows.register("weapon", closePicker)
 	if opener and opener:IsA("GuiButton") then
 		opener.Activated:Connect(function()
 			if not guard() or not picker or not picker.Parent then return end
-			picker.Enabled = not picker.Enabled
+			if picker.Enabled then
+				closePicker()
+			else
+				windows.closeAll("weapon")
+				picker.Enabled = true
+			end
 		end)
 	end
 	for selection, id in assetIndex.weapon_buttons or {} do
@@ -330,27 +422,41 @@ local function wireTools(playerGui, player, send, objects, assetIndex, names, gu
 		if button and button:IsA("GuiButton") then
 			button.Activated:Connect(function()
 				if not guard() then return end
-				if picker and picker.Parent then picker.Enabled = false end
+				closePicker()
 				send(121, chosen)
 			end)
 		end
 	end
-	return function(selection)
+	local function equip(selection)
 		local id = assetIndex.weapons and assetIndex.weapons[selection]
 		local source = id and objects[id]
 		if not source or not source:IsA("Tool") then return end
 		if currentTool then currentTool:Destroy() end
 		currentTool = source:Clone()
 		currentTool.Name = source.Name
+		currentTool:SetAttribute(names.runtime_marker, true)
+		for _, item in currentTool:GetDescendants() do
+			if item:IsA("Trail") then item.Enabled = false end
+		end
 		connectTool(currentTool)
 		currentTool.Parent = player:WaitForChild("Backpack")
 		local character = player.Character
 		local humanoid = character and character:FindFirstChildWhichIsA("Humanoid")
 		if humanoid then pcall(function() humanoid:EquipTool(currentTool) end) end
 	end
+	local function pulse()
+		if not currentTool or not currentTool.Parent then return end
+		for _, item in currentTool:GetDescendants() do
+			if item:IsA("Trail") then
+				item.Enabled = true
+				task.delay(0.5, function() if item.Parent then item.Enabled = false end end)
+			end
+		end
+	end
+	return {equip = equip, pulse = pulse}
 end
 
-local function wireInterface(player, send, objects, assetIndex, names, guard)
+local function wireInterface(player, send, objects, assetIndex, names, guard, windows)
 	local gui = assetIndex.gui or {}
 	local function get(key) return objects[gui[key]] end
 	local function connect(button, callback)
@@ -364,6 +470,43 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 		if sound and sound:IsA("Sound") then
 			pcall(function() sound.TimePosition = 0; sound:Play() end)
 		end
+	end
+	local function float(guiObject, position, rotation, delayTime, duration)
+		if not guiObject or not guiObject:IsA("GuiObject") then return end
+		TweenService:Create(guiObject, TweenInfo.new(duration or 1.5, Enum.EasingStyle.Sine,
+			Enum.EasingDirection.InOut, -1, true), {Position = position}):Play()
+		task.delay(delayTime or 0.35, function()
+			if guard() and guiObject.Parent then
+				TweenService:Create(guiObject, TweenInfo.new(duration or 1.5, Enum.EasingStyle.Sine,
+					Enum.EasingDirection.InOut, -1, true), {Rotation = rotation or -3}):Play()
+			end
+		end)
+	end
+
+	float(get("title_primary"), UDim2.new(0.5, 0, 0, 50), -5, 0.3, 1)
+	float(get("title_secondary"), UDim2.new(0.5, 0, 0, 75), -5, 0.3, 1)
+	float(get("title_tertiary"), UDim2.new(0.5, 0, 0, 100), -5, 0.3, 1)
+	local subtitle = get("subtitle_label")
+	local subtitleSerial = 0
+	if subtitle and subtitle:IsA("TextLabel") then
+		subtitle.Text = ""
+		subtitle.TextTransparency = 1
+		subtitle.TextStrokeTransparency = 1
+	end
+	local function showSubtitle(text, duration)
+		if not subtitle or not subtitle.Parent then return end
+		subtitleSerial += 1
+		local serial = subtitleSerial
+		subtitle.Text = tostring(text)
+		TweenService:Create(subtitle, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+			TextTransparency = 0, TextStrokeTransparency = 0,
+		}):Play()
+		task.delay(duration or 3, function()
+			if serial ~= subtitleSerial or not subtitle.Parent then return end
+			TweenService:Create(subtitle, TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
+				TextTransparency = 1, TextStrokeTransparency = 1,
+			}):Play()
+		end)
 	end
 
 	local hitboxes = false
@@ -401,29 +544,109 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 
 	local emoteDisplay = get("emotes_display")
 	local emotesOpen = false
+	local function closeEmotes(instant)
+		emotesOpen = false
+		if emoteDisplay and emoteDisplay:IsA("GuiObject") and emoteDisplay.Parent then
+			local target = UDim2.new(0.5, 0, 1.3, 0)
+			if instant then
+				emoteDisplay.Position = target
+			else
+				TweenService:Create(emoteDisplay, TweenInfo.new(0.35, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+					Position = target,
+				}):Play()
+			end
+		end
+	end
+	closeEmotes(true)
+	windows.register("emotes", closeEmotes)
 	connect(get("emotes_toggle"), function()
-		emotesOpen = not emotesOpen
+		if emotesOpen then play(get("emotes_off_sound")); closeEmotes(); return end
+		windows.closeAll("emotes")
+		emotesOpen = true
+		play(get("emotes_on_sound"))
 		if emoteDisplay and emoteDisplay:IsA("GuiObject") then
 			TweenService:Create(emoteDisplay, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
-				Position = emotesOpen and UDim2.new(0.5, 0, 0.6, 0) or UDim2.new(0.5, 0, 1.3, 0),
+				Position = UDim2.new(0.5, 0, 0.6, 0),
 			}):Play()
 		end
 	end)
 	for index, id in assetIndex.emote_buttons or {} do
 		local code = 80 + index
-		connect(objects[id], function() send(code) end)
+		connect(objects[id], function()
+			send(code)
+			closeEmotes()
+		end)
 	end
 
 	local genderGui = get("gender_gui")
 	if genderGui and genderGui:IsA("ScreenGui") then
 		genderGui.Enabled = player:GetAttribute(names.state_gender) == nil
 	end
-	for index, id in assetIndex.gender_buttons or {} do
-		local code = 112 + index
-		connect(objects[id], function() send(code) end)
-	end
 	local function genderSelected()
 		if genderGui and genderGui.Parent then genderGui.Enabled = false end
+	end
+	for index, id in assetIndex.gender_buttons or {} do
+		local code = 112 + index
+		local button = objects[id]
+		if button and button:IsA("GuiButton") then
+			button.MouseEnter:Connect(function()
+				if guard() then play(get("gender_hover_sound")) end
+			end)
+		end
+		connect(button, function()
+			play(get("gender_click_sound"))
+			genderSelected()
+			send(code)
+		end)
+	end
+
+	local disconnectGui = get("disconnect_gui")
+	if disconnectGui and disconnectGui:IsA("ScreenGui") then disconnectGui.Enabled = false end
+	local awakenGui = get("awaken_gui")
+	local awakenSerial = 0
+	if awakenGui and awakenGui:IsA("ScreenGui") then
+		awakenGui.Enabled = true
+		for _, item in awakenGui:GetDescendants() do
+			if item:IsA("ImageLabel") then item.Visible = false end
+		end
+	end
+	local function showAwaken()
+		if not guard() then return end
+		awakenSerial += 1
+		local serial = awakenSerial
+		if awakenGui and awakenGui.Parent then
+			awakenGui.Enabled = true
+			for _, item in awakenGui:GetDescendants() do
+				if item:IsA("ImageLabel") then
+					item.Visible = true
+					item.ImageTransparency = 0
+					TweenService:Create(item, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out), {
+						ImageTransparency = 1,
+					}):Play()
+				end
+			end
+		end
+		local colorSource = get("awaken_color")
+		if colorSource and colorSource:IsA("ColorCorrectionEffect") then
+			local color = colorSource:Clone()
+			color.Name = names.transient_visual
+			color:SetAttribute(names.runtime_marker, true)
+			color.Parent = Lighting
+			TweenService:Create(color, TweenInfo.new(0.1), {
+				Brightness = 0.5, Contrast = 1, Saturation = 1,
+				TintColor = Color3.fromRGB(255, 20, 29),
+			}):Play()
+			TweenService:Create(color, TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 0, false, 0.7), {
+				Brightness = 0, Contrast = 0, Saturation = 0, TintColor = Color3.new(1, 1, 1),
+			}):Play()
+			game:GetService("Debris"):AddItem(color, 1.3)
+		end
+		task.delay(0.55, function()
+			if serial ~= awakenSerial or not awakenGui or not awakenGui.Parent then return end
+			for _, item in awakenGui:GetDescendants() do
+				if item:IsA("ImageLabel") then item.Visible = false end
+			end
+		end)
 	end
 
 	local mobileGui = get("mobile_gui")
@@ -435,6 +658,12 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 	local meterBar = get("meter_bar")
 	local meterLabel = get("meter_label")
 	local meterFlash = get("meter_flash")
+	if meterLabel and meterLabel:IsA("TextLabel") then
+		meterLabel.Visible = false
+		meterLabel.Text = ""
+		meterLabel.TextTransparency = 0
+	end
+	if meterFlash and meterFlash:IsA("ImageLabel") then meterFlash.Visible = false end
 	local function setMeter(value)
 		meter = math.clamp(tonumber(value) or 0, 0, 1)
 		if meterBar and meterBar:IsA("GuiObject") then
@@ -467,6 +696,8 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 
 	local getupPanel = get("getup_panel")
 	local getupBar = get("getup_bar")
+	if getupPanel and getupPanel:IsA("GuiObject") then getupPanel.Position = UDim2.new(0.5, 0, 1, 50) end
+	if getupBar and getupBar:IsA("GuiObject") then getupBar.Size = UDim2.new(0, 0, 1, 0) end
 	local function recoveryProgress(count)
 		local progress = math.clamp((tonumber(count) or 0) / 20, 0, 1)
 		if getupPanel and getupPanel:IsA("GuiObject") then
@@ -524,6 +755,7 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 	local function beginVote(tokens, labels)
 		clearVotes()
 		if not voteGui or not voteFrame or not voteContainer or not voteTemplate then return end
+		windows.closeAll()
 		voteGui.Enabled = true
 		voteFrame.Visible = true
 		local sourceName = get("vote_map_name")
@@ -559,7 +791,9 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 
 	return {
 		attackPreview = attackPreview,
+		showSubtitle = showSubtitle,
 		genderSelected = genderSelected,
+		showAwaken = showAwaken,
 		setMeter = setMeter,
 		phaseFeedback = phaseFeedback,
 		recoveryProgress = recoveryProgress,
@@ -567,6 +801,191 @@ local function wireInterface(player, send, objects, assetIndex, names, guard)
 		updateVotes = updateVotes,
 		endVote = endVote,
 	}
+end
+
+local function wireAdmin(playerGui, player, send, objects, assetIndex, names, guard, windows, allowed)
+	local config = assetIndex.admin or {}
+	local adminGui = objects[config.gui]
+	if not adminGui or not adminGui:IsA("ScreenGui") then return end
+	adminGui.Enabled = false
+	if not allowed then return end
+	adminGui.ResetOnSpawn = false
+	adminGui:SetAttribute(names.runtime_marker, true)
+	adminGui.Parent = playerGui
+	adminGui.Enabled = true
+
+	local function object(key) return objects[config[key]] end
+	local function connect(button, callback)
+		if button and button:IsA("GuiButton") then
+			button.Activated:Connect(function(...)
+				if guard() then callback(...) end
+			end)
+		end
+	end
+	local window = object("window")
+	local profilePage = object("profile_page")
+	local commandPage = object("command_page")
+	local function closeAdmin()
+		if window and window:IsA("GuiObject") and window.Parent then window.Visible = false end
+	end
+	closeAdmin()
+	windows.register("admin", closeAdmin)
+	connect(object("open"), function()
+		if not window or not window.Parent then return end
+		if window.Visible then
+			closeAdmin()
+		else
+			windows.closeAll("admin")
+			window.Visible = true
+		end
+	end)
+	connect(object("close_profile"), closeAdmin)
+	connect(object("close_command"), closeAdmin)
+
+	local function showProfile()
+		if profilePage and profilePage:IsA("GuiObject") then profilePage.Visible = true end
+		if commandPage and commandPage:IsA("GuiObject") then commandPage.Visible = false end
+	end
+	local function showCommands()
+		if profilePage and profilePage:IsA("GuiObject") then profilePage.Visible = false end
+		if commandPage and commandPage:IsA("GuiObject") then commandPage.Visible = true end
+	end
+	showProfile()
+	for _, id in config.profile_tabs or {} do connect(objects[id], showProfile) end
+	for _, id in config.command_tabs or {} do connect(objects[id], showCommands) end
+
+	local function targetBox(index)
+		local id = config.target_boxes and config.target_boxes[index]
+		local box = id and objects[id]
+		return box and box:IsA("TextBox") and box or nil
+	end
+	local function wireCommands(ids, command)
+		for index, id in ids or {} do
+			local box = targetBox(index)
+			connect(objects[id], function()
+				if box then send(161, command, box.Text) end
+			end)
+		end
+	end
+	wireCommands(config.kick_buttons, 1)
+	wireCommands(config.kill_buttons, 2)
+	wireCommands(config.remove_buttons, 3)
+
+	local nameLabel = object("name")
+	if nameLabel and nameLabel:IsA("TextLabel") then nameLabel.Text = player.Name end
+	local dateLabel = object("date")
+	if dateLabel and dateLabel:IsA("TextLabel") then dateLabel.Text = os.date("%x") end
+	local avatar = object("avatar")
+	if avatar and avatar:IsA("ImageLabel") then
+		task.spawn(function()
+			local ok, image = pcall(Players.GetUserThumbnailAsync, Players, player.UserId,
+				Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size420x420)
+			if ok and guard() and avatar.Parent then avatar.Image = image end
+		end)
+	end
+	local uptime = object("uptime")
+	local playerCount = object("players")
+	task.spawn(function()
+		while guard() and adminGui.Parent do
+			local total = math.floor(workspace.DistributedGameTime)
+			local hours = math.floor(total / 3600)
+			local minutes = math.floor(total / 60) % 60
+			local seconds = total % 60
+			if uptime and uptime:IsA("TextLabel") then
+				uptime.Text = ("Server UpTime: %dh - %dm - %ds"):format(hours, minutes, seconds)
+			end
+			if playerCount and playerCount:IsA("TextLabel") then
+				playerCount.Text = "Players in Server: " .. #Players:GetPlayers()
+			end
+			task.wait(1)
+		end
+	end)
+
+	if window and window:IsA("GuiObject") then
+		local dragging = false
+		local dragStart
+		local startPosition
+		window.InputBegan:Connect(function(input)
+			if not guard() then return end
+			if input.UserInputType == Enum.UserInputType.MouseButton1
+				or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPosition = window.Position
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then dragging = false end
+				end)
+			end
+		end)
+		UserInputService.InputChanged:Connect(function(input)
+			if not guard() or not dragging or not dragStart or not startPosition then return end
+			if input.UserInputType == Enum.UserInputType.MouseMovement
+				or input.UserInputType == Enum.UserInputType.Touch then
+				local delta = input.Position - dragStart
+				window.Position = UDim2.new(
+					startPosition.X.Scale, startPosition.X.Offset + delta.X,
+					startPosition.Y.Scale, startPosition.Y.Offset + delta.Y
+				)
+			end
+		end)
+	end
+end
+
+local function characterVisualBridge(objects, assetIndex, names, guard)
+	local source = objects[assetIndex.character_template]
+	local partTargets = assetIndex.character_part_targets or {}
+	local active = setmetatable({}, {__mode = "k"})
+	local partsByCharacter = setmetatable({}, {__mode = "k"})
+	local function clear(character)
+		local visual = active[character]
+		if visual and visual.Parent then visual:Destroy() end
+		active[character] = nil
+		partsByCharacter[character] = nil
+	end
+	local function apply(character)
+		if not guard() or not character or not character.Parent or not source or not source:IsA("Model") then return end
+		clear(character)
+		local copy = source:Clone()
+		copy.Name = names.transient_visual
+		copy:SetAttribute(names.runtime_marker, true)
+		for _, item in copy:GetDescendants() do
+			if item:IsA("Humanoid") or item:IsA("Animator") or item:IsA("Motor6D") then item:Destroy() end
+		end
+		copy.Parent = character
+		local visualParts = {}
+		for _, item in copy:GetDescendants() do
+			if item:IsA("BasePart") then
+				local targetName = partTargets[item.Name]
+				local target = targetName and character:FindFirstChild(targetName)
+				if target and target:IsA("BasePart") then
+					item.Anchored = false
+					item.CanCollide = false
+					item.CanQuery = false
+					item.CanTouch = false
+					item.Massless = true
+					item.CFrame = target.CFrame
+					local weld = Instance.new("WeldConstraint")
+					weld.Name = names.transient_visual
+					weld:SetAttribute(names.runtime_marker, true)
+					weld.Part0 = target
+					weld.Part1 = item
+					weld.Parent = item
+					visualParts[targetName] = item
+				else
+					item:Destroy()
+				end
+			end
+		end
+		active[character] = copy
+		partsByCharacter[character] = visualParts
+		return copy
+	end
+	local function setTorsoVisible(character, visible)
+		local parts = partsByCharacter[character]
+		local torso = parts and (parts.Torso or parts.UpperTorso)
+		if torso and torso.Parent then torso.LocalTransparencyModifier = visible and 0 or 1 end
+	end
+	return {apply = apply, clear = clear, setTorsoVisible = setTorsoVisible}
 end
 
 local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard)
@@ -590,14 +1009,17 @@ local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard)
 		local handle = copy:FindFirstChild("Handle", true)
 		if not hand or not handle or not handle:IsA("BasePart") then copy:Destroy(); return end
 		copy.Name = source.Name
+		copy:SetAttribute(names.runtime_marker, true)
 		copy.RequiresHandle = false
 		copy.Parent = character
 		for _, item in copy:GetDescendants() do
-			if item:IsA("BasePart") then item.CanCollide = false; item.Massless = true end
+			if item:IsA("BasePart") then item.CanCollide = false; item.Massless = true
+			elseif item:IsA("Trail") then item.Enabled = false end
 		end
 		handle.CFrame = hand.CFrame
 		local joint = Instance.new("Motor6D")
 		joint.Name = names.transient_visual
+		joint:SetAttribute(names.runtime_marker, true)
 		joint.Part0 = hand
 		joint.Part1 = handle
 		joint.C0 = CFrame.new(0, -1, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
@@ -614,10 +1036,21 @@ local function worldWeaponBridge(objects, assetIndex, names, localPlayer, guard)
 	end
 	for _, owner in Players:GetPlayers() do track(owner) end
 	Players.PlayerAdded:Connect(track)
-	return attach
+	local function pulse(owner)
+		local record = current[owner]
+		local copy = record and record[1]
+		if not copy or not copy.Parent then return end
+		for _, item in copy:GetDescendants() do
+			if item:IsA("Trail") then
+				item.Enabled = true
+				task.delay(0.5, function() if item.Parent then item.Enabled = false end end)
+			end
+		end
+	end
+	return {attach = attach, pulse = pulse}
 end
 
-local function morphBridge(objects, assetIndex, names)
+local function morphBridge(objects, assetIndex, names, characterVisuals)
 	local active = setmetatable({}, {__mode = "k"})
 	local saved = setmetatable({}, {__mode = "k"})
 	local function clear(character)
@@ -636,6 +1069,7 @@ local function morphBridge(objects, assetIndex, names)
 			if state[4] and state[4].Parent then pcall(function() state[4].PantsTemplate = state[5] end) end
 			saved[character] = nil
 		end
+		if characterVisuals then characterVisuals.setTorsoVisible(character, true) end
 	end
 	local function apply(character, selection)
 		if not character then return end
@@ -654,6 +1088,7 @@ local function morphBridge(objects, assetIndex, names)
 		if pants then pcall(function() pants.PantsTemplate = "" end) end
 		local copy = source:Clone()
 		copy.Name = names.transient_visual
+		copy:SetAttribute(names.runtime_marker, true)
 		copy.Parent = character
 		local anchorName = assetIndex.morph_anchors and assetIndex.morph_anchors[selection]
 		local anchor = anchorName and copy:FindFirstChild(anchorName, true)
@@ -672,13 +1107,155 @@ local function morphBridge(objects, assetIndex, names)
 		anchor.CFrame = torso.CFrame
 		local joint = Instance.new("WeldConstraint")
 		joint.Name = names.transient_visual
+		joint:SetAttribute(names.runtime_marker, true)
 		joint.Part0 = torso
 		joint.Part1 = anchor
 		joint.Parent = torso
 		torso.LocalTransparencyModifier = 1
+		if characterVisuals then characterVisuals.setTorsoVisible(character, false) end
 		active[character] = {copy, joint}
 	end
 	return apply, clear
+end
+
+local function feedbackBridge(playerGui, player, objects, assetIndex, names, guard)
+	local refs = assetIndex.feedback or {}
+	local decorated = setmetatable({}, {__mode = "k"})
+	local hitGui
+	local hitCount, hitDamage, hitSerial = 0, 0, 0
+	local Debris = game:GetService("Debris")
+
+	local function clonedDescendant(copy, sourceRef)
+		local source = objects[sourceRef]
+		return source and copy:FindFirstChild(source.Name, true) or nil
+	end
+	local function markedClone(sourceRef)
+		local source = objects[sourceRef]
+		if not source then return nil end
+		local copy = source:Clone()
+		copy.Name = names.transient_visual
+		copy:SetAttribute(names.runtime_marker, true)
+		return copy
+	end
+	local function clearDecoration(character)
+		local record = decorated[character]
+		if not record then return end
+		for _, connection in record.connections do connection:Disconnect() end
+		if record.gui and record.gui.Parent then record.gui:Destroy() end
+		decorated[character] = nil
+	end
+	local function decorate(character, owner)
+		if not guard() or not character or not character.Parent then return end
+		clearDecoration(character)
+		local head = character:FindFirstChild("Head")
+		local humanoid = character:FindFirstChildWhichIsA("Humanoid")
+		local copy = markedClone(refs.stats)
+		if not head or not humanoid or not copy then if copy then copy:Destroy() end; return end
+		if copy:IsA("BillboardGui") then copy.Adornee = head end
+		copy.Parent = head
+		local nameLabel = clonedDescendant(copy, refs.stats_name)
+		local healthBar = clonedDescendant(copy, refs.stats_health)
+		local meterBar = clonedDescendant(copy, refs.stats_meter)
+		if nameLabel and nameLabel:IsA("TextLabel") then
+			nameLabel.Text = owner and owner.DisplayName or "Player"
+		end
+		local function updateHealth(value)
+			if healthBar and healthBar:IsA("GuiObject") then
+				local ratio = math.clamp(value / math.max(1, humanoid.MaxHealth), 0, 1)
+				healthBar.Size = UDim2.new(ratio, 0, healthBar.Size.Y.Scale, healthBar.Size.Y.Offset)
+			end
+		end
+		local function updateMeter()
+			if meterBar and meterBar:IsA("GuiObject") then
+				local ratio = math.clamp(tonumber(character:GetAttribute(names.state_meter)) or 0, 0, 1)
+				meterBar.Size = UDim2.new(ratio, 0, meterBar.Size.Y.Scale, meterBar.Size.Y.Offset)
+			end
+		end
+		updateHealth(humanoid.Health)
+		updateMeter()
+		decorated[character] = {gui = copy, connections = {
+			humanoid.HealthChanged:Connect(updateHealth),
+			character:GetAttributeChangedSignal(names.state_meter):Connect(updateMeter),
+		}}
+	end
+	local function refreshTags()
+		for _, owner in Players:GetPlayers() do
+			local character = owner.Character
+			if character then
+				for _, item in character:GetDescendants() do
+					if item:GetAttribute(names.runtime_marker) and item:GetAttribute(names.feedback_tag_marker) then item:Destroy() end
+				end
+			end
+		end
+		local leaders = {{names.state_kills, refs.society}, {names.state_nuts, refs.offender}}
+		for _, definition in leaders do
+			local winner, highest
+			for _, owner in Players:GetPlayers() do
+				local value = tonumber(owner:GetAttribute(definition[1])) or 0
+				if value > 0 and (not highest or value > highest) then winner, highest = owner, value end
+			end
+			local head = winner and winner.Character and winner.Character:FindFirstChild("Head")
+			local tag = head and markedClone(definition[2])
+			if tag then
+				tag:SetAttribute(names.feedback_tag_marker, true)
+				if tag:IsA("BillboardGui") then tag.Adornee = head end
+				tag.Parent = head
+			end
+		end
+	end
+	local function popup(victim, sourceRef, labelRef, text, color)
+		local root = victim and (victim:FindFirstChild("Head") or victim:FindFirstChild("HumanoidRootPart"))
+		local copy = root and markedClone(sourceRef)
+		if not copy then return end
+		if copy:IsA("BillboardGui") then
+			copy.Adornee = root
+			copy.StudsOffset = Vector3.new(math.random(-12, 12) / 10, 2.8, math.random(-5, 5) / 10)
+		end
+		local label = clonedDescendant(copy, labelRef)
+		if label and label:IsA("TextLabel") then
+			label.Text = text
+			if color then label.TextColor3 = color end
+			local finalSize = label.Size
+			label.Size = UDim2.fromScale(0, 0)
+			TweenService:Create(label, TweenInfo.new(0.12, Enum.EasingStyle.Back), {Size = finalSize}):Play()
+			TweenService:Create(label, TweenInfo.new(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, 0.5), {
+				TextTransparency = 1, TextStrokeTransparency = 1,
+			}):Play()
+		end
+		copy.Parent = root
+		Debris:AddItem(copy, 1.1)
+	end
+	local function updateHitIndicator(damage)
+		hitCount += 1
+		hitDamage += damage
+		hitSerial += 1
+		local serial = hitSerial
+		if not hitGui or not hitGui.Parent then
+			hitGui = markedClone(refs.hit_gui)
+			if hitGui then hitGui.Parent = playerGui end
+		end
+		if hitGui then
+			local countLabel = clonedDescendant(hitGui, refs.hit_count)
+			local damageLabel = clonedDescendant(hitGui, refs.hit_damage)
+			if countLabel and countLabel:IsA("TextLabel") then countLabel.Text = tostring(hitCount) .. " HITS" end
+			if damageLabel and damageLabel:IsA("TextLabel") then damageLabel.Text = tostring(math.floor(hitDamage + 0.5)) end
+		end
+		task.delay(3, function()
+			if serial ~= hitSerial then return end
+			if hitGui and hitGui.Parent then hitGui:Destroy() end
+			hitGui, hitCount, hitDamage = nil, 0, 0
+		end)
+	end
+	local function impact(attacker, victim, damage, countered)
+		damage = tonumber(damage) or 0
+		local critical = damage >= 40
+		popup(victim, critical and refs.critical or refs.damage,
+			critical and refs.critical_label or refs.damage_label,
+			"-" .. tostring(math.floor(damage + 0.5)))
+		if countered then popup(victim, refs.counter, refs.counter_label, "COUNTER!", Color3.fromRGB(255, 214, 72)) end
+		if attacker == player then updateHitIndicator(damage) end
+	end
+	return {decorate = decorate, impact = impact, refreshTags = refreshTags}
 end
 
 function Core.start(context)
@@ -695,7 +1272,7 @@ function Core.start(context)
 	local actionEvent = protocolFolder:WaitForChild(names.action_event, 10)
 	local handshake = protocolFolder:WaitForChild(names.handshake_function, 10)
 	assert(actionEvent and handshake, "Fun Combat server protocol is incomplete")
-	local ok, compatible, gameBuild, protocolVersion, runtimeVersion, assetVersion = pcall(
+	local ok, compatible, gameBuild, protocolVersion, runtimeVersion, assetVersion, adminAllowed = pcall(
 		function()
 			return handshake:InvokeServer(protocol.GAME_BUILD, protocol.PROTOCOL_VERSION,
 				protocol.RUNTIME_VERSION, protocol.ASSET_VERSION)
@@ -714,9 +1291,21 @@ function Core.start(context)
 		[names.transient_visual] = true,
 	}
 	for _, name in assetIndex.cleanup_root_names or {} do cleanupNames[name] = true end
-	for _, service in {playerGui, Lighting, SoundService, workspace} do
-		for _, item in service:GetChildren() do
-			if cleanupNames[item.Name] or item:GetAttribute(names.runtime_marker) then item:Destroy() end
+	for _, name in assetIndex.cleanup_clone_names or {} do cleanupNames[name] = true end
+	local cleanupRoots = {playerGui, Lighting, SoundService, workspace}
+	local backpack = player:FindFirstChildOfClass("Backpack")
+	if backpack then cleanupRoots[#cleanupRoots + 1] = backpack end
+	for _, service in cleanupRoots do
+		local removals = {}
+		for _, item in service:GetDescendants() do
+			if cleanupNames[item.Name] or item:GetAttribute(names.runtime_marker) then
+				removals[#removals + 1] = item
+			end
+		end
+		for index = #removals, 1, -1 do
+			local item = removals[index]
+			if item:IsA("Sound") then pcall(function() item:Stop() end) end
+			pcall(function() item:Destroy() end)
 		end
 	end
 	local storage = Instance.new("Folder")
@@ -743,12 +1332,70 @@ function Core.start(context)
 		local pack = module(path)
 		instantiate(pack, playerGui, storage, objects, warnings, names.runtime_marker)
 	end
+	for _, instance in objects do
+		if instance:IsA("Sound") then pcall(function() instance:Stop(); instance.TimePosition = 0 end) end
+	end
 	local animationIndex = module("animations/index.lua")
 	local animations = animationPlayer(module, animationIndex)
+	locomotionBridge(animations, names, guard)
 	local activeWeather = {}
+	local rainConnection
 	local function clearWeather()
+		if rainConnection then rainConnection:Disconnect(); rainConnection = nil end
 		for _, item in activeWeather do if item and item.Parent then item:Destroy() end end
 		table.clear(activeWeather)
+	end
+	local function startRain()
+		local config = assetIndex.rain
+		if not config then return end
+		local anchor = Instance.new("Part")
+		anchor.Name = names.transient_visual
+		anchor:SetAttribute(names.runtime_marker, true)
+		anchor.Anchored = true
+		anchor.CanCollide = false
+		anchor.CanQuery = false
+		anchor.CanTouch = false
+		anchor.CastShadow = false
+		anchor.Transparency = 1
+		anchor.Size = Vector3.new(1, 1, 1)
+		anchor.Parent = workspace
+		local attachment = Instance.new("Attachment")
+		attachment.Name = names.transient_visual
+		attachment.Parent = anchor
+		local drops = Instance.new("ParticleEmitter")
+		drops.Name = names.transient_visual
+		drops.Texture = config.straight_texture
+		drops.Rate = 650 * (config.intensity_ratio or 1)
+		drops.Lifetime = NumberRange.new(0.45, 0.7)
+		drops.Speed = NumberRange.new(85, 105)
+		drops.SpreadAngle = Vector2.new(8, 8)
+		drops.EmissionDirection = Enum.NormalId.Bottom
+		drops.Orientation = Enum.ParticleOrientation.FacingCamera
+		drops.Size = NumberSequence.new(0.16)
+		drops.Transparency = NumberSequence.new({
+			NumberSequenceKeypoint.new(0, 0.12), NumberSequenceKeypoint.new(0.8, 0.22),
+			NumberSequenceKeypoint.new(1, 1),
+		})
+		local color = config.color or {0.77, 0.83, 0.87}
+		drops.Color = ColorSequence.new(Color3.new(color[1], color[2], color[3]))
+		drops.LightInfluence = config.light_influence or 0.9
+		drops.LightEmission = config.light_emission or 0
+		pcall(function() drops.Squash = NumberSequence.new(4) end)
+		drops.Parent = attachment
+		local rainSound = Instance.new("Sound")
+		rainSound.Name = names.transient_visual
+		rainSound:SetAttribute(names.runtime_marker, true)
+		rainSound.SoundId = config.sound_id
+		rainSound.Volume = config.volume or 0.2
+		rainSound.Looped = true
+		rainSound.Parent = anchor
+		rainSound:Play()
+		activeWeather[#activeWeather + 1] = anchor
+		rainConnection = RunService.RenderStepped:Connect(function()
+			if not guard() or not anchor.Parent then return end
+			local camera = workspace.CurrentCamera
+			if camera then anchor.CFrame = CFrame.new(camera.CFrame.Position + Vector3.new(0, 28, 0)) end
+		end)
 	end
 	local function applyWeather(weatherCode)
 		clearWeather()
@@ -761,32 +1408,45 @@ function Core.start(context)
 			copy.Parent = copy:IsA("Model") and workspace or Lighting
 			activeWeather[#activeWeather + 1] = copy
 		end
+		if weatherCode == 4 then startRain() end
 	end
 	local musicTemplate = objects[assetIndex.music]
 	if musicTemplate and musicTemplate:IsA("Sound") then
+		musicTemplate:Stop()
+		musicTemplate.TimePosition = 0
 		local music = musicTemplate:Clone()
 		music.Name = names.transient_visual
 		music:SetAttribute(names.runtime_marker, true)
+		music.Looped = false
+		music:Stop()
+		music.TimePosition = 0
 		music.Parent = SoundService
 		task.spawn(function()
 			while music.Parent and guard() do
-				local list = assetIndex.playlist
-				if list and #list > 0 then music.SoundId = "rbxassetid://" .. list[math.random(1, #list)] end
-				music:Play()
-				music.Ended:Wait()
-				task.wait(3)
+				if not music.IsPlaying then
+					local list = assetIndex.playlist
+					if list and #list > 0 then music.SoundId = "rbxassetid://" .. list[math.random(1, #list)] end
+					music.TimePosition = 0
+					music:Play()
+				end
+				task.wait(0.25)
 			end
+			if music.Parent then music:Stop(); music:Destroy() end
 		end)
 	end
 	applyWeather(1)
 
-	local function send(code, value) actionEvent:FireServer(code, value) end
-	local interface = wireInterface(player, send, objects, assetIndex, names, guard)
-	local equipLocalWeapon = wireTools(
-		playerGui, player, send, objects, assetIndex, names, guard, interface.attackPreview
+	local function send(code, ...) actionEvent:FireServer(code, ...) end
+	local windows = newWindowController()
+	local interface = wireInterface(player, send, objects, assetIndex, names, guard, windows)
+	local localTools = wireTools(
+		playerGui, player, send, objects, assetIndex, names, guard, interface.attackPreview, windows
 	)
-	local attachWorldWeapon = worldWeaponBridge(objects, assetIndex, names, player, guard)
-	local applyMorph, clearMorph = morphBridge(objects, assetIndex, names)
+	local worldTools = worldWeaponBridge(objects, assetIndex, names, player, guard)
+	local characterVisuals = characterVisualBridge(objects, assetIndex, names, guard)
+	local applyMorph, clearMorph = morphBridge(objects, assetIndex, names, characterVisuals)
+	local feedback = feedbackBridge(playerGui, player, objects, assetIndex, names, guard)
+	wireAdmin(playerGui, player, send, objects, assetIndex, names, guard, windows, adminAllowed == true)
 
 	local function translatePrompt(prompt)
 		local translation = names.prompt_text[prompt.Name]
@@ -807,19 +1467,11 @@ function Core.start(context)
 		if not guard() then return end
 		task.wait()
 		if not guard() then return end
-		restoreCharacter(character)
-		if not decorated[character] then
-			decorated[character] = true
-			character.DescendantAdded:Connect(function(item)
-				if not guard() then return end
-				if item:IsA("BasePart") or item:IsA("Decal") then
-					task.defer(function()
-						if item.Parent and not item:FindFirstAncestor(names.transient_visual) then restoreCharacter(character) end
-					end)
-				end
-			end)
-		end
+		characterVisuals.apply(character)
+		feedback.decorate(character, Players:GetPlayerFromCharacter(character))
+		decorated[character] = true
 		if character == player.Character then
+			windows.closeAll()
 			local humanoid = character:FindFirstChildWhichIsA("Humanoid")
 			if humanoid then
 				statusState.health = humanoid.Health
@@ -842,7 +1494,7 @@ function Core.start(context)
 	for _, owner in Players:GetPlayers() do
 		local selection = owner:GetAttribute(names.state_weapon)
 		if selection and selection > 0 then
-			if owner == player then equipLocalWeapon(selection) else attachWorldWeapon(owner, selection) end
+			if owner == player then localTools.equip(selection) else worldTools.attach(owner, selection) end
 		end
 	end
 
@@ -850,9 +1502,9 @@ function Core.start(context)
 		if not guard() then return end
 		if code == 129 then
 			if b == names.state_weapon then
-				if a == player then equipLocalWeapon(c) else attachWorldWeapon(a, c) end
+				if a == player then localTools.equip(c) else worldTools.attach(a, c) end
 			end
-			if b == names.state_gender and a == player then interface.genderSelected() end
+			if b == names.state_gender and a == player and c ~= nil then interface.genderSelected() end
 			if a == player then
 				if b == names.state_kills then statusState.kills = c end
 				if b == names.state_streak then statusState.streak = c end
@@ -866,12 +1518,15 @@ function Core.start(context)
 				elseif meter >= 0.60 then showNotice(notice, "R - Faster", 0.5)
 				elseif meter >= 0.26 then showNotice(notice, "R - Faster", 0.5) end
 			end
+			if b == names.state_kills or b == names.state_nuts or d == names.state_kills or d == names.state_nuts then
+				feedback.refreshTags()
+			end
 		elseif code == 130 then
 			local victim, visualCode = b, c
 			local root = victim and (victim:FindFirstChild("Torso") or victim:FindFirstChild("HumanoidRootPart"))
 			if root then
-				cloneVisual(objects, assetIndex.effects[visualCode], root, 5)
-				cloneVisual(objects, assetIndex.sounds[visualCode], root, 5)
+				cloneVisual(objects, assetIndex.effects[visualCode], root, 5, names.runtime_marker)
+				cloneVisual(objects, assetIndex.sounds[visualCode], root, 5, names.runtime_marker)
 				local highlight = Instance.new("Highlight")
 				highlight.Name = names.transient_visual
 				highlight.FillColor = visualCode == 2 and Color3.fromRGB(255, 88, 130) or Color3.new(0, 0, 0)
@@ -881,14 +1536,20 @@ function Core.start(context)
 				game:GetService("Debris"):AddItem(highlight, 0.6)
 			end
 			animations.play(victim, visualCode == 2 and 13 or (visualCode == 3 and 12 or 11), 1)
+			feedback.impact(a, victim, d, e)
 		elseif code == 131 then
 			animations.play(a, b, c)
 		elseif code == 132 then
 			local root = a and (a:FindFirstChild("HumanoidRootPart") or a)
-			cloneVisual(objects, assetIndex.sounds[b], root, 6)
+			cloneVisual(objects, assetIndex.sounds[b], root, 6, names.runtime_marker)
+			if b == 11 then
+				local owner = Players:GetPlayerFromCharacter(a)
+				if owner == player then localTools.pulse() elseif owner then worldTools.pulse(owner) end
+			end
 		elseif code == 133 then
 			local root = a and (a:FindFirstChild("HumanoidRootPart") or a:FindFirstChild("Torso") or a)
-			cloneVisual(objects, assetIndex.effects[b], root, 7)
+			cloneVisual(objects, assetIndex.effects[b], root, 7, names.runtime_marker)
+			if b == 8 and a == player.Character then interface.showAwaken() end
 			if b == 9 and a then
 				local highlight = Instance.new("Highlight")
 				highlight.Name = names.transient_visual
@@ -901,7 +1562,7 @@ function Core.start(context)
 			interface.recoveryProgress(b)
 			showNotice(notice, ("Recover: %d/20"):format(b), 0.4)
 		elseif code == 134 and a == 2 then
-			showNotice(notice, b == 1 and "You can't hide forever." or "...", 3)
+			interface.showSubtitle(b == 1 and "You can't hide forever." or "...", 3)
 		elseif code == 136 then
 			if b then task.spawn(decorate, b) end
 		elseif code == 137 then
@@ -925,10 +1586,18 @@ function Core.start(context)
 		elseif code == 147 then
 			applyWeather(a)
 			showNotice(notice, "Weather changed", 2)
+		elseif code == 148 then
+			local commandNames = {[1] = "Kick", [2] = "Kill", [3] = "Remove"}
+			if a then
+				showNotice(notice, "Admin: " .. (commandNames[b] or "Command") .. " -> " .. tostring(c), 3)
+			else
+				showNotice(notice, "Admin command failed: target not found or access denied", 4)
+			end
 		elseif code == 255 then
 			showNotice(notice, "Server rejected action " .. tostring(a), 2)
 		end
 	end)
+	send(162)
 
 	UserInputService.InputBegan:Connect(function(input, processed)
 		if not guard() or processed then return end
