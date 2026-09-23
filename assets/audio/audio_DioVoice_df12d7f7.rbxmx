@@ -1,0 +1,26 @@
+<roblox version="4"><External>null</External><External>nil</External><Item class="Sound" referent="RBX350AF2E1AC06462B8204A79BA50E707F">
+				<Properties>
+					<BinaryString name="AttributesSerialize"/>
+					<bool name="DefinesCapabilities">false</bool>
+					<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+					<NumberRange name="LoopRegion">0 60000 </NumberRange>
+					<bool name="Looped">false</bool>
+					<string name="Name">DioVoice</string>
+					<bool name="PlayOnRemove">false</bool>
+					<NumberRange name="PlaybackRegion">0 60000 </NumberRange>
+					<bool name="PlaybackRegionsEnabled">false</bool>
+					<float name="PlaybackSpeed">1</float>
+					<bool name="Playing">false</bool>
+					<float name="RollOffMaxDistance">10000</float>
+					<float name="RollOffMinDistance">30</float>
+					<token name="RollOffMode">0</token>
+					<Ref name="SoundGroup">null</Ref>
+					<string name="SoundId">rbxassetid://4580050949</string>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"/>
+					<double name="TimePosition">0</double>
+					<UniqueId name="UniqueId">494ce16765689aa004b947d50000e03e</UniqueId>
+					<float name="Volume">4</float>
+				</Properties>
+			</Item>
+			</roblox>
