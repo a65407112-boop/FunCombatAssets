@@ -1,0 +1,21 @@
+<roblox version="4"><External>null</External><External>nil</External><Item class="ColorCorrectionEffect" referent="RBX69B41C3D01A14176ADB68118F25C0A52">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<float name="Brightness">0.5</float>
+						<float name="Contrast">1</float>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">true</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<string name="Name">ColorCorrection</string>
+						<float name="Saturation">1</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<Color3 name="TintColor">
+							<R>1</R>
+							<G>0.0784313753</G>
+							<B>0.113725498</B>
+						</Color3>
+						<UniqueId name="UniqueId">52377645d5283f0904bb706d00004581</UniqueId>
+					</Properties>
+				</Item>
+			</roblox>
