@@ -1,0 +1,2009 @@
+<roblox version="4"><External>null</External><External>nil</External><Item class="Folder" referent="RBX0DB5698CBD9F469FA8C264BF40067A46">
+				<Properties>
+					<BinaryString name="AttributesSerialize"/>
+					<bool name="DefinesCapabilities">false</bool>
+					<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+					<string name="Name">Rainy</string>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"/>
+					<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d90000778b</UniqueId>
+				</Properties>
+				<Item class="Atmosphere" referent="RBX6BBF57F1C7194D3BACD947190F0E1D5D">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<Color3 name="Color">
+							<R>0.474509835</R>
+							<G>0.474509835</G>
+							<B>0.474509835</B>
+						</Color3>
+						<Color3 name="Decay">
+							<R>0.250980407</R>
+							<G>0.266666681</G>
+							<B>0.298039228</B>
+						</Color3>
+						<bool name="DefinesCapabilities">false</bool>
+						<float name="Density">0.400000006</float>
+						<float name="Glare">0</float>
+						<float name="Haze">0</float>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<string name="Name">Atmosphere</string>
+						<float name="Offset">0.360000014</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d90000778c</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="ColorCorrectionEffect" referent="RBX100C209B74F4433BB9D8113A0C55DE6E">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<float name="Brightness">0</float>
+						<float name="Contrast">0</float>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">true</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<string name="Name">ColorCorrection</string>
+						<float name="Saturation">0.200000003</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<Color3 name="TintColor">
+							<R>0.690196097</R>
+							<G>0.690196097</G>
+							<B>0.690196097</B>
+						</Color3>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d90000778d</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="BloomEffect" referent="RBXD3E3724B81114413A16B808AA6C3EC8A">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">true</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="Intensity">1</float>
+						<string name="Name">Bloom</string>
+						<float name="Size">24</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<float name="Threshold">2</float>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d90000778e</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="Sky" referent="RBX9C7C096D0CF241F8A820C167A84F44E9">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="CelestialBodiesShown">true</bool>
+						<bool name="DefinesCapabilities">false</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="MoonAngularSize">11</float>
+						<string name="MoonTextureId">rbxassetid://0</string>
+						<string name="Name">Sky</string>
+						<string name="SkyboxBk">http://www.roblox.com/asset/?id=4498828382</string>
+						<string name="SkyboxDn">http://www.roblox.com/asset/?id=4498828812</string>
+						<string name="SkyboxFt">http://www.roblox.com/asset/?id=4498829917</string>
+						<string name="SkyboxLf">http://www.roblox.com/asset/?id=4498830911</string>
+						<Vector3 name="SkyboxOrientation">
+							<X>0</X>
+							<Y>0</Y>
+							<Z>0</Z>
+						</Vector3>
+						<string name="SkyboxRt">http://www.roblox.com/asset/?id=4498830417</string>
+						<string name="SkyboxUp">http://www.roblox.com/asset/?id=4498831746</string>
+						<int64 name="SourceAssetId">9606797221</int64>
+						<int name="StarCount">3000</int>
+						<float name="SunAngularSize">0</float>
+						<string name="SunTextureId"></string>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d90000778f</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="DepthOfFieldEffect" referent="RBX37942E84FC3A4C75AF53E833DAD91869">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">false</bool>
+						<float name="FarIntensity">0.100000001</float>
+						<float name="FocusDistance">0.0500000007</float>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="InFocusRadius">30</float>
+						<string name="Name">DepthOfField</string>
+						<float name="NearIntensity">0.75</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007790</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="Model" referent="RBXF5EE87D0B7BE4FB5BD40F7CD4EB52819">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="DefinesCapabilities">false</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<token name="LevelOfDetail">0</token>
+						<CoordinateFrame name="ModelMeshCFrame">
+							<X>0</X>
+							<Y>0</Y>
+							<Z>0</Z>
+							<R00>1</R00>
+							<R01>0</R01>
+							<R02>0</R02>
+							<R10>0</R10>
+							<R11>1</R11>
+							<R12>0</R12>
+							<R20>0</R20>
+							<R21>0</R21>
+							<R22>1</R22>
+						</CoordinateFrame>
+						<SharedString name="ModelMeshData">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
+						<Vector3 name="ModelMeshSize">
+							<X>0</X>
+							<Y>0</Y>
+							<Z>0</Z>
+						</Vector3>
+						<token name="ModelStreamingMode">0</token>
+						<string name="Name">Clouds</string>
+						<bool name="NeedsPivotMigration">false</bool>
+						<Ref name="PrimaryPart">null</Ref>
+						<float name="ScaleFactor">1</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a2</UniqueId>
+						<OptionalCoordinateFrame name="WorldPivotData">
+							<CFrame>
+								<X>172.387527</X>
+								<Y>460.519714</Y>
+								<Z>-622.300903</Z>
+								<R00>0.366273999</R00>
+								<R01>0</R01>
+								<R02>0.930507064</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-0.930507064</R20>
+								<R21>0</R21>
+								<R22>0.366273999</R22>
+							</CFrame>
+						</OptionalCoordinateFrame>
+					</Properties>
+					<Item class="Part" referent="RBX33D244DEF74B466E80B31BBB731F565B">
+						<Properties>
+							<bool name="Anchored">true</bool>
+							<BinaryString name="AttributesSerialize"/>
+							<bool name="AudioCanCollide">true</bool>
+							<float name="BackParamA">-0.5</float>
+							<float name="BackParamB">0.5</float>
+							<token name="BackSurface">0</token>
+							<token name="BackSurfaceInput">0</token>
+							<float name="BottomParamA">-0.5</float>
+							<float name="BottomParamB">0.5</float>
+							<token name="BottomSurface">0</token>
+							<token name="BottomSurfaceInput">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>820.897461</X>
+								<Y>582.819702</Y>
+								<Z>-942.556335</Z>
+								<R00>0.313518435</R00>
+								<R01>0</R01>
+								<R02>0.94958216</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-0.94958216</R20>
+								<R21>0</R21>
+								<R22>0.313518435</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">true</bool>
+							<bool name="CastShadow">false</bool>
+							<string name="CollisionGroup">Default</string>
+							<int name="CollisionGroupId">0</int>
+							<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
+							<PhysicalProperties name="CustomPhysicalProperties">
+								<CustomPhysics>false</CustomPhysics>
+							</PhysicalProperties>
+							<bool name="DefinesCapabilities">false</bool>
+							<bool name="EnableFluidForces">true</bool>
+							<float name="FrontParamA">-0.5</float>
+							<float name="FrontParamB">0.5</float>
+							<token name="FrontSurface">0</token>
+							<token name="FrontSurfaceInput">0</token>
+							<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+							<float name="LeftParamA">-0.5</float>
+							<float name="LeftParamB">0.5</float>
+							<token name="LeftSurface">0</token>
+							<token name="LeftSurfaceInput">0</token>
+							<bool name="Locked">true</bool>
+							<bool name="Massless">false</bool>
+							<token name="Material">256</token>
+							<string name="MaterialVariantSerialized"></string>
+							<string name="Name">clouds</string>
+							<CoordinateFrame name="PivotOffset">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<float name="Reflectance">0</float>
+							<float name="RightParamA">-0.5</float>
+							<float name="RightParamB">0.5</float>
+							<token name="RightSurface">0</token>
+							<token name="RightSurfaceInput">0</token>
+							<int name="RootPriority">0</int>
+							<Vector3 name="RotVelocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"/>
+							<float name="TopParamA">-0.5</float>
+							<float name="TopParamB">0.5</float>
+							<token name="TopSurface">0</token>
+							<token name="TopSurfaceInput">0</token>
+							<float name="Transparency">1</float>
+							<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a3</UniqueId>
+							<Vector3 name="Velocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<token name="formFactorRaw">1</token>
+							<token name="shape">1</token>
+							<Vector3 name="size">
+								<X>483.378113</X>
+								<Y>2</Y>
+								<Z>607.661682</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Attachment" referent="RBX6233254CADE6422BB647F45F5B106CBB">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>1291.43201</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a4</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXC666E80B133C4C31B67C25EBE392D019">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>-1150.17542</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a5</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBXC2113FD561FB404D97C5CF93FF135548">
+							<Properties>
+								<Ref name="Attachment0">RBX9B6B4A75825B44348E094A8FA73641F0</Ref>
+								<Ref name="Attachment1">RBXD8320ADB9FA845CBAA5FA6B1DE8B9B66</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1</float>
+								<ColorSequence name="Color">0 0.772549 0.741176 0.701961 0 1 0.772549 0.741176 0.701961 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.75</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00200000009</float>
+								<NumberSequence name="Transparency">0 0.2 0 1 0.2 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a6</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX9B6B4A75825B44348E094A8FA73641F0">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a7</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXD8320ADB9FA845CBAA5FA6B1DE8B9B66">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>-1432.1748</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a8</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBXED7C5FF809E34354A7773336FA56A5AF">
+							<Properties>
+								<Ref name="Attachment0">RBX6233254CADE6422BB647F45F5B106CBB</Ref>
+								<Ref name="Attachment1">RBXC666E80B133C4C31B67C25EBE392D019</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1</float>
+								<ColorSequence name="Color">0 0.933333 0.894118 0.847059 0 1 0.933333 0.894118 0.847059 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.75</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.2 0 1 0.2 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077a9</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX139E2612B2124D84B42DA3276E9319B1">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077aa</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX04FD6B6E2EB546A48C77D4C2BC6FCB7C">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ab</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXFD03C8D36E2B4A88BF9D2B80FFBE9166">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ac</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXC60F2467456D49579D91D9B79C4F58EF">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ad</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="RBXA90D0D4DC1474A4B94C8AA496E5A824E">
+						<Properties>
+							<bool name="Anchored">true</bool>
+							<BinaryString name="AttributesSerialize"/>
+							<bool name="AudioCanCollide">true</bool>
+							<float name="BackParamA">-0.5</float>
+							<float name="BackParamB">0.5</float>
+							<token name="BackSurface">0</token>
+							<token name="BackSurfaceInput">0</token>
+							<float name="BottomParamA">-0.5</float>
+							<float name="BottomParamB">0.5</float>
+							<token name="BottomSurface">0</token>
+							<token name="BottomSurfaceInput">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>322.444183</X>
+								<Y>380.40152</Y>
+								<Z>183.253799</Z>
+								<R00>0.858807921</R00>
+								<R01>0</R01>
+								<R02>-0.512297809</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0.512297809</R20>
+								<R21>0</R21>
+								<R22>0.858807921</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">true</bool>
+							<bool name="CastShadow">false</bool>
+							<string name="CollisionGroup">Default</string>
+							<int name="CollisionGroupId">0</int>
+							<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
+							<PhysicalProperties name="CustomPhysicalProperties">
+								<CustomPhysics>false</CustomPhysics>
+							</PhysicalProperties>
+							<bool name="DefinesCapabilities">false</bool>
+							<bool name="EnableFluidForces">true</bool>
+							<float name="FrontParamA">-0.5</float>
+							<float name="FrontParamB">0.5</float>
+							<token name="FrontSurface">0</token>
+							<token name="FrontSurfaceInput">0</token>
+							<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+							<float name="LeftParamA">-0.5</float>
+							<float name="LeftParamB">0.5</float>
+							<token name="LeftSurface">0</token>
+							<token name="LeftSurfaceInput">0</token>
+							<bool name="Locked">true</bool>
+							<bool name="Massless">false</bool>
+							<token name="Material">256</token>
+							<string name="MaterialVariantSerialized"></string>
+							<string name="Name">clouds</string>
+							<CoordinateFrame name="PivotOffset">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<float name="Reflectance">0</float>
+							<float name="RightParamA">-0.5</float>
+							<float name="RightParamB">0.5</float>
+							<token name="RightSurface">0</token>
+							<token name="RightSurfaceInput">0</token>
+							<int name="RootPriority">0</int>
+							<Vector3 name="RotVelocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"/>
+							<float name="TopParamA">-0.5</float>
+							<float name="TopParamB">0.5</float>
+							<token name="TopSurface">0</token>
+							<token name="TopSurfaceInput">0</token>
+							<float name="Transparency">1</float>
+							<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ae</UniqueId>
+							<Vector3 name="Velocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<token name="formFactorRaw">1</token>
+							<token name="shape">1</token>
+							<Vector3 name="size">
+								<X>196.778107</X>
+								<Y>2</Y>
+								<Z>168.861694</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Attachment" referent="RBX6CCF353AF44044FCB162C44561563837">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>1291.43201</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077af</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXD92154A42F0445169E9B15F8F6AEB3E8">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>-1150.17542</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b0</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBX0D89706707424C90A83AD700B171EDD1">
+							<Properties>
+								<Ref name="Attachment0">RBX46563728C35A4ABF8C9B37E9FF55475B</Ref>
+								<Ref name="Attachment1">RBXB47831A0675E42B4A6485D33EB3D8E9D</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1.34500003</float>
+								<ColorSequence name="Color">0 0.933333 0.894118 0.847059 0 1 0.933333 0.894118 0.847059 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.949999988</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.5 0 1 0.5 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b1</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX46563728C35A4ABF8C9B37E9FF55475B">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b2</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXB47831A0675E42B4A6485D33EB3D8E9D">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>-1432.1748</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b3</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBX57D05E95BC984DE2A9449F6638B31E9F">
+							<Properties>
+								<Ref name="Attachment0">RBX6CCF353AF44044FCB162C44561563837</Ref>
+								<Ref name="Attachment1">RBXD92154A42F0445169E9B15F8F6AEB3E8</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">0.574999988</float>
+								<ColorSequence name="Color">0 0.741176 0.709804 0.67451 0 1 0.741176 0.709804 0.67451 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.449999988</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.5 0 1 0.5 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b4</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXCC993F9318DB454C8E3FA8F19BE61665">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b5</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXAC8AF2C6E1494E3C9E83212C1102F9EE">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b6</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX15C1FBAA3B6B427589CE40E20C68AC15">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b7</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX4BE63C46C59840C2B021271EBD285DAC">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b8</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="RBXE595C3F212724AF499690953804CDD0F">
+						<Properties>
+							<bool name="Anchored">true</bool>
+							<BinaryString name="AttributesSerialize"/>
+							<bool name="AudioCanCollide">true</bool>
+							<float name="BackParamA">-0.5</float>
+							<float name="BackParamB">0.5</float>
+							<token name="BackSurface">0</token>
+							<token name="BackSurfaceInput">0</token>
+							<float name="BottomParamA">-0.5</float>
+							<float name="BottomParamB">0.5</float>
+							<token name="BottomSurface">0</token>
+							<token name="BottomSurfaceInput">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>-202.776352</X>
+								<Y>578.227051</Y>
+								<Z>-1032.16931</Z>
+								<R00>0.366273999</R00>
+								<R01>0</R01>
+								<R02>0.930507064</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-0.930507064</R20>
+								<R21>0</R21>
+								<R22>0.366273999</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">true</bool>
+							<bool name="CastShadow">false</bool>
+							<string name="CollisionGroup">Default</string>
+							<int name="CollisionGroupId">0</int>
+							<Color3uint8 name="Color3uint8">4293388268</Color3uint8>
+							<PhysicalProperties name="CustomPhysicalProperties">
+								<CustomPhysics>false</CustomPhysics>
+							</PhysicalProperties>
+							<bool name="DefinesCapabilities">false</bool>
+							<bool name="EnableFluidForces">true</bool>
+							<float name="FrontParamA">-0.5</float>
+							<float name="FrontParamB">0.5</float>
+							<token name="FrontSurface">0</token>
+							<token name="FrontSurfaceInput">0</token>
+							<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+							<float name="LeftParamA">-0.5</float>
+							<float name="LeftParamB">0.5</float>
+							<token name="LeftSurface">0</token>
+							<token name="LeftSurfaceInput">0</token>
+							<bool name="Locked">true</bool>
+							<bool name="Massless">false</bool>
+							<token name="Material">256</token>
+							<string name="MaterialVariantSerialized"></string>
+							<string name="Name">clouds</string>
+							<CoordinateFrame name="PivotOffset">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<float name="Reflectance">0</float>
+							<float name="RightParamA">-0.5</float>
+							<float name="RightParamB">0.5</float>
+							<token name="RightSurface">0</token>
+							<token name="RightSurfaceInput">0</token>
+							<int name="RootPriority">0</int>
+							<Vector3 name="RotVelocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"/>
+							<float name="TopParamA">-0.5</float>
+							<float name="TopParamB">0.5</float>
+							<token name="TopSurface">0</token>
+							<token name="TopSurfaceInput">0</token>
+							<float name="Transparency">1</float>
+							<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077b9</UniqueId>
+							<Vector3 name="Velocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<token name="formFactorRaw">1</token>
+							<token name="shape">1</token>
+							<Vector3 name="size">
+								<X>483.378113</X>
+								<Y>2</Y>
+								<Z>607.661682</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Attachment" referent="RBX2491E69C047C495A9FF8756F9863DF2A">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>1291.43201</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ba</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX6BBE070F0C6C4B3DA4CCB9D6C7FA0EF1">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>-1150.17542</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077bb</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBX61656F485FD5486E91B8329F5C9FF574">
+							<Properties>
+								<Ref name="Attachment0">RBX848BBAFA686040C7980000C08B771CA9</Ref>
+								<Ref name="Attachment1">RBX30F95F541000416D96F3CA5047EA6718</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1</float>
+								<ColorSequence name="Color">0 0.403922 0.388235 0.368627 0 1 0.403922 0.388235 0.368627 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.850000024</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.2 0 1 0.2 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077bc</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX848BBAFA686040C7980000C08B771CA9">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077bd</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX30F95F541000416D96F3CA5047EA6718">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>-1432.1748</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077be</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBX4341826C55E44DAE8CD23E1F9862D3CC">
+							<Properties>
+								<Ref name="Attachment0">RBX2491E69C047C495A9FF8756F9863DF2A</Ref>
+								<Ref name="Attachment1">RBX6BBE070F0C6C4B3DA4CCB9D6C7FA0EF1</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1</float>
+								<ColorSequence name="Color">0 0.4 0.384314 0.364706 0 1 0.4 0.384314 0.364706 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0.300000012</float>
+								<float name="LightInfluence">0</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.2 0 1 0.2 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077bf</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX2FADDFA7AC9C4187BF56DBCDD6935C21">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c0</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXAEAFC61AB7BA41C695F2D8D38D6884E5">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c1</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX077BAA389BBD4E389A733B46B92FD32B">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c2</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX022CF49BC8C44429908CD26C61EC9051">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c3</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="RBX2529C88CBED54DE78BA6BCE326905538">
+						<Properties>
+							<bool name="Anchored">true</bool>
+							<BinaryString name="AttributesSerialize"/>
+							<bool name="AudioCanCollide">true</bool>
+							<float name="BackParamA">-0.5</float>
+							<float name="BackParamB">0.5</float>
+							<token name="BackSurface">0</token>
+							<token name="BackSurfaceInput">0</token>
+							<float name="BottomParamA">-0.5</float>
+							<float name="BottomParamB">0.5</float>
+							<token name="BottomSurface">0</token>
+							<token name="BottomSurfaceInput">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>101.254669</X>
+								<Y>338.219696</Y>
+								<Z>-904.826294</Z>
+								<R00>0.829591274</R00>
+								<R01>0</R01>
+								<R02>0.558371127</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-0.558371127</R20>
+								<R21>0</R21>
+								<R22>0.829591274</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">true</bool>
+							<bool name="CastShadow">false</bool>
+							<string name="CollisionGroup">Default</string>
+							<int name="CollisionGroupId">0</int>
+							<Color3uint8 name="Color3uint8">4288914085</Color3uint8>
+							<PhysicalProperties name="CustomPhysicalProperties">
+								<CustomPhysics>false</CustomPhysics>
+							</PhysicalProperties>
+							<bool name="DefinesCapabilities">false</bool>
+							<bool name="EnableFluidForces">true</bool>
+							<float name="FrontParamA">-0.5</float>
+							<float name="FrontParamB">0.5</float>
+							<token name="FrontSurface">0</token>
+							<token name="FrontSurfaceInput">0</token>
+							<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+							<float name="LeftParamA">-0.5</float>
+							<float name="LeftParamB">0.5</float>
+							<token name="LeftSurface">0</token>
+							<token name="LeftSurfaceInput">0</token>
+							<bool name="Locked">true</bool>
+							<bool name="Massless">false</bool>
+							<token name="Material">256</token>
+							<string name="MaterialVariantSerialized"></string>
+							<string name="Name">clouds</string>
+							<CoordinateFrame name="PivotOffset">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<float name="Reflectance">0</float>
+							<float name="RightParamA">-0.5</float>
+							<float name="RightParamB">0.5</float>
+							<token name="RightSurface">0</token>
+							<token name="RightSurfaceInput">0</token>
+							<int name="RootPriority">0</int>
+							<Vector3 name="RotVelocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"/>
+							<float name="TopParamA">-0.5</float>
+							<float name="TopParamB">0.5</float>
+							<token name="TopSurface">0</token>
+							<token name="TopSurfaceInput">0</token>
+							<float name="Transparency">1</float>
+							<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c4</UniqueId>
+							<Vector3 name="Velocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<token name="formFactorRaw">1</token>
+							<token name="shape">1</token>
+							<Vector3 name="size">
+								<X>196.778107</X>
+								<Y>2</Y>
+								<Z>168.861694</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Attachment" referent="RBXBFADADE6BD284A3C99A2C6786236D0CB">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>1291.43201</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c5</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX3EA9F060AC034EE6882F03DE71B4905A">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>-1150.17542</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c6</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBX18D094B133614FB5BFF4B9C0FFC6D135">
+							<Properties>
+								<Ref name="Attachment0">RBX562B5528C07B4061A2A8207E8C16D7F3</Ref>
+								<Ref name="Attachment1">RBX34C30FD385F8490181F0D3F26AFD1DA7</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1.34500003</float>
+								<ColorSequence name="Color">0 0.933333 0.894118 0.847059 0 1 0.933333 0.894118 0.847059 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.899999976</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.6 0 1 0.6 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c7</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX562B5528C07B4061A2A8207E8C16D7F3">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c8</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX34C30FD385F8490181F0D3F26AFD1DA7">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>-1432.1748</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077c9</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBXB5B418D25F50404B98B07E223B6F312E">
+							<Properties>
+								<Ref name="Attachment0">RBXBFADADE6BD284A3C99A2C6786236D0CB</Ref>
+								<Ref name="Attachment1">RBX3EA9F060AC034EE6882F03DE71B4905A</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">0.574999988</float>
+								<ColorSequence name="Color">0 0.741176 0.709804 0.67451 0 1 0.741176 0.709804 0.67451 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.800000012</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.5 0 1 0.5 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ca</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX8221846198FF4DE3842A66D072415639">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077cb</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX1FDA855AF6DC41FB8E364808C3634B49">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077cc</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX34C38645458842458C20F2C9C60BD26B">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077cd</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX9C2DF743C7204EF2A85F1E71286FEFC4">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077ce</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+					</Item>
+					<Item class="Part" referent="RBXC713F9E79637411C842E4307FC5A0311">
+						<Properties>
+							<bool name="Anchored">true</bool>
+							<BinaryString name="AttributesSerialize"/>
+							<bool name="AudioCanCollide">true</bool>
+							<float name="BackParamA">-0.5</float>
+							<float name="BackParamB">0.5</float>
+							<token name="BackSurface">0</token>
+							<token name="BackSurfaceInput">0</token>
+							<float name="BottomParamA">-0.5</float>
+							<float name="BottomParamB">0.5</float>
+							<token name="BottomSurface">0</token>
+							<token name="BottomSurfaceInput">0</token>
+							<CoordinateFrame name="CFrame">
+								<X>114.022797</X>
+								<Y>572.489746</Y>
+								<Z>-649.794373</Z>
+								<R00>0.313518435</R00>
+								<R01>0</R01>
+								<R02>0.94958216</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>-0.94958216</R20>
+								<R21>0</R21>
+								<R22>0.313518435</R22>
+							</CoordinateFrame>
+							<bool name="CanCollide">false</bool>
+							<bool name="CanQuery">false</bool>
+							<bool name="CanTouch">true</bool>
+							<bool name="CastShadow">false</bool>
+							<string name="CollisionGroup">Default</string>
+							<int name="CollisionGroupId">0</int>
+							<Color3uint8 name="Color3uint8">4293388268</Color3uint8>
+							<PhysicalProperties name="CustomPhysicalProperties">
+								<CustomPhysics>false</CustomPhysics>
+							</PhysicalProperties>
+							<bool name="DefinesCapabilities">false</bool>
+							<bool name="EnableFluidForces">true</bool>
+							<float name="FrontParamA">-0.5</float>
+							<float name="FrontParamB">0.5</float>
+							<token name="FrontSurface">0</token>
+							<token name="FrontSurfaceInput">0</token>
+							<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+							<float name="LeftParamA">-0.5</float>
+							<float name="LeftParamB">0.5</float>
+							<token name="LeftSurface">0</token>
+							<token name="LeftSurfaceInput">0</token>
+							<bool name="Locked">true</bool>
+							<bool name="Massless">false</bool>
+							<token name="Material">256</token>
+							<string name="MaterialVariantSerialized"></string>
+							<string name="Name">clouds</string>
+							<CoordinateFrame name="PivotOffset">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+								<R00>1</R00>
+								<R01>0</R01>
+								<R02>0</R02>
+								<R10>0</R10>
+								<R11>1</R11>
+								<R12>0</R12>
+								<R20>0</R20>
+								<R21>0</R21>
+								<R22>1</R22>
+							</CoordinateFrame>
+							<float name="Reflectance">0</float>
+							<float name="RightParamA">-0.5</float>
+							<float name="RightParamB">0.5</float>
+							<token name="RightSurface">0</token>
+							<token name="RightSurfaceInput">0</token>
+							<int name="RootPriority">0</int>
+							<Vector3 name="RotVelocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<int64 name="SourceAssetId">-1</int64>
+							<BinaryString name="Tags"/>
+							<float name="TopParamA">-0.5</float>
+							<float name="TopParamB">0.5</float>
+							<token name="TopSurface">0</token>
+							<token name="TopSurfaceInput">0</token>
+							<float name="Transparency">1</float>
+							<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077cf</UniqueId>
+							<Vector3 name="Velocity">
+								<X>0</X>
+								<Y>0</Y>
+								<Z>0</Z>
+							</Vector3>
+							<token name="formFactorRaw">1</token>
+							<token name="shape">1</token>
+							<Vector3 name="size">
+								<X>483.378113</X>
+								<Y>2</Y>
+								<Z>607.661682</Z>
+							</Vector3>
+						</Properties>
+						<Item class="Attachment" referent="RBX79FB1E3D7CB74880A4CC7165ABE6B4EA">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>1291.43201</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d0</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX007AB54ADF62419884326FA90E532F2A">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-337.357605</X>
+									<Y>95.5569763</Y>
+									<Z>-1150.17542</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d1</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBXC37BD49AF7EC4F039D4D569E3A1675AE">
+							<Properties>
+								<Ref name="Attachment0">RBX01826A2DA96E4B70A861FC9952DB30B7</Ref>
+								<Ref name="Attachment1">RBX6228DB0B51E74E67BC9BDB47C6F3A897</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1</float>
+								<ColorSequence name="Color">0 0.533333 0.513726 0.486275 0 1 0.533333 0.513726 0.486275 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0</float>
+								<float name="LightInfluence">0.850000024</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.2 0 1 0.2 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d2</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX01826A2DA96E4B70A861FC9952DB30B7">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d3</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX6228DB0B51E74E67BC9BDB47C6F3A897">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>76.7863388</X>
+									<Y>95.5569763</Y>
+									<Z>-1432.1748</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">SingleCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d4</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Beam" referent="RBXD4A284714B324CA584A8273560C7B4ED">
+							<Properties>
+								<Ref name="Attachment0">RBX79FB1E3D7CB74880A4CC7165ABE6B4EA</Ref>
+								<Ref name="Attachment1">RBX007AB54ADF62419884326FA90E532F2A</Ref>
+								<BinaryString name="AttributesSerialize"/>
+								<float name="Brightness">1</float>
+								<ColorSequence name="Color">0 0.4 0.384314 0.364706 0 1 0.4 0.384314 0.364706 0 </ColorSequence>
+								<float name="CurveSize0">0</float>
+								<float name="CurveSize1">0</float>
+								<bool name="DefinesCapabilities">false</bool>
+								<bool name="Enabled">true</bool>
+								<bool name="FaceCamera">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<float name="LightEmission">0.300000012</float>
+								<float name="LightInfluence">0</float>
+								<string name="Name">SingleCloud</string>
+								<int name="Segments">1</int>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<string name="Texture">rbxassetid://5063369703</string>
+								<float name="TextureLength">3</float>
+								<token name="TextureMode">0</token>
+								<float name="TextureSpeed">0.00499999989</float>
+								<NumberSequence name="Transparency">0 0.2 0 1 0.2 0 </NumberSequence>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d5</UniqueId>
+								<float name="Width0">1024</float>
+								<float name="Width1">1024</float>
+								<float name="ZOffset">0</float>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX60998240C69C4C52ABFC78AF47104621">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d6</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX6D18D63189734F578E01108EA268E695">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>-999.836365</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Stop01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d7</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBXB3F9210BD6CB46BB9BC65F72BFEBC218">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>-406.651428</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start02</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d8</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+						<Item class="Attachment" referent="RBX66A5E86E80B3451B9B92A29869601C89">
+							<Properties>
+								<BinaryString name="AttributesSerialize"/>
+								<CoordinateFrame name="CFrame">
+									<X>560.275818</X>
+									<Y>95.5569763</Y>
+									<Z>1009.43311</Z>
+									<R00>0</R00>
+									<R01>1</R01>
+									<R02>-0</R02>
+									<R10>-1</R10>
+									<R11>0</R11>
+									<R12>0</R12>
+									<R20>0</R20>
+									<R21>0</R21>
+									<R22>1</R22>
+								</CoordinateFrame>
+								<bool name="DefinesCapabilities">false</bool>
+								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+								<string name="Name">MultiCloud-Start01</string>
+								<int64 name="SourceAssetId">-1</int64>
+								<BinaryString name="Tags"/>
+								<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d9000077d9</UniqueId>
+								<bool name="Visible">false</bool>
+							</Properties>
+						</Item>
+					</Item>
+				</Item>
+			</Item>
+		<SharedStrings><SharedString md5="DldRwCblQ7Loqy6wYJnaoQ=="/>
+		</SharedStrings></roblox>

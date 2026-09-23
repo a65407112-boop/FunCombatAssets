@@ -1,0 +1,130 @@
+<roblox version="4"><External>null</External><External>nil</External><Item class="Folder" referent="RBXFD59B60B763C4D2D8FD4A71D9B454CA0">
+				<Properties>
+					<BinaryString name="AttributesSerialize"/>
+					<bool name="DefinesCapabilities">false</bool>
+					<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+					<string name="Name">Purple/PurpleFog</string>
+					<int64 name="SourceAssetId">-1</int64>
+					<BinaryString name="Tags"/>
+					<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007784</UniqueId>
+				</Properties>
+				<Item class="SunRaysEffect" referent="RBX77CEACBE47B84F28BA02AC7FBDF199A3">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">true</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="Intensity">0.00999999978</float>
+						<string name="Name">SunRays</string>
+						<int64 name="SourceAssetId">-1</int64>
+						<float name="Spread">0.100000001</float>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007785</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="DepthOfFieldEffect" referent="RBX4CCDD5FA23F64F85BE0C8A9B0A28DAE6">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">false</bool>
+						<float name="FarIntensity">0.100000001</float>
+						<float name="FocusDistance">0.0500000007</float>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="InFocusRadius">30</float>
+						<string name="Name">DepthOfField</string>
+						<float name="NearIntensity">0.75</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007786</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="ColorCorrectionEffect" referent="RBX114E718D2B2047C89B2C666B86D37DBC">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<float name="Brightness">0</float>
+						<float name="Contrast">0</float>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">true</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<string name="Name">ColorCorrection</string>
+						<float name="Saturation">0.5</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<Color3 name="TintColor">
+							<R>0.866666734</R>
+							<G>0.192156881</G>
+							<B>1</B>
+						</Color3>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007787</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="BloomEffect" referent="RBXA4E2C17D39944EA4BDEFBCE581895978">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="DefinesCapabilities">false</bool>
+						<bool name="Enabled">true</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="Intensity">1</float>
+						<string name="Name">Bloom</string>
+						<float name="Size">24</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<float name="Threshold">2</float>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007788</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="Sky" referent="RBX0DAE30F14B2540058C64F2288F092F1B">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<bool name="CelestialBodiesShown">true</bool>
+						<bool name="DefinesCapabilities">false</bool>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<float name="MoonAngularSize">11</float>
+						<string name="MoonTextureId">rbxassetid://6444320592</string>
+						<string name="Name">Sky</string>
+						<string name="SkyboxBk">rbxassetid://6444884337</string>
+						<string name="SkyboxDn">rbxassetid://6444884785</string>
+						<string name="SkyboxFt">rbxassetid://6444884337</string>
+						<string name="SkyboxLf">rbxassetid://6444884337</string>
+						<Vector3 name="SkyboxOrientation">
+							<X>0</X>
+							<Y>0</Y>
+							<Z>0</Z>
+						</Vector3>
+						<string name="SkyboxRt">rbxassetid://6444884337</string>
+						<string name="SkyboxUp">rbxassetid://6412503613</string>
+						<int64 name="SourceAssetId">332039975</int64>
+						<int name="StarCount">3000</int>
+						<float name="SunAngularSize">11</float>
+						<string name="SunTextureId"></string>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007789</UniqueId>
+					</Properties>
+				</Item>
+				<Item class="Atmosphere" referent="RBX38D84330A7EB4A33B4D2FF180C736E74">
+					<Properties>
+						<BinaryString name="AttributesSerialize"/>
+						<Color3 name="Color">
+							<R>0.654901981</R>
+							<G>0.0666666701</G>
+							<B>0.596078455</B>
+						</Color3>
+						<Color3 name="Decay">
+							<R>0.600000024</R>
+							<G>0.160784319</G>
+							<B>0.686274529</B>
+						</Color3>
+						<bool name="DefinesCapabilities">false</bool>
+						<float name="Density">0.439999998</float>
+						<float name="Glare">0</float>
+						<float name="Haze">10</float>
+						<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
+						<string name="Name">Atmosphere</string>
+						<float name="Offset">0.25</float>
+						<int64 name="SourceAssetId">-1</int64>
+						<BinaryString name="Tags"/>
+						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d90000778a</UniqueId>
+					</Properties>
+				</Item>
+			</Item>
+			</roblox>
