@@ -1,0 +1,60 @@
+name: Import Fun Combat assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - FunCombat_missing_assets.zip
+
+permissions:
+  contents: write
+
+jobs:
+  import-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Validate and extract all 230 resources
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib
+          import json
+          from pathlib import Path, PurePosixPath
+          from zipfile import ZipFile
+
+          manifest = json.loads(Path('manifest.json').read_text(encoding='utf-8'))
+          expected = {path: info for path, info in manifest['files'].items()
+                      if path.startswith('assets/')}
+          assert len(expected) == 230, 'Unexpected asset count in manifest'
+          with ZipFile('FunCombat_missing_assets.zip') as archive:
+              members = [item for item in archive.infolist() if not item.is_dir()]
+              names = [item.filename for item in members]
+              assert len(names) == 230 and len(set(names)) == 230, 'Archive must contain 230 unique resources'
+              assert set(names) == set(expected), 'Archive paths do not match the manifest'
+              verified = []
+              for item in members:
+                  path = PurePosixPath(item.filename)
+                  assert path.parts[0] == 'assets' and '..' not in path.parts
+                  assert not path.is_absolute() and str(path) == item.filename
+                  data = archive.read(item)
+                  info = expected[item.filename]
+                  assert len(data) == info['bytes'], f'Wrong size: {item.filename}'
+                  assert hashlib.sha256(data).hexdigest() == info['sha256'], f'Wrong hash: {item.filename}'
+                  verified.append((item.filename, data))
+          for name, data in verified:
+              destination = Path(name)
+              destination.parent.mkdir(parents=True, exist_ok=True)
+              destination.write_bytes(data)
+          print(f'Validated and installed {len(verified)} assets')
+          PY
+          rm FunCombat_missing_assets.zip
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A -- assets FunCombat_missing_assets.zip
+          if ! git diff --cached --quiet; then
+            git commit -m 'Import all 230 verified Fun Combat resources'
+            git push origin HEAD:main
+          fi
