@@ -2,7 +2,7 @@
 
 The full package includes the matching `FunCombat_Server.rbxlx`, client and builder. The original place remains untouched. Offline checks are recorded in `Validation_Report.md`; actual engine testing remains necessary.
 
-1. Import the updated protocol 3 `FunCombat_Server.rbxlx` into the intended Studio/server environment. An earlier protocol 2 place will be rejected by this client. Verify both original map templates, the active Crossroads map, terrain, collision and spawn heights before publishing.
+1. Import the newly supplied protocol 3 `FunCombat_Server.rbxlx` into the intended Studio/server environment. Replace the previous build, including the previous protocol 3 place: its Main script still required version 2 and could not start. Verify both original map templates, the active Crossroads map, terrain, collision and spawn heights before publishing.
 2. Upload all files from `GitHub/` to the configured repository root, retaining subfolders. Do not upload a surrounding `GitHub` folder unless CONFIG/path handling is adjusted.
 3. Set Owner, Repository and Branch only in `loader.lua` CONFIG if using a different repository. Existing values identify `a65407112-boop/FunCombatAssets`, branch `main`.
 4. Join the matching server. Execute `loader.lua`. A normal raw entry point, after upload, is `loadstring(game:HttpGet("https://raw.githubusercontent.com/" .. owner .. "/" .. repository .. "/" .. branch .. "/loader.lua"))()` using your configured variables. This requires an executor that exposes that HTTP API; executing the downloaded loader itself also supports request/http_request/syn.request.

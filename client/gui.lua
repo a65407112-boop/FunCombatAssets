@@ -86,7 +86,7 @@ return function(ctx)
             root.Parent = playerGui
         end
     end
-    for _, name in ipairs({"stats", "society", "Info"}) do
+    for _, name in ipairs({"stats", "society", "Info", "BillboardGui"}) do
         roots[name] = clone("gui/" .. name)
         if roots[name] then
             roots[name].ResetOnSpawn = false
@@ -326,8 +326,9 @@ return function(ctx)
         entry.state = state
         local head = character:FindFirstChild("Head")
         if not head then return end
-        for _, name in ipairs({"stats", "society", "Info"}) do
-            if not entry[name] and roots[name] and (name ~= "Info" or (state.userId or 0) > 0) then
+        for _, name in ipairs({"stats", "society", "Info", "BillboardGui"}) do
+            if not entry[name] and roots[name] and (name ~= "Info" or (state.userId or 0) > 0)
+                and (name ~= "BillboardGui" or state.ownerTag == true) then
                 entry[name] = roots[name]:Clone()
                 entry[name].Adornee = head
                 entry[name].Parent = playerGui
@@ -335,6 +336,12 @@ return function(ctx)
             elseif entry[name] then
                 entry[name].Adornee = head
             end
+        end
+        if entry.BillboardGui then
+            entry.BillboardGui.Enabled = state.ownerTag == true
+            local label = find(entry.BillboardGui, "TextLabel")
+            text(label, "OWNER")
+            if label then label.TextColor3 = Color3.new(0, 0, 0) end
         end
         local stats = entry.stats
         if stats then

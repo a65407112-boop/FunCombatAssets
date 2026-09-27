@@ -15,6 +15,7 @@ return function(ctx)
     scope:add(ctx.state:onChanged(stateAnimation))
     local snapshot = ctx.network:snapshot()
     ctx.state:apply(snapshot)
+    if snapshot.admin then ctx.network:dispatch("Admin", snapshot.admin) end
     for _, state in pairs(ctx.state:all()) do stateAnimation(state) end
     if snapshot.voting then ctx.network:dispatch("Voting", snapshot.voting) end
     if snapshot.weather then
