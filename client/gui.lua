@@ -18,7 +18,7 @@ return function(ctx)
     local module = {roots = roots}
     local emoteNames = {"Boston Breakdance", "Flex", "Rat", "Akiyama", "idk"}
     local screenNames = {"HitboxToggle", "Shiftlock", "getUp", "mobileButtons", "title", "Subtitles",
-        "Emotes", "awakenScreen", "MapVoteGui", "weapon", "weaponGui", "HitIndicator"}
+        "Emotes", "awakenScreen", "Gender", "MapVoteGui", "weapon", "weaponGui", "HitIndicator"}
     local warned = {}
 
     local function clone(key)
@@ -86,7 +86,7 @@ return function(ctx)
             root.Parent = playerGui
         end
     end
-    for _, name in ipairs({"stats", "society"}) do
+    for _, name in ipairs({"stats", "society", "Info"}) do
         roots[name] = clone("gui/" .. name)
         if roots[name] then
             roots[name].ResetOnSpawn = false
@@ -97,6 +97,31 @@ return function(ctx)
     if voteTemplate then scope:add(voteTemplate) end
     local awakeningTemplate = clone("effects/ColorCorrection")
     if awakeningTemplate then scope:add(awakeningTemplate) end
+    -- Original Gender tree and labels. Keep the selector open until the server
+    -- acknowledges a choice, so a dropped/rejected request cannot strand it.
+    local genderColors = {
+        Female = {Color3.fromRGB(170,86,162), Color3.fromRGB(35,23,34)},
+        Male = {Color3.fromRGB(27,175,158), Color3.fromRGB(26,42,53)},
+        Fembxy = {Color3.fromRGB(72,0,130), Color3.fromRGB(26,42,53)}
+    }
+    if roots.Gender then
+        roots.Gender.Enabled = true
+        for name in pairs(genderColors) do
+            local value = name
+            local button = find(roots.Gender, name)
+            bind(button, function()
+                ctx.audio:play({key="audio/Gender/Click"})
+                emit("Gender", value)
+            end)
+            if button then
+                scope:add(button.MouseEnter:Connect(function()
+                    ctx.audio:play({key="audio/Gender/Hover"})
+                    tween(button, 0.1, {Rotation=-3})
+                end))
+                scope:add(button.MouseLeave:Connect(function() tween(button, 0.1, {Rotation=0}) end))
+            end
+        end
+    end
     local hitboxes = false
     local hitboxValue = find(roots.HitboxToggle, "Toggle")
     local hitboxButton = roots.HitboxToggle and roots.HitboxToggle:FindFirstChildWhichIsA("GuiButton", true)
@@ -301,8 +326,8 @@ return function(ctx)
         entry.state = state
         local head = character:FindFirstChild("Head")
         if not head then return end
-        for _, name in ipairs({"stats", "society"}) do
-            if not entry[name] and roots[name] then
+        for _, name in ipairs({"stats", "society", "Info"}) do
+            if not entry[name] and roots[name] and (name ~= "Info" or (state.userId or 0) > 0) then
                 entry[name] = roots[name]:Clone()
                 entry[name].Adornee = head
                 entry[name].Parent = playerGui
@@ -321,6 +346,22 @@ return function(ctx)
             local healthBar = health and health:FindFirstChild("Frame")
             local fraction = math.max(0, math.min(1, (tonumber(state.health) or 0) / math.max(1, tonumber(state.maxHealth) or 100)))
             if healthBar then tween(healthBar, 0.15, {Size = UDim2.new(fraction, 0, 1, 0)}) end
+        end
+        if entry.Info then
+            local characterPlayer = players:GetPlayerFromCharacter(character)
+            local nameLabel = find(entry.Info, "NameText")
+            local displayName = characterPlayer and characterPlayer.DisplayName or character.Name
+            text(nameLabel, displayName)
+            text(find(nameLabel, "Background"), displayName)
+            local label = find(entry.Info, "GenderText")
+            local colors = genderColors[state.gender]
+            text(label, colors and state.gender or "")
+            text(find(label, "Background"), colors and state.gender or "")
+            if colors and label then
+                label.TextColor3 = colors[1]
+                local background = find(label, "Background")
+                if background then background.TextColor3 = colors[2] end
+            end
         end
     end
 
@@ -354,6 +395,7 @@ return function(ctx)
         updateBillboard(state)
         updateSociety()
         if state.character ~= player.Character then return end
+        if roots.Gender then roots.Gender.Enabled = genderColors[state.gender] == nil end
         local eligible = state.downed == true and state.canGetUp == true and not state.carriedBy
         if eligible ~= getUpShown then
             getUpShown = eligible

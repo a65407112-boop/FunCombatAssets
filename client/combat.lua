@@ -10,6 +10,8 @@ return function(ctx)
     local emoteKeys = {[Enum.KeyCode.G] = "1", [Enum.KeyCode.H] = "2", [Enum.KeyCode.J] = "3",
         [Enum.KeyCode.K] = "4", [Enum.KeyCode.L] = "5"}
     local weapons = {Bat = true, Sword = true, [":3"] = true, BoyKisser = true, Maxwell = true, ["Orange Cat"] = true, [""] = true}
+    local genders = {Male=true, Female=true, Fembxy=true}
+    local chatEmotes = {wave=true, point=true, dance=true, dance1=true, dance2=true, dance3=true, laugh=true, cheer=true}
     local mouse = player:GetMouse()
     local oldIcon = mouse.Icon
     local wroteIcon = false
@@ -26,6 +28,8 @@ return function(ctx)
         local state = ctx.state:localState()
         if action == "Vote" then
             if type(payload) ~= "string" then return false end
+        elseif action == "Gender" then
+            if type(payload) ~= "string" or not genders[payload] then return false end
         elseif action == "GetUp" then
             if not state or not state.downed or not state.canGetUp or state.carriedBy then return false end
             payload = nil
@@ -50,7 +54,11 @@ return function(ctx)
             if not canAct(state) or state.carrying or not weapons[payload] then return false end
         elseif action == "Emote" then
             if not canAct(state) or state.carrying or state.attacking then return false end
-            if payload ~= "Stop" and (type(payload) ~= "string" or not string.match(payload, "^[1-5]$")) then return false end
+            if payload ~= "Stop" and (type(payload) ~= "string" or (not chatEmotes[payload] and not string.match(payload, "^[1-5]$"))) then return false end
+            if chatEmotes[payload] then
+                local humanoid = player.Character and player.Character:FindFirstChildOfClass("Humanoid")
+                if not humanoid or humanoid.MoveDirection.Magnitude > 0.01 then return false end
+            end
         else
             return false
         end
@@ -63,6 +71,14 @@ return function(ctx)
     end
 
     scope:add(ctx.gui:onAction(function(action, payload) module:request(action, payload) end))
+    scope:add(player.Chatted:Connect(function(message)
+        -- Original Animate commands; the server chooses an allowed variant and
+        -- broadcasts it so other external clients render the same request.
+        local name
+        if message:sub(1,3) == "/e " then name = message:sub(4)
+        elseif message:sub(1,7) == "/emote " then name = message:sub(8) end
+        if name and chatEmotes[name] then module:request("Emote", name) end
+    end))
     scope:add(inputService.InputBegan:Connect(function(input, processed)
         if processed or inputService:GetFocusedTextBox() then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 then

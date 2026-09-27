@@ -5,6 +5,8 @@ return function(ctx)
     local scope = ctx.cleanup:scope()
     local cache, active, pending = {}, {}, {}
     local revisions = setmetatable({}, {__mode = "k"})
+    local completed = setmetatable({}, {__mode = "k"})
+    local ownedTracks = setmetatable({}, {__mode = "k"})
     local run = game:GetService("RunService")
     local module = {}
     local function originalSpeed(key)
@@ -55,21 +57,69 @@ return function(ctx)
         local track = active[character]
         if not track then return end
         active[character] = nil
+        if track.engineTrack then
+            for _, connection in ipairs(track.connections) do connection:Disconnect() end
+            ownedTracks[track.engineTrack] = nil
+            pcall(function() track.engineTrack:Stop(0.1); track.engineTrack:Destroy() end)
+            track.animation:Destroy()
+        end
         for joint, initial in pairs(track.initial) do
             if joint.Parent then pcall(function() joint.Transform = initial end) end
         end
     end
     function module:isPlaying(character) return active[character] ~= nil end
+    function module:blocksLocomotion(character)
+        local track = active[character]
+        -- Source carryGrabber contains torso/arm poses only. Original Animate
+        -- continued driving the legs underneath that carried-person hold.
+        return track ~= nil and track.key ~= "other/carryGrabber"
+    end
+    function module:ownsTrack(track) return ownedTracks[track] == true end
+    local function finishHosted(character, record)
+        if active[character] ~= record then return end
+        completed[character] = {key=record.key, start=record.start, revision=record.revision}
+        module:stop(character)
+    end
     function module:play(data)
         local character = data.character
         if typeof(character) ~= "Instance" or not character:IsA("Model") or not character.Parent then return end
         local revision = data.revision or 0
         if revision < (revisions[character] or 0) then return end
         revisions[character] = revision
+        local finished = completed[character]
+        if finished and finished.key == data.key and finished.start == data.start and finished.revision == revision then return end
         local previous = active[character]
         if previous and previous.key == data.key and previous.start == data.start then return end
         local ticket = {}
         pending[character] = ticket
+        local hosted = ctx.catalog.hostedAnimations and ctx.catalog.hostedAnimations[data.key]
+        if hosted then
+            local humanoid = character:FindFirstChildOfClass("Humanoid")
+            if not humanoid then pending[character] = nil; return end
+            local animation = Instance.new("Animation")
+            animation.Name, animation.AnimationId = hosted.name, hosted.AnimationId
+            local loaded, engineTrack = pcall(function() return humanoid:LoadAnimation(animation) end)
+            if pending[character] ~= ticket or ctx.cleanup.dead then
+                if loaded then pcall(function() engineTrack:Stop(); engineTrack:Destroy() end) end
+                animation:Destroy(); return
+            end
+            if not loaded then
+                animation:Destroy(); pending[character] = nil
+                ctx.report("Original chat animation unavailable: " .. hosted.AnimationId .. ": " .. tostring(engineTrack)); return
+            end
+            self:stop(character)
+            local record = {key=data.key, start=data.start or ctx.network:now(), revision=revision,
+                speed=1, loop=hosted.loop == true, initial={}, engineTrack=engineTrack,
+                animation=animation, connections={}, loadDeadline=ctx.network:now()+15}
+            active[character], ownedTracks[engineTrack] = record, true
+            record.connections[1] = engineTrack.KeyframeReached:Connect(function(name)
+                if name == "End" and not record.loop then finishHosted(character, record) end
+            end)
+            record.connections[2] = engineTrack.Stopped:Connect(function() finishHosted(character, record) end)
+            engineTrack.Priority, engineTrack.Looped = Enum.AnimationPriority.Core, record.loop
+            engineTrack:Play(0.1)
+            return
+        end
         local ok, sequence = pcall(getSequence, data.key)
         if pending[character] ~= ticket or ctx.cleanup.dead then return end
         if not ok then ctx.report("Animation " .. tostring(data.key) .. ": " .. tostring(sequence)); return end
@@ -102,9 +152,24 @@ return function(ctx)
         local now = ctx.network:now()
         for character, track in pairs(active) do
             local elapsed = math.max(0, (now - track.start) * track.speed)
-            local duration = track.sequence.duration
-            if not character.Parent or (not track.loop and elapsed > duration) then module:stop(character)
+            if track.engineTrack then
+                if not character.Parent then module:stop(character)
+                elseif not track.synchronized then
+                    local duration = track.engineTrack.Length
+                    if duration > 0 then
+                        if not track.loop and elapsed >= duration then finishHosted(character, track)
+                        else
+                            track.engineTrack.TimePosition = track.loop and elapsed % duration or elapsed
+                            track.synchronized = true
+                        end
+                    elseif now >= track.loadDeadline then
+                        ctx.report("Original chat animation did not load: " .. track.animation.AnimationId)
+                        finishHosted(character, track)
+                    end
+                end
+            elseif not character.Parent or (not track.loop and elapsed > track.sequence.duration) then module:stop(character)
             else
+                local duration = track.sequence.duration
                 if track.loop and duration > 0 then elapsed = elapsed % duration end
                 if now >= track.refresh then
                     track.refresh = now + 0.1

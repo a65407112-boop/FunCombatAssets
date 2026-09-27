@@ -79,7 +79,9 @@ return function(ctx)
         for _, child in ipairs(character:GetChildren()) do disableDefault(child) end
         localScope:add(character.ChildAdded:Connect(disableDefault))
         pcall(function()
-            for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do track:Stop(0.1) end
+            for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
+                if not ctx.animations:ownsTrack(track) then track:Stop(0.1) end
+            end
         end)
         localScope:add(humanoid.Running:Connect(function(speed) record.speed = speed; record.pose = speed > 0.01 and "Running" or "Standing" end))
         localScope:add(humanoid.Jumping:Connect(function(active) if active then record.pose = "Jumping"; record.jumpUntil = tick() + 0.3 end end))
@@ -106,9 +108,17 @@ return function(ctx)
         for character, state in pairs(ctx.state:all()) do
             local record = figures[character] or attach(character)
             if record then
-                local locked = state.downed or state.ragdolled or state.stunned or state.carrying or state.carriedBy or ctx.animations:isPlaying(character)
+                local locked = state.downed or state.ragdolled or state.stunned or state.carriedBy or ctx.animations:blocksLocomotion(character)
                 if locked or record.humanoid.Health <= 0 then stop(record)
                 else
+                    -- Running may not fire again when a carry/physics lock ends,
+                    -- and remote server-owned characters can keep a stale speed.
+                    -- Resume the source gait from actual horizontal movement.
+                    if record.pose == "Standing" or record.pose == "Running" then
+                        local velocity = record.root.Velocity
+                        record.speed = Vector3.new(velocity.X, 0, velocity.Z).Magnitude
+                        record.pose = record.speed > 0.01 and "Running" or "Standing"
+                    end
                     local mode, transition, speed = "idle", 0.1, 1
                     if record.pose == "Jumping" and tick() < record.jumpUntil then mode = "jump"
                     elseif record.pose == "FreeFall" then

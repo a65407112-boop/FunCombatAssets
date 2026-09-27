@@ -19,7 +19,7 @@ return function(ctx)
     local event = find(folder, "Presentation", "RemoteEvent")
     local snapshot = find(folder, "Snapshot", "RemoteFunction")
     local version = find(folder, "Version", "IntValue")
-    assert(version.Value == 2, "Incompatible Fun Combat protocol version")
+    assert(version.Value == 3, "Fun Combat requires the matching protocol 3 server place; update FunCombat_Server.rbxlx")
     local module = {}
     function module:on(kind, callback)
         listeners[kind] = listeners[kind] or {}
@@ -49,7 +49,7 @@ return function(ctx)
         local deadline = tick() + 15
         repeat wait(0.05) until done or tick() >= deadline or ctx.cleanup.dead
         assert(done and not failure, "Server snapshot failed or timed out: " .. tostring(failure))
-        assert(type(result) == "table" and result.version == 2 and type(result.states) == "table", "Invalid server snapshot")
+        assert(type(result) == "table" and result.version == 3 and type(result.states) == "table", "Invalid server snapshot")
         self.serverOffset = (result.serverTime or tick()) - (sentAt + tick()) / 2
         return result
     end
