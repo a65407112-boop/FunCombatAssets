@@ -15,6 +15,8 @@ ALLOWED = {'Model','Folder','Accessory','Part','MeshPart','SpecialMesh','BlockMe
            'CylinderMesh','Decal','Texture','Attachment','Weld','WeldConstraint',
            'Motor6D','Shirt','Pants','ShirtGraphic','SurfaceAppearance'}
 ROOTS = {'Model','Accessory'}
+SLOT_NAMES = {'pp': ('pp','LowerRig'), 'boba': ('boba','Boba','TorsoRig')}
+SLOT_LOOKUP = {name: slot for slot,names in SLOT_NAMES.items() for name in names}
 
 
 def default_config():
@@ -32,8 +34,9 @@ def refresh_manifest(repo):
 
 def export_outfit(source, slot, repo, rbxmk='rbxmk'):
     source, repo = Path(source).resolve(), Path(repo).resolve()
-    if slot not in {'pp','boba'}:
-        raise ValueError('Slot must be pp or boba')
+    if slot not in SLOT_LOOKUP:
+        raise ValueError('Slot must be pp or Boba (legacy boba and renamed model aliases are also accepted)')
+    slot = SLOT_LOOKUP[slot]
     json_path, xml_path = Path('assets/outfits')/(slot+'.json'), Path('assets/outfits')/(slot+'.rbxmx')
     if source in {(repo/json_path).resolve(),(repo/xml_path).resolve()}:
         raise ValueError('Keep the original source in imports/outfits, separate from generated assets/outfits')
@@ -61,8 +64,8 @@ def export_outfit(source, slot, repo, rbxmk='rbxmk'):
     missing=shared_ids-set(shared)
     if missing:
         raise ValueError('Missing SharedString definitions: '+', '.join(sorted(str(x) for x in missing)))
-    if M.Source.name(root) != slot:
-        raise ValueError('Expected root name '+slot+'; names are not changed automatically')
+    if M.Source.name(root) not in SLOT_NAMES[slot]:
+        raise ValueError('Expected root name '+', '.join(SLOT_NAMES[slot])+'; names are not changed automatically')
     elements = list(root.iter('Item'))
     if len(elements) > 1500:
         raise ValueError('Costume exceeds 1500 objects')
@@ -118,13 +121,13 @@ def import_directory(repo, rbxmk='rbxmk'):
     repo=Path(repo).resolve()
     inputs=repo/'imports/outfits'
     sources=[]
-    expected={slot+suffix for slot in ('pp','boba') for suffix in ('.rbxmx','.rbxm')}
+    expected={name+suffix for name in SLOT_LOOKUP for suffix in ('.rbxmx','.rbxm')}
     for source in inputs.rglob('*') if inputs.exists() else []:
         if source.suffix.lower() in {'.rbxmx','.rbxm'} and (source.parent!=inputs or source.name not in expected):
-            raise ValueError('Expected imports/outfits/pp.rbxmx or boba.rbxmx (or .rbxm): '+str(source))
+            raise ValueError('Expected pp or Boba in imports/outfits as .rbxmx/.rbxm; accepted names: '+', '.join(SLOT_LOOKUP)+': '+str(source))
     for slot in ('pp','boba'):
-        choices=[inputs/(slot+suffix) for suffix in ('.rbxmx','.rbxm') if (inputs/(slot+suffix)).is_file()]
-        if len(choices)>1:raise ValueError('Keep one source format for '+slot+', not both .rbxm and .rbxmx')
+        choices=[inputs/(name+suffix) for name in SLOT_NAMES[slot] for suffix in ('.rbxmx','.rbxm') if (inputs/(name+suffix)).is_file()]
+        if len(choices)>1:raise ValueError('Keep one source per costume slot '+slot+'; duplicate formats/names: '+', '.join(p.name for p in choices))
         if choices:sources.append((slot,choices[0]))
     with tempfile.TemporaryDirectory(prefix='funcombat-prepared-outfits-') as temporary:
         staging=Path(temporary)
@@ -149,7 +152,7 @@ def import_directory(repo, rbxmk='rbxmk'):
 def main():
     ap=argparse.ArgumentParser(description=__doc__)
     ap.add_argument('--source',required=True,type=Path)
-    ap.add_argument('--slot',required=True,choices=['pp','boba'])
+    ap.add_argument('--slot',required=True,choices=list(SLOT_LOOKUP))
     ap.add_argument('--repo',type=Path,default=Path(__file__).resolve().parent.parent/'GitHub')
     ap.add_argument('--rbxmk',default='rbxmk')
     args=ap.parse_args()

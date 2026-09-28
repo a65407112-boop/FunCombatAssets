@@ -22,7 +22,9 @@ The original `Admin` panel and `BillboardGui` OWNER label retain their source na
 
 Read `docs/installation.md` and `docs/architecture.md`. No Roblox engine, multiplayer session or Pekora/Caelus client was available for testing. Offline syntax/structure/state-machine checks must not be confused with an in-engine playtest.
 
-Upload your own ordinary costumes named `pp` and `boba` to `imports/outfits`.
+Upload your own ordinary costumes named `pp` and `Boba` to `imports/outfits`.
+Their Instance names are preserved. Legacy `boba`, `LowerRig` and `TorsoRig`
+inputs are also accepted; keep only one source file for each costume slot.
 The **Import own costumes** GitHub Actions workflow prepares them automatically;
 there is no in-game importer. The optional client controller
 attaches accessories/clothing to R6 using authoritative Gender state, restores

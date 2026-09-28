@@ -125,6 +125,62 @@ class CustomOutfits(unittest.TestCase):
         after={p.relative_to(self.repo):p.read_bytes() for p in self.repo.rglob('*') if p.is_file()}
         self.assertEqual(before,after)
 
+    def test_new_model_names_are_preserved_in_both_slots(self):
+        for name,slot in [('LowerRig','pp'),('TorsoRig','boba'),('Boba','boba')]:
+            with self.subTest(name=name):
+                raw=self.source().read_text().replace('>pp<','>'+name+'<')
+                source=self.root/(name+'.rbxmx');source.write_text(raw)
+                entry=export_outfit(source,name,self.repo)
+                data=json.loads((self.repo/entry['path']).read_text())
+                self.assertEqual(data['nodes'][0]['name'],name)
+                self.assertEqual(data['nodes'][1]['name'],'Backpack')
+                self.assertEqual(source.read_text(),raw)
+                config=json.loads((self.repo/'config/outfits.json').read_text())
+                self.assertEqual(config['packages'][slot],entry)
+
+    def test_github_accepts_new_model_filenames(self):
+        from custom_outfits import import_directory
+        inputs=self.repo/'imports/outfits';inputs.mkdir(parents=True)
+        raw=self.source().read_text()
+        for name in ('LowerRig','TorsoRig'):
+            (inputs/(name+'.rbxmx')).write_text(raw.replace('>pp<','>'+name+'<'))
+        self.assertEqual(import_directory(self.repo),['pp','boba'])
+        for name,slot in [('LowerRig','pp'),('TorsoRig','boba')]:
+            data=json.loads((self.repo/'assets/outfits'/(slot+'.json')).read_text())
+            self.assertEqual(data['nodes'][0]['name'],name)
+        config=json.loads((self.repo/'config/outfits.json').read_text())
+        self.assertEqual(config['byGender'],{'Male':'pp','Female':'boba','Fembxy':'boba'})
+
+    def test_two_names_for_same_slot_do_not_overwrite_each_other(self):
+        from custom_outfits import import_directory
+        inputs=self.repo/'imports/outfits';inputs.mkdir(parents=True)
+        raw=self.source().read_text()
+        (inputs/'pp.rbxmx').write_text(raw)
+        (inputs/'LowerRig.rbxmx').write_text(raw.replace('>pp<','>LowerRig<'))
+        before={p.relative_to(self.repo):p.read_bytes() for p in self.repo.rglob('*') if p.is_file()}
+        with self.assertRaisesRegex(ValueError,'one source'):
+            import_directory(self.repo)
+        after={p.relative_to(self.repo):p.read_bytes() for p in self.repo.rglob('*') if p.is_file()}
+        self.assertEqual(before,after)
+
+    def test_pp_and_capital_boba_keep_names_and_gender_mapping(self):
+        from custom_outfits import import_directory
+        inputs=self.repo/'imports/outfits';inputs.mkdir(parents=True)
+        raw=self.source().read_text()
+        (inputs/'pp.rbxmx').write_text(raw)
+        (inputs/'Boba.rbxmx').write_text(raw.replace('>pp<','>Boba<'))
+        self.assertEqual(import_directory(self.repo),['pp','boba'])
+        data=json.loads((self.repo/'assets/outfits/boba.json').read_text())
+        self.assertEqual(data['nodes'][0]['name'],'Boba')
+        config=json.loads((self.repo/'config/outfits.json').read_text())
+        self.assertEqual(config['byGender']['Female'],'boba')
+        self.assertEqual(config['byGender']['Fembxy'],'boba')
+        (inputs/'boba.rbxmx').write_text(raw.replace('>pp<','>boba<'))
+        before=(self.repo/'assets/outfits/boba.json').read_bytes()
+        with self.assertRaisesRegex(ValueError,'one source'):
+            import_directory(self.repo)
+        self.assertEqual((self.repo/'assets/outfits/boba.json').read_bytes(),before)
+
 
 if __name__ == '__main__':
     unittest.main()
