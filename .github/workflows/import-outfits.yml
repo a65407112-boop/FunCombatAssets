@@ -1,0 +1,66 @@
+name: Import own costumes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'imports/outfits/**'
+      - 'config/outfits.json'
+      - 'tools/outfits/**'
+      - '.github/workflows/import-outfits.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: funcombat-outfits-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  import:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - name: Install model converter dependencies
+        run: python3 -m pip install -r tools/outfits/requirements.txt
+      - name: Install binary model reader when needed
+        shell: bash
+        run: |
+          if compgen -G 'imports/outfits/*.rbxm' > /dev/null; then
+            curl --fail --location --retry 3 --output "$RUNNER_TEMP/rbxmk.zip" 'https://github.com/Anaminus/rbxmk/releases/download/v0.9.1/rbxmk-v0.9.1-linux-amd64.zip'
+            python3 - <<'PY'
+          import os
+          from pathlib import Path, PurePosixPath
+          from zipfile import ZipFile
+          target = Path(os.environ['RUNNER_TEMP']) / 'rbxmk'
+          with ZipFile(target.with_suffix('.zip')) as archive:
+              entries = [p for p in archive.namelist() if PurePosixPath(p).name == 'rbxmk']
+              assert len(entries) == 1, 'Expected exactly one rbxmk binary'
+              target.write_bytes(archive.read(entries[0]))
+          target.chmod(0o755)
+          PY
+          fi
+      - name: Verify converter before importing
+        run: python3 -m unittest discover -s tools/outfits/tests -p test_custom_outfits.py -v
+      - name: Prepare uploaded costumes and refresh manifest
+        run: python3 tools/outfits/import_all.py --repo . --rbxmk "$RUNNER_TEMP/rbxmk"
+      - name: Publish prepared costume packages
+        shell: bash
+        run: |
+          git add -- config/outfits.json manifest.json
+          if [ -d assets/outfits ]; then
+            git add -- assets/outfits
+          fi
+          if ! git diff --cached --quiet; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git commit -m 'Prepare uploaded costumes for Gender selection'
+            git push origin HEAD:main
+          fi

@@ -21,3 +21,11 @@ The original Gender selector saves one of Male/Female/Fembxy for the current ses
 The original `Admin` panel and `BillboardGui` OWNER label retain their source names and appearance. Admin commands are available only to the original `GuardianWorld`, `ghuisehgfrshdsrgsdd`, and `Roblox_ovovo` usernames; the server checks each request. The OWNER label belongs to `DeluxeyThaLux` independently of admin access. These are source identities, not the GitHub account owner. The allowlist is in the server-only `Rules` module. Kick, Kill, NoRespawn, both tabs, window dragging, profile information and RIX toggle are wired. NoRespawn blocks replacement characters until the target leaves the server; ambiguous or empty usernames are rejected.
 
 Read `docs/installation.md` and `docs/architecture.md`. No Roblox engine, multiplayer session or Pekora/Caelus client was available for testing. Offline syntax/structure/state-machine checks must not be confused with an in-engine playtest.
+
+Upload your own ordinary costumes named `pp` and `boba` to `imports/outfits`.
+The **Import own costumes** GitHub Actions workflow prepares them automatically;
+there is no in-game importer. The optional client controller
+attaches accessories/clothing to R6 using authoritative Gender state, restores
+them after respawn, and removes them on reload. No costume models are prefilled.
+This is independent of the excluded interaction and its animations; it adds no
+combat actions. Follow [the import instructions](docs/custom-outfits.md).
