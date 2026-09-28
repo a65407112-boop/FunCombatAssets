@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ColorCorrectionEffect" referent="RBX69B41C3D01A14176ADB68118F25C0A52">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ColorCorrectionEffect" referent="RBXC08B894F18664C398B210AF9CC886BD6">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<float name="Brightness">0.5</float>

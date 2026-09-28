@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Tool" referent="RBXF771008C10F444A0A55D5B2DB7B66C77">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Tool" referent="RBX310A230EF9504154AF79F4CD1C68926F">
 						<Properties>
 							<BinaryString name="AttributesSerialize"/>
 							<bool name="CanBeDropped">true</bool>
@@ -69,7 +69,7 @@
 								</CFrame>
 							</OptionalCoordinateFrame>
 						</Properties>
-						<Item class="Part" referent="RBX2C14CFF52BF3486A87751BC0208F6E55">
+						<Item class="Part" referent="RBX27B3BA695D444684B57B369BE2F966C3">
 							<Properties>
 								<bool name="Anchored">false</bool>
 								<BinaryString name="AttributesSerialize"/>
@@ -168,7 +168,7 @@
 									<Z>4</Z>
 								</Vector3>
 							</Properties>
-							<Item class="SpecialMesh" referent="RBX10C309B74609463AB669076B3D02FFE7">
+							<Item class="SpecialMesh" referent="RBX7C2CA40C22044012AB1364B253CD727B">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -197,7 +197,7 @@
 									</Vector3>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX4738B20D8B204A7B9DB02F9A3B8C0CA9">
+							<Item class="Sound" referent="RBXE89FFDD6A9154A198894570758A47C74">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -222,7 +222,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Trail" referent="RBXC7D357A2D0844F558E7AD0D9CD6DFC47">
+							<Item class="Trail" referent="RBX4DBDB575348747449CA6847E503ECAF7">
 								<Properties>
 									<Ref name="Attachment0">null</Ref>
 									<Ref name="Attachment1">null</Ref>
@@ -249,7 +249,7 @@
 									<NumberSequence name="WidthScale">0 1 0 1 1 0 </NumberSequence>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX1DC9B4C099C54372B908F4E76D09CD6C">
+							<Item class="Sound" referent="RBX7A90325D742B42B89BD0FF59DA404B97">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -274,7 +274,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX839AFCB007DB40CF899DCBA1D07C4302">
+							<Item class="Sound" referent="RBX2F1ED276EC71498A96E3F9971219A6E6">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -299,7 +299,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX13315DB2867E4B53B5C168855C6B23C9">
+							<Item class="Sound" referent="RBX41CE188C67114D61837F2978958D1F2A">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -324,7 +324,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX967EF0CA47634FEEAFF4B869D646E524">
+							<Item class="Sound" referent="RBX0C3E9F991325455CAA0265B629B70C15">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -349,7 +349,7 @@
 									<float name="Volume">0.699999988</float>
 								</Properties>
 							</Item>
-							<Item class="ManualWeld" referent="RBX38549A54F37A4DBB897534823949FDAF">
+							<Item class="ManualWeld" referent="RBX9624E7DE396D4E6894ACD29ED2991E63">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -384,15 +384,15 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">Weld</string>
-									<Ref name="Part0">RBX2C14CFF52BF3486A87751BC0208F6E55</Ref>
-									<Ref name="Part1">RBX41A7A8AF8FAC4C37B02969A961A7C399</Ref>
+									<Ref name="Part0">RBX27B3BA695D444684B57B369BE2F966C3</Ref>
+									<Ref name="Part1">RBXBC831EBFBF42453EB9B2EF93FA7A9AD2</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f0000528f</UniqueId>
 								</Properties>
 							</Item>
 						</Item>
-						<Item class="Part" referent="RBX41A7A8AF8FAC4C37B02969A961A7C399">
+						<Item class="Part" referent="RBXBC831EBFBF42453EB9B2EF93FA7A9AD2">
 							<Properties>
 								<bool name="Anchored">false</bool>
 								<BinaryString name="AttributesSerialize"/>
@@ -496,7 +496,7 @@
 									<Z>2.86956525</Z>
 								</Vector3>
 							</Properties>
-							<Item class="SpecialMesh" referent="RBX8D7ABBE5A2AD4592BB0B3991A560863A">
+							<Item class="SpecialMesh" referent="RBXDA80001E230F4949A96B455638A069BA">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -525,7 +525,7 @@
 									</Vector3>
 								</Properties>
 							</Item>
-							<Item class="ManualWeld" referent="RBX5286C6D73E964472BC938B95B353062E">
+							<Item class="ManualWeld" referent="RBX2ECEDA18DD424FDC88654AA569D1FE24">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -560,8 +560,8 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">ManualWeld</string>
-									<Ref name="Part0">RBX41A7A8AF8FAC4C37B02969A961A7C399</Ref>
-									<Ref name="Part1">RBX2C14CFF52BF3486A87751BC0208F6E55</Ref>
+									<Ref name="Part0">RBXBC831EBFBF42453EB9B2EF93FA7A9AD2</Ref>
+									<Ref name="Part1">RBX27B3BA695D444684B57B369BE2F966C3</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f0000529a</UniqueId>

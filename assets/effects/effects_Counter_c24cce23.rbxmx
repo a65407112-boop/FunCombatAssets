@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBX22F92335FBC148D2A795C3464DFD5F31">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBXD34CA7BC09714EC49912EE8CAC79BAF9">
 				<Properties>
 					<bool name="Anchored">true</bool>
 					<BinaryString name="AttributesSerialize"/>
@@ -97,7 +97,7 @@
 						<Z>1</Z>
 					</Vector3>
 				</Properties>
-				<Item class="Attachment" referent="RBX0D2339DE82144D0AA95903654AB33CC5">
+				<Item class="Attachment" referent="RBXC0D3F858A81F4AD0B05A45C5508FC6E3">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -122,7 +122,7 @@
 						<UniqueId name="UniqueId">2d1f0cea557db37a04ba77f90000700e</UniqueId>
 						<bool name="Visible">false</bool>
 					</Properties>
-					<Item class="ParticleEmitter" referent="RBXFE9E5D979855448CAB6865A03C5A13FE">
+					<Item class="ParticleEmitter" referent="RBXA9D8CFF8D36948609B1C88A3DF64DE02">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -173,7 +173,7 @@
 							<float name="ZOffset">0</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX32036CB88D8A4A9E9CC9C9BD57954346">
+					<Item class="ParticleEmitter" referent="RBX1874A2868E644811A9F9B55106DF677E">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -224,7 +224,7 @@
 							<float name="ZOffset">1</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXBA21D455B6C542C895D5564773153EA3">
+					<Item class="ParticleEmitter" referent="RBX3666960F4CE9426B9A0CB311273911AD">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -275,7 +275,7 @@
 							<float name="ZOffset">0.899496496</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX33E6C143FA4F45A99C28808AE1EFD0E1">
+					<Item class="ParticleEmitter" referent="RBXEC9298F883C743228C2EA5E82D331C74">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>

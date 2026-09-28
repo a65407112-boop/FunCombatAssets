@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Folder" referent="RBXFD59B60B763C4D2D8FD4A71D9B454CA0">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Folder" referent="RBX3713206D1099417A9E665F84DD73F5E6">
 				<Properties>
 					<BinaryString name="AttributesSerialize"/>
 					<bool name="DefinesCapabilities">false</bool>
@@ -8,7 +8,7 @@
 					<BinaryString name="Tags"/>
 					<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007784</UniqueId>
 				</Properties>
-				<Item class="SunRaysEffect" referent="RBX77CEACBE47B84F28BA02AC7FBDF199A3">
+				<Item class="SunRaysEffect" referent="RBX7C0B2F8525584742B9215C07A373A637">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="DefinesCapabilities">false</bool>
@@ -22,7 +22,7 @@
 						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007785</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="DepthOfFieldEffect" referent="RBX4CCDD5FA23F64F85BE0C8A9B0A28DAE6">
+				<Item class="DepthOfFieldEffect" referent="RBX55AC6ED268DF4D6D90FE1C6242814746">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="DefinesCapabilities">false</bool>
@@ -38,7 +38,7 @@
 						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007786</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="ColorCorrectionEffect" referent="RBX114E718D2B2047C89B2C666B86D37DBC">
+				<Item class="ColorCorrectionEffect" referent="RBXD2A4E1C24C1A4E009C026ED0D44A77AD">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<float name="Brightness">0</float>
@@ -58,7 +58,7 @@
 						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007787</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="BloomEffect" referent="RBXA4E2C17D39944EA4BDEFBCE581895978">
+				<Item class="BloomEffect" referent="RBX32D92A315455469E8013DF86A753FDCC">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="DefinesCapabilities">false</bool>
@@ -73,7 +73,7 @@
 						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007788</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="Sky" referent="RBX0DAE30F14B2540058C64F2288F092F1B">
+				<Item class="Sky" referent="RBX8B34A693379A44398A189D69A6BF098D">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="CelestialBodiesShown">true</bool>
@@ -101,7 +101,7 @@
 						<UniqueId name="UniqueId">4cc6abb7b65792e50571a8d900007789</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="Atmosphere" referent="RBX38D84330A7EB4A33B4D2FF180C736E74">
+				<Item class="Atmosphere" referent="RBX274898F6F56D451B9EC71E3F22FC6101">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<Color3 name="Color">

@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBX9BD9F04915244A388619D2BD236A9320">
+<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBX18D03FF6D1814AA18D3452F9A458F1EA">
 					<Properties>
 						<bool name="Active">true</bool>
 						<Ref name="Adornee">null</Ref>
@@ -59,7 +59,7 @@
 						<UniqueId name="UniqueId">0cbc10b351e8085f054f3c3f00003c47</UniqueId>
 						<token name="ZIndexBehavior">0</token>
 					</Properties>
-					<Item class="TextLabel" referent="RBXFEEBD620C0F140098CA63053DCE895FB">
+					<Item class="TextLabel" referent="RBX0F6211E087B84B8C872DA9B4B36501C5">
 						<Properties>
 							<bool name="Active">true</bool>
 							<Vector2 name="AnchorPoint">
@@ -148,7 +148,7 @@
 							<bool name="Visible">true</bool>
 							<int name="ZIndex">2</int>
 						</Properties>
-						<Item class="TextLabel" referent="RBXF594D7E4D0434B5BA22123AE7A7B6823">
+						<Item class="TextLabel" referent="RBX021A23FF8A4E4436BF71127F5427E183">
 							<Properties>
 								<bool name="Active">true</bool>
 								<Vector2 name="AnchorPoint">
@@ -239,7 +239,7 @@
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="TextLabel" referent="RBX40B968C312C84E0B9AD4C33FFAEE4967">
+					<Item class="TextLabel" referent="RBX010FC1EB25E34EF688B38C60E7F4E4E1">
 						<Properties>
 							<bool name="Active">true</bool>
 							<Vector2 name="AnchorPoint">
@@ -328,7 +328,7 @@
 							<bool name="Visible">true</bool>
 							<int name="ZIndex">2</int>
 						</Properties>
-						<Item class="TextLabel" referent="RBX6FF131B5020C40549A02E06FA8750355">
+						<Item class="TextLabel" referent="RBXF79059D841514CC5B04C053633321B0A">
 							<Properties>
 								<bool name="Active">true</bool>
 								<Vector2 name="AnchorPoint">

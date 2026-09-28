@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXA53567B0140F4ACC9A2D7EE48AC83378">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXAFCC4C3E45B648A99BBCB3D7A59D54EC">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d500003e79</UniqueId>
 						<token name="ZIndexBehavior">1</token>
 					</Properties>
-					<Item class="Frame" referent="RBX8568BA639B86460FA01AFBCBFCA3D011">
+					<Item class="Frame" referent="RBX6013BA00FFEF4AD68DBB94CCA0C5596E">
 						<Properties>
 							<bool name="Active">false</bool>
 							<Vector2 name="AnchorPoint">
@@ -86,7 +86,7 @@
 							<bool name="Visible">true</bool>
 							<int name="ZIndex">1</int>
 						</Properties>
-						<Item class="TextLabel" referent="RBXEFE146B928CD4FCB96E3CF13099E49F2">
+						<Item class="TextLabel" referent="RBX7981CD1071094F3DBA2ECC130AE3C9E7">
 							<Properties>
 								<bool name="Active">false</bool>
 								<Vector2 name="AnchorPoint">
@@ -176,7 +176,7 @@
 								<int name="ZIndex">4</int>
 							</Properties>
 						</Item>
-						<Item class="TextLabel" referent="RBX41C75FBF1AED46EAA0C98C95AA14B2F3">
+						<Item class="TextLabel" referent="RBX91ABE9D907C74998AF997E4DE6B1BB00">
 							<Properties>
 								<bool name="Active">false</bool>
 								<Vector2 name="AnchorPoint">
@@ -266,7 +266,7 @@
 								<int name="ZIndex">4</int>
 							</Properties>
 						</Item>
-						<Item class="ImageLabel" referent="RBX1D06C69301E5444986154AE359317657">
+						<Item class="ImageLabel" referent="RBX8A9198F122E74947AE00558B8A4D8485">
 							<Properties>
 								<bool name="Active">false</bool>
 								<Vector2 name="AnchorPoint">
@@ -364,7 +364,7 @@
 								<int name="ZIndex">1</int>
 							</Properties>
 						</Item>
-						<Item class="TextLabel" referent="RBX8F02B6B6F7554CEE801F819F65FBB869">
+						<Item class="TextLabel" referent="RBXB1C93E38F9CE4BD282F85958CDF4C7C1">
 							<Properties>
 								<bool name="Active">false</bool>
 								<Vector2 name="AnchorPoint">
@@ -454,7 +454,7 @@
 								<int name="ZIndex">4</int>
 							</Properties>
 						</Item>
-						<Item class="ImageLabel" referent="RBX3FDE5F8984A8470388D07A1561C7188D">
+						<Item class="ImageLabel" referent="RBXAE1FFDF9197A401082EED20ECBD27CC9">
 							<Properties>
 								<bool name="Active">false</bool>
 								<Vector2 name="AnchorPoint">

@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXA9CAD196DB244BB7ABD13383AEE5BF20">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX0F1C8DC344F24EC58C64DCBEA81161AC">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">52377645d5283f0904bb706d0000453e</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="ImageLabel" referent="RBXC4CF2028C49B4859BE5C40DD6AD8A6B1">
+			<Item class="ImageLabel" referent="RBXB1BAF19865254E9EB145EEF589B706AB">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -119,7 +119,7 @@
 					<bool name="Visible">false</bool>
 					<int name="ZIndex">-500</int>
 				</Properties>
-				<Item class="ImageLabel" referent="RBXCA4D4DD19C1D4E8BBFAA278FEE413A59">
+				<Item class="ImageLabel" referent="RBX4B131FABEB5F4AA3AC81312EA21FF625">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -217,7 +217,7 @@
 						<int name="ZIndex">-500</int>
 					</Properties>
 				</Item>
-				<Item class="ImageLabel" referent="RBXA18B53EF9B7242C3BC99C15E322DEE46">
+				<Item class="ImageLabel" referent="RBX53E5C16AF89E44C2B519242B47FB2C43">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -314,7 +314,7 @@
 						<bool name="Visible">false</bool>
 						<int name="ZIndex">-500</int>
 					</Properties>
-					<Item class="ImageLabel" referent="RBXC38323878D3F4F03822AA26DFC9028B5">
+					<Item class="ImageLabel" referent="RBXE2A88867457748E9939472EBB33DD73F">
 						<Properties>
 							<bool name="Active">false</bool>
 							<Vector2 name="AnchorPoint">

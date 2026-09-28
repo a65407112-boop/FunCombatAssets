@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Attachment" referent="RBX1124AD6F17A745D3AF7C1B430C550804">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Attachment" referent="RBXDCE47634ADE54720AC9903C6B7A52551">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -23,7 +23,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d50000e067</UniqueId>
 						<bool name="Visible">false</bool>
 					</Properties>
-					<Item class="ParticleEmitter" referent="RBXCE9B1CAC1AD8403E8367079F23423CA2">
+					<Item class="ParticleEmitter" referent="RBXE5500E038E54469E9E81F98A667518C8">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -74,7 +74,7 @@
 							<float name="ZOffset">-4.3055048</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXE78D98B23C7443399D2725743F6D3896">
+					<Item class="ParticleEmitter" referent="RBX11A9A7B4C80E49C3B407E930905377C3">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -125,7 +125,7 @@
 							<float name="ZOffset">-4.45396996</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXCC60AD69024B4F99982383208D063837">
+					<Item class="ParticleEmitter" referent="RBX2EA753515F4E4FD4BA659346C8F1CD2E">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -176,7 +176,7 @@
 							<float name="ZOffset">4.3055048</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX09077DE5ED1D4B1D93F48A050D7E0AC9">
+					<Item class="ParticleEmitter" referent="RBX171E38F9CBA0429D9CE47444C562FF40">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>

@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBX504FBD0E85F34BB6B9801F8549E56537">
+<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBX3C404E572D414639A48926D3F601F963">
 			<Properties>
 				<bool name="Active">true</bool>
 				<Ref name="Adornee">null</Ref>
@@ -59,7 +59,7 @@
 				<UniqueId name="UniqueId">79b24417d320787b071e02fd000054f4</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="TextLabel" referent="RBX91AAE9EC7C35495482E9E0FE58609D5F">
+			<Item class="TextLabel" referent="RBX7DB7D286AC2F49CD80211C7D9F2109C3">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">

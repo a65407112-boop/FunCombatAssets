@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Tool" referent="RBX1538D8E21F1144B48E0E33991853F150">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Tool" referent="RBXEE25A01B070A4D5D8FD0766DD34EC649">
 						<Properties>
 							<BinaryString name="AttributesSerialize"/>
 							<bool name="CanBeDropped">true</bool>
@@ -69,7 +69,7 @@
 								</CFrame>
 							</OptionalCoordinateFrame>
 						</Properties>
-						<Item class="Part" referent="RBX8F3ED94E47F0403D9B4F3A44407328AA">
+						<Item class="Part" referent="RBX0A205FEEB0C64C1AB2730D378F49E71F">
 							<Properties>
 								<bool name="Anchored">false</bool>
 								<BinaryString name="AttributesSerialize"/>
@@ -168,7 +168,7 @@
 									<Z>4</Z>
 								</Vector3>
 							</Properties>
-							<Item class="SpecialMesh" referent="RBX4A9939BB745E47199C3E09BC1FF856E8">
+							<Item class="SpecialMesh" referent="RBX35C5F73517BA427DB748EC2B6A615FC7">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -197,7 +197,7 @@
 									</Vector3>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX33D52C2661684B6C9108C860EB8EF3C0">
+							<Item class="Sound" referent="RBXDB288ABB53B7426E9F0838D5B0A9F674">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -222,7 +222,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Trail" referent="RBX39D00C959D08460D9ACE3C4C82BA0105">
+							<Item class="Trail" referent="RBX99987722BB5B46D5B2F3B8F6C7F7068B">
 								<Properties>
 									<Ref name="Attachment0">null</Ref>
 									<Ref name="Attachment1">null</Ref>
@@ -249,7 +249,7 @@
 									<NumberSequence name="WidthScale">0 1 0 1 1 0 </NumberSequence>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX7C6AFEC9EED44BD0B439B3D1B430D6F5">
+							<Item class="Sound" referent="RBXE605BB5E6DA0486FB591AFF2EA916752">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -274,7 +274,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX20E20CA5000B4C9E919EFC76CD170B0D">
+							<Item class="Sound" referent="RBX7438464134D74BD2876B1898954FC75A">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -299,7 +299,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX737567DFFD00472B987912E857757012">
+							<Item class="Sound" referent="RBX814A3181CB4A4BA6B80DF6DA313639FD">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -324,7 +324,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX3DE36333BFCA4CB794BCF1289EB98413">
+							<Item class="Sound" referent="RBX30E61F3C6CB8454FBEF97B504B737895">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -349,7 +349,7 @@
 									<float name="Volume">0.699999988</float>
 								</Properties>
 							</Item>
-							<Item class="ManualWeld" referent="RBXA7FA9BE52DBE4A0B8E10324ED2FC0318">
+							<Item class="ManualWeld" referent="RBX09F461358208437A8301BA0BF62BDB99">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -384,15 +384,15 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">ManualWeld</string>
-									<Ref name="Part0">RBX8F3ED94E47F0403D9B4F3A44407328AA</Ref>
-									<Ref name="Part1">RBX797DF01E420F4CD3BE31BFFC7FC5A321</Ref>
+									<Ref name="Part0">RBX0A205FEEB0C64C1AB2730D378F49E71F</Ref>
+									<Ref name="Part1">RBXA6862F5CCD214ED9B3E76B09A7F5B1AC</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f00005238</UniqueId>
 								</Properties>
 							</Item>
 						</Item>
-						<Item class="MeshPart" referent="RBX8B0C86ED931A485A8AE1A0FC9E74662E">
+						<Item class="MeshPart" referent="RBX10AA530CE11040659A88B8EBED364703">
 							<Properties>
 								<SharedString name="AeroMeshData">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 								<bool name="Anchored">false</bool>
@@ -526,7 +526,7 @@
 									<Z>0.213320047</Z>
 								</Vector3>
 							</Properties>
-							<Item class="ManualWeld" referent="RBXE13598A2621A47FF9A328A86303C4B4D">
+							<Item class="ManualWeld" referent="RBXE8A50873882F487F98435941A4ABC451">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -561,14 +561,14 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">ManualWeld</string>
-									<Ref name="Part0">RBX8B0C86ED931A485A8AE1A0FC9E74662E</Ref>
-									<Ref name="Part1">RBX797DF01E420F4CD3BE31BFFC7FC5A321</Ref>
+									<Ref name="Part0">RBX10AA530CE11040659A88B8EBED364703</Ref>
+									<Ref name="Part1">RBXA6862F5CCD214ED9B3E76B09A7F5B1AC</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f00005242</UniqueId>
 								</Properties>
 							</Item>
-							<Item class="ManualWeld" referent="RBX0446004EE49D47C58D3123AB042E55DD">
+							<Item class="ManualWeld" referent="RBXCB8E33ED960D40B3AC5012C1FDA92AFE">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -603,15 +603,15 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">Weld</string>
-									<Ref name="Part0">RBX8B0C86ED931A485A8AE1A0FC9E74662E</Ref>
-									<Ref name="Part1">RBX8F3ED94E47F0403D9B4F3A44407328AA</Ref>
+									<Ref name="Part0">RBX10AA530CE11040659A88B8EBED364703</Ref>
+									<Ref name="Part1">RBX0A205FEEB0C64C1AB2730D378F49E71F</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f00005243</UniqueId>
 								</Properties>
 							</Item>
 						</Item>
-						<Item class="MeshPart" referent="RBX797DF01E420F4CD3BE31BFFC7FC5A321">
+						<Item class="MeshPart" referent="RBXA6862F5CCD214ED9B3E76B09A7F5B1AC">
 							<Properties>
 								<SharedString name="AeroMeshData">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 								<bool name="Anchored">false</bool>
@@ -745,7 +745,7 @@
 									<Z>0.0953735933</Z>
 								</Vector3>
 							</Properties>
-							<Item class="ManualWeld" referent="RBXDF1CF13520E744758120C82C900A8C4C">
+							<Item class="ManualWeld" referent="RBXC041B2503A2D4A4D8B4F3EA017E8F759">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -780,14 +780,14 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">Weld</string>
-									<Ref name="Part0">RBX797DF01E420F4CD3BE31BFFC7FC5A321</Ref>
-									<Ref name="Part1">RBX8B0C86ED931A485A8AE1A0FC9E74662E</Ref>
+									<Ref name="Part0">RBXA6862F5CCD214ED9B3E76B09A7F5B1AC</Ref>
+									<Ref name="Part1">RBX10AA530CE11040659A88B8EBED364703</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f00005245</UniqueId>
 								</Properties>
 							</Item>
-							<Item class="ManualWeld" referent="RBXD00B96D0BF754953981B3F182509EB21">
+							<Item class="ManualWeld" referent="RBXA30F4460053640D9AD46DC560DD4C5D9">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
@@ -822,14 +822,14 @@
 									<bool name="Enabled">true</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 									<string name="Name">Weld</string>
-									<Ref name="Part0">RBX797DF01E420F4CD3BE31BFFC7FC5A321</Ref>
-									<Ref name="Part1">RBX8F3ED94E47F0403D9B4F3A44407328AA</Ref>
+									<Ref name="Part0">RBXA6862F5CCD214ED9B3E76B09A7F5B1AC</Ref>
+									<Ref name="Part1">RBX0A205FEEB0C64C1AB2730D378F49E71F</Ref>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">18920242556515f30704f94f00005246</UniqueId>
 								</Properties>
 							</Item>
-							<Item class="ParticleEmitter" referent="RBXF647759D3F3C4F31BFE8040A8695F461">
+							<Item class="ParticleEmitter" referent="RBXF95F428DF0634E29BE42EA30644884F1">
 								<Properties>
 									<Vector3 name="Acceleration">
 										<X>0</X>

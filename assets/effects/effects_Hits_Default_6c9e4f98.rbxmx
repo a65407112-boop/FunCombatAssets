@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Attachment" referent="RBX1710B42856A34D608913CD87A3622324">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Attachment" referent="RBX05BA6283044A48D7B9D8F7C339FE17F1">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -23,7 +23,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d50000e056</UniqueId>
 						<bool name="Visible">false</bool>
 					</Properties>
-					<Item class="ParticleEmitter" referent="RBX4CB471CC7ECB4142B8C159CC705FF3C0">
+					<Item class="ParticleEmitter" referent="RBX43707F075EBC4C9ABD1C2E99418AE357">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -74,7 +74,7 @@
 							<float name="ZOffset">0</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX54A6766C26C044468A5FF664DA93B8E2">
+					<Item class="ParticleEmitter" referent="RBXD85018E37F4B4D328DBA1B271A6EB579">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -125,7 +125,7 @@
 							<float name="ZOffset">0</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX98EC7DC44C684493BAA5AF8F04ACAEBE">
+					<Item class="ParticleEmitter" referent="RBX15BC77B0E794493B89F426EEDECA1045">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -176,7 +176,7 @@
 							<float name="ZOffset">-2.9000001</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXC4062C1318574FF19D1F64351FD4591B">
+					<Item class="ParticleEmitter" referent="RBX72314D45A56C4C35B0DDB2B2CFC27627">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -227,7 +227,7 @@
 							<float name="ZOffset">-3</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX38933FFF2DED48D2B5E655745FF0FD61">
+					<Item class="ParticleEmitter" referent="RBXD24B5A521A2C4B5A83B8F2A7BBDBC101">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -278,7 +278,7 @@
 							<float name="ZOffset">3</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX22C13D06473B497BBAE21DE6D82673C5">
+					<Item class="ParticleEmitter" referent="RBX949FEDAABA164EA2A36AD3AAC4D6D47D">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -329,7 +329,7 @@
 							<float name="ZOffset">3.0999999</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX62372609FD534925AC05D618F4B68FB3">
+					<Item class="ParticleEmitter" referent="RBX7C2640F4597D4A47998F6F13A8CE1E07">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -380,7 +380,7 @@
 							<float name="ZOffset">3</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXF8E33B79C58B4FA9B423C151CDF5551D">
+					<Item class="ParticleEmitter" referent="RBX9875FC9A3A6D40EFAF9B92B272F625BA">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -431,7 +431,7 @@
 							<float name="ZOffset">2.9000001</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX67287E64126C45D2B8828810EF7C8164">
+					<Item class="ParticleEmitter" referent="RBXAC0C271C12014C069539B4FC9A09DE61">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -482,7 +482,7 @@
 							<float name="ZOffset">3</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX077BE4F56F5142ABACC8D815F01C3444">
+					<Item class="ParticleEmitter" referent="RBXA6AD1DC2D8F2405E86465BFA02B4ABEE">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -533,7 +533,7 @@
 							<float name="ZOffset">2.9000001</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXF509B27431194977BA58261FC2142A26">
+					<Item class="ParticleEmitter" referent="RBXA06A5909DF5D41D7B3425A50BA2A8499">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>

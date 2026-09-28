@@ -2,7 +2,7 @@
 
 This repository contains real source-derived asset packages and an implemented external client. **It is not a verified playable release.** The matching `FunCombat_Server.rbxlx` is included in the full project package; its structure is checked offline. This loader does not work against the unmodified original place.
 
-The sole source is `fun combat v1.2 fixed torso.rbxl`, SHA-256 `5872806f4484b2ef5d568cd4f94a114bee0c304b05d2f065dcfe76f6626b676e`.
+The source used for this build is `FunCombat_Renamed.rbxl`, SHA-256 `a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0`.
 
 Included: six original weapon models and attachment data, 23 stored combat/carry/execution/awakening/custom-emote sequences, seven built-in chat emotes with 13 original hosted AnimationIds, original GUI/effect/audio/weather data (including Gender and Info), server state rendering, R6 locomotion, input, native prompts, voting, respawn binding and idempotent cleanup. The explicit sexual-interaction branch is excluded. Prompt names and visible labels are deterministic opaque codes. The external client restores readable labels locally; source map and asset names are preserved.
 

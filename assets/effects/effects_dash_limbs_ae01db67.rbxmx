@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBX0FA65B44B6884871949FD895CC4A4040">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBX6837917FCE3D4B1697CBD9FE3BA99C93">
 				<Properties>
 					<bool name="Anchored">true</bool>
 					<BinaryString name="AttributesSerialize"/>
@@ -97,7 +97,7 @@
 						<Z>2</Z>
 					</Vector3>
 				</Properties>
-				<Item class="Attachment" referent="RBX6038561CF2574827843DE364422B3EA1">
+				<Item class="Attachment" referent="RBXC55AAD820F934B319F63EB1D8C828D62">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -123,7 +123,7 @@
 						<bool name="Visible">false</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBX4CFB5279AF564D50BC77A62D46E0ECA4">
+				<Item class="Attachment" referent="RBX9A25670D455F4151BFDE6C618D71CEB3">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -149,7 +149,7 @@
 						<bool name="Visible">false</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBXFA66B1BEF5164C4EBE8939A7108B8811">
+				<Item class="Attachment" referent="RBX9750DA19913B4F83A166B09D2FA49A73">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -175,7 +175,7 @@
 						<bool name="Visible">false</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBX6092BCDDCB6E4A3C9A178A70C9BF65BA">
+				<Item class="Attachment" referent="RBX36E61CB67F7F4F33A4DE66E68077A1D3">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -201,7 +201,7 @@
 						<bool name="Visible">false</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBX8FACDDF59219480A8CED16AAC6DB0B3E">
+				<Item class="Attachment" referent="RBXE24CFC0F970243ACA813400AB5B79BE3">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -227,7 +227,7 @@
 						<bool name="Visible">false</bool>
 					</Properties>
 				</Item>
-				<Item class="Attachment" referent="RBX3AF60F5F8FD7498B8A72C56B458C75A2">
+				<Item class="Attachment" referent="RBXD91E77B4997F40F595B51B93DE07B158">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -253,10 +253,10 @@
 						<bool name="Visible">false</bool>
 					</Properties>
 				</Item>
-				<Item class="Trail" referent="RBX352506F81A9247C69A48293B66C7DA91">
+				<Item class="Trail" referent="RBXE6517C2AE7214E1B82A5E40CD1645A4E">
 					<Properties>
-						<Ref name="Attachment0">RBX6038561CF2574827843DE364422B3EA1</Ref>
-						<Ref name="Attachment1">RBX4CFB5279AF564D50BC77A62D46E0ECA4</Ref>
+						<Ref name="Attachment0">RBXC55AAD820F934B319F63EB1D8C828D62</Ref>
+						<Ref name="Attachment1">RBX9A25670D455F4151BFDE6C618D71CEB3</Ref>
 						<BinaryString name="AttributesSerialize"/>
 						<float name="Brightness">1</float>
 						<ColorSequence name="Color">0 1 1 1 0 1 1 1 1 0 </ColorSequence>
@@ -280,10 +280,10 @@
 						<NumberSequence name="WidthScale">0 1 0 1 0 0 </NumberSequence>
 					</Properties>
 				</Item>
-				<Item class="Trail" referent="RBX1A1DA095DD5B44E2BE2E894D511F6E19">
+				<Item class="Trail" referent="RBX97C5CBB0F136495CA9EF7AF03EBA8737">
 					<Properties>
-						<Ref name="Attachment0">RBXFA66B1BEF5164C4EBE8939A7108B8811</Ref>
-						<Ref name="Attachment1">RBX6092BCDDCB6E4A3C9A178A70C9BF65BA</Ref>
+						<Ref name="Attachment0">RBX9750DA19913B4F83A166B09D2FA49A73</Ref>
+						<Ref name="Attachment1">RBX36E61CB67F7F4F33A4DE66E68077A1D3</Ref>
 						<BinaryString name="AttributesSerialize"/>
 						<float name="Brightness">1</float>
 						<ColorSequence name="Color">0 1 1 1 0 1 1 1 1 0 </ColorSequence>
@@ -307,10 +307,10 @@
 						<NumberSequence name="WidthScale">0 1 0 1 0 0 </NumberSequence>
 					</Properties>
 				</Item>
-				<Item class="Trail" referent="RBX71FB9A0EAA51471891F7BA99AE5AA9C9">
+				<Item class="Trail" referent="RBX3052B44942B94728A7C56C9BAD442640">
 					<Properties>
-						<Ref name="Attachment0">RBX8FACDDF59219480A8CED16AAC6DB0B3E</Ref>
-						<Ref name="Attachment1">RBX3AF60F5F8FD7498B8A72C56B458C75A2</Ref>
+						<Ref name="Attachment0">RBXE24CFC0F970243ACA813400AB5B79BE3</Ref>
+						<Ref name="Attachment1">RBXD91E77B4997F40F595B51B93DE07B158</Ref>
 						<BinaryString name="AttributesSerialize"/>
 						<float name="Brightness">1</float>
 						<ColorSequence name="Color">0 1 1 1 0 1 1 1 1 0 </ColorSequence>

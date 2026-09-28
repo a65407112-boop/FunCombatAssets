@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX5E5A2DEC374D4C1F8FC0E469DFBC2ADC">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX531CB438511B4BAAB8A297E131D96ACC">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0ce</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="Frame" referent="RBX2FED3077FB234F418097B7F65AF7024D">
+			<Item class="Frame" referent="RBXC8180C2F71F84CCBAB6781DE229EC621">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -86,7 +86,7 @@
 					<bool name="Visible">true</bool>
 					<int name="ZIndex">1</int>
 				</Properties>
-				<Item class="TextLabel" referent="RBX43227738EBE846CFA01A42D28B174CC3">
+				<Item class="TextLabel" referent="RBX826A98A2B0554A27BE45A5422F04476F">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -176,7 +176,7 @@
 						<int name="ZIndex">1</int>
 					</Properties>
 				</Item>
-				<Item class="Frame" referent="RBX3A0670B8FAB14F6AAAAF7CF30E882D1D">
+				<Item class="Frame" referent="RBXD3953ADEE8EC4E0D98A520E2DC584FEE">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -240,7 +240,7 @@
 						<bool name="Visible">true</bool>
 						<int name="ZIndex">1</int>
 					</Properties>
-					<Item class="Frame" referent="RBX3CE4754CC84847F5A5FF08FC6978101E">
+					<Item class="Frame" referent="RBX530D285DF9A142FFA5E191C3444972BF">
 						<Properties>
 							<bool name="Active">false</bool>
 							<Vector2 name="AnchorPoint">
@@ -304,7 +304,7 @@
 							<bool name="Visible">true</bool>
 							<int name="ZIndex">1</int>
 						</Properties>
-						<Item class="ColorCorrectionEffect" referent="RBXFBE56EA8A55F45649D36380FD53B7A85">
+						<Item class="ColorCorrectionEffect" referent="RBX20067C6616F44796BBAF7F6E35353A4B">
 							<Properties>
 								<BinaryString name="AttributesSerialize"/>
 								<float name="Brightness">0</float>
@@ -325,7 +325,7 @@
 							</Properties>
 						</Item>
 					</Item>
-					<Item class="UIGradient" referent="RBX97BA5D5EAE0B44B3BA0EAD0648745E5F">
+					<Item class="UIGradient" referent="RBXD322ECD08DA54C93BAA31BCBEBCF8D30">
 						<Properties>
 							<BinaryString name="AttributesSerialize"/>
 							<ColorSequence name="Color">0 0.848646 0.645685 1 0 0.493333 0.674861 0 1 0 1 0.895582 0.588235 1 0 </ColorSequence>
@@ -344,7 +344,7 @@
 							<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0d4</UniqueId>
 						</Properties>
 					</Item>
-					<Item class="UIStroke" referent="RBX9F7E77CA85164E6298140F6085379288">
+					<Item class="UIStroke" referent="RBX5198F54498BC431D93522C32EDBEBB0A">
 						<Properties>
 							<token name="ApplyStrokeMode">0</token>
 							<BinaryString name="AttributesSerialize"/>
