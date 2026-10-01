@@ -2,9 +2,9 @@
 
 This repository contains real source-derived asset packages and an implemented external client. **It is not a verified playable release.** The matching `FunCombat_Server.rbxlx` is included in the full project package; its structure is checked offline. This loader does not work against the unmodified original place.
 
-The source used for this build is `FunCombat_Renamed.rbxl`, SHA-256 `a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0`.
+The audited source is the uploaded `FunCombat_Renamed2.rbxl`, SHA-256 `a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0`. This is byte-for-byte the same source revision previously documented as `FunCombat_Renamed.rbxl`; only the filename differs.
 
-Included: six original weapon models and attachment data, 23 stored combat/carry/execution/awakening/custom-emote sequences, seven built-in chat emotes with 13 original hosted AnimationIds, original GUI/effect/audio/weather data (including Gender and Info), server state rendering, R6 locomotion, input, native prompts, voting, respawn binding and idempotent cleanup. The explicit sexual-interaction branch is excluded. Prompt names and visible labels are deterministic opaque codes. The external client restores readable labels locally; source map and asset names are preserved.
+Included: six original weapon models and attachment data, 23 stored combat/carry/execution/awakening/custom-emote sequences, seven built-in chat emotes with 13 original hosted AnimationIds, original GUI/effect/audio/weather data (including Gender and Info), server state rendering, R6 locomotion, input, native prompts, voting, respawn binding and idempotent cleanup. The original gender-dependent `*Fun` interaction/morph branch (`NewChanger`, `NewMorphs`, `LowerRig` and `TorsoRig`) is not present in this reconstruction. This description is based on the actual source dependency graph rather than an assumed content label. Prompt names and visible labels are deterministic opaque codes. The external client restores readable labels locally; source map and asset names are preserved.
 
 The one repository configuration is `CONFIG` at the top of `loader.lua`: `a65407112-boop/FunCombatAssets`, branch `main`. To use another repository, upload **this folder's contents**, with `loader.lua` and `manifest.json` at repository root, then update CONFIG.
 
@@ -20,7 +20,7 @@ The original Gender selector saves one of Male/Female/Fembxy for the current ses
 
 The original `Admin` panel and `BillboardGui` OWNER label retain their source names and appearance. Admin commands are available only to the original `GuardianWorld`, `ghuisehgfrshdsrgsdd`, and `Roblox_ovovo` usernames; the server checks each request. The OWNER label belongs to `DeluxeyThaLux` independently of admin access. These are source identities, not the GitHub account owner. The allowlist is in the server-only `Rules` module. Kick, Kill, NoRespawn, both tabs, window dragging, profile information and RIX toggle are wired. NoRespawn blocks replacement characters until the target leaves the server; ambiguous or empty usernames are rejected.
 
-Read `docs/installation.md` and `docs/architecture.md`. No Roblox engine, multiplayer session or Pekora/Caelus client was available for testing. Offline syntax/structure/state-machine checks must not be confused with an in-engine playtest.
+Source-parity audit note: the original StarterGui also contains `meter` and `yeah`; neither package currently exists in `config/assets.json` or the matching server place. They therefore remain known missing source resources rather than silently fabricated replacements. Read `docs/installation.md` and `docs/architecture.md`. No Roblox engine, multiplayer session or Pekora/Caelus client was available for testing. Offline syntax/structure/state-machine checks must not be confused with an in-engine playtest.
 
 Upload your own ordinary costumes named `pp` and `Boba` to `imports/outfits`.
 Their Instance names are preserved. Legacy `boba`, `LowerRig` and `TorsoRig`
@@ -29,5 +29,5 @@ The **Import own costumes** GitHub Actions workflow prepares them automatically;
 there is no in-game importer. The optional client controller
 attaches accessories/clothing to R6 using authoritative Gender state, restores
 them after respawn, and removes them on reload. No costume models are prefilled.
-This is independent of the excluded interaction and its animations; it adds no
+This is independent of the omitted source interaction/morph branch and its animations; it adds no
 combat actions. Follow [the import instructions](docs/custom-outfits.md).
