@@ -8,7 +8,7 @@ Included: six original weapon models and attachment data, 23 stored combat/carry
 
 The one repository configuration is `CONFIG` at the top of `loader.lua`: `a65407112-boop/FunCombatAssets`, branch `main`. To use another repository, upload **this folder's contents**, with `loader.lua` and `manifest.json` at repository root, then update CONFIG.
 
-Use the newly supplied **protocol 3** `FunCombat_Server.rbxlx`. The previous build had a startup defect: Main expected version 2 although the place declared version 3. This is corrected in the new server; replace the previous place even if it already declared version 3. See `docs/restoration.md` for the exact additions and remaining exclusions.
+Use the newly supplied **protocol 4** `FunCombat_Server.rbxlx`. The previous build had a startup defect: Main expected version 2 although the place declared version 3. This is corrected in the new server; replace the previous place even if it already declared version 3. See `docs/restoration.md` for the exact additions and remaining exclusions.
 
 `unload.lua` is the manual emergency rollback for the executor runtime. It cancels the active runtime, disconnects registered connections, destroys runtime-created Instances through the cleanup registry, and clears the global runtime slot. It does not modify the GitHub repository or server place. Re-running `loader.lua` already unloads an older runtime before starting a new one.\n\nRun the local loader through a compatible executor only after the matching server place has been imported and started. It verifies protocol version, checks module dependencies, fetches raw GitHub files with bounded retries, and reports the failed path if initialization fails. It needs `loadstring` and HTTP GET. It does not require executor filesystem or model-deserialization APIs.
 
@@ -31,3 +31,8 @@ attaches accessories/clothing to R6 using authoritative Gender state, restores
 them after respawn, and removes them on reload. No costume models are prefilled.
 This is independent of the omitted source interaction/morph branch and its animations; it adds no
 combat actions. Follow [the import instructions](docs/custom-outfits.md).
+
+
+## Protocol 4 authoritative replication
+
+Gameplay requests now cross the Action remote as opaque wire IDs. The server decodes only known IDs, then applies the existing server-side validation and authority rules. Presentation events are also sent as opaque IDs and broadcast to all clients; the external client maps them back to State/Animation/Sound/Effect/etc. locally. Snapshot remains the recovery path for late joiners, so a loaded third client reconstructs current authoritative state instead of depending on having witnessed earlier events.
