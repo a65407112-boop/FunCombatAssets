@@ -97,7 +97,7 @@ function ctx.load(name)
 end
 local ok, failure = pcall(function()
     ctx.manifest = ctx.json("manifest.json")
-    assert(ctx.manifest.project == "FunCombat_ExecutorSide_Combat" and ctx.manifest.protocolVersion == 4,
+    assert(ctx.manifest.project == "FunCombat_ExecutorSide_Combat" and ctx.manifest.protocolVersion == 3,
         "Repository contains a different Fun Combat build")
     ctx.catalog = ctx.json("config/assets.json")
     ctx.identifiers = ctx.json("config/identifiers.json")
