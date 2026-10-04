@@ -8,6 +8,7 @@ local CONFIG = {
     Timeout = 20,
     Verbose = false,
     AnimationClock = "source" -- original 60 Hz playback; "keyframes" uses authored time
+    ,BootstrapTimeout = 300
 }
 
 assert(type(loadstring) == "function", "Fun Combat requires an executor with loadstring")
@@ -18,7 +19,7 @@ if type(previous) == "table" then
     previous.cancelled = true
     if type(previous.destroy) == "function" then pcall(function() previous:destroy() end) end
 end
-local ctx = {config = CONFIG, modules = {}, loading = {}, cancelled = false, reports = {}}
+local ctx = {config = CONFIG, modules = {}, loading = {}, cancelled = false, reports = {}, files = {}, started=tick()}
 environment[slot] = ctx
 function ctx:destroy()
     self.cancelled = true
@@ -49,9 +50,11 @@ local function fetch(url)
 end
 function ctx.http(path)
     assert(type(path) == "string" and not path:find("%.%.") and not path:find("://"), "Invalid repository path")
+    if ctx.files[path] then return ctx.files[path] end
     local lastError
     for attempt = 1, 2 do
         assert(not ctx.cancelled, "Initialization cancelled by a newer loader")
+        assert(tick()-ctx.started<CONFIG.BootstrapTimeout or ctx.initialized,"Bootstrap exceeded "..CONFIG.BootstrapTimeout.." seconds at "..path)
         local done, result, failure = false, nil, nil
         coroutine.wrap(function()
             local ok, data = pcall(fetch, base .. path)
@@ -63,6 +66,14 @@ function ctx.http(path)
         if done and not failure and type(result) == "string" and #result > 0 then
             assert(#result <= 20 * 1024 * 1024, "Repository resource exceeds 20 MiB: " .. path)
             assert(not ctx.cancelled, "Initialization cancelled")
+            local expected=ctx.manifest and ctx.manifest.files[path]
+            if expected then
+                assert(#result==expected.bytes,"Repository file size differs from manifest: "..path)
+                local a,b=1,0
+                for i=1,#result do a=(a+string.byte(result,i))%65521;b=(b+a)%65521 end
+                assert(b*65536+a==expected.adler32,"Repository checksum differs from manifest: "..path.."; a deployment may be incomplete")
+            elseif ctx.manifest then error("File is absent from manifest: "..path) end
+            ctx.files[path]=result
             return result
         end
         lastError = failure or "HTTP timeout"
@@ -81,6 +92,7 @@ function ctx.load(name)
     assert(not ctx.loading[name], "Circular runtime dependency: " .. name)
     assert(ctx.allowed[name], "Undeclared runtime module: " .. name)
     ctx.loading[name] = true
+    for _,dependency in ipairs(ctx.manifest.dependencies[name] or {}) do ctx.load(dependency) end
     local chunk, why = loadstring(ctx.http("client/" .. name .. ".lua"), "@FunCombat/client/" .. name)
     assert(chunk, "Compile failed for " .. name .. ": " .. tostring(why))
     local factory = chunk()
@@ -97,10 +109,12 @@ function ctx.load(name)
 end
 local ok, failure = pcall(function()
     ctx.manifest = ctx.json("manifest.json")
-    assert(ctx.manifest.project == "FunCombat_ExecutorSide_Combat" and ctx.manifest.protocolVersion == 3,
+    assert(ctx.manifest.project == "FunCombat_ExecutorSide_Combat" and ctx.manifest.protocolVersion == 4,
         "Repository contains a different Fun Combat build")
     ctx.catalog = ctx.json("config/assets.json")
     ctx.identifiers = ctx.json("config/identifiers.json")
+    ctx.protocol = ctx.json("config/protocol.json")
+    assert(ctx.protocol.version==4 and ctx.protocol.buildId==ctx.manifest.buildId,"Manifest and protocol build IDs differ")
     assert(ctx.catalog.sourceSha256 == ctx.manifest.sourceSha256, "Manifest and assets belong to different source versions")
     ctx.allowed = {}
     for _, name in ipairs(ctx.manifest.modules) do ctx.allowed[name] = true end
@@ -109,6 +123,7 @@ local ok, failure = pcall(function()
         ctx.load(name)
     end
     assert(not ctx.cancelled, "Initialization cancelled")
+    ctx.initialized=true
     print("[Fun Combat] External combat runtime initialized. Engine asset warnings, if any, are above.")
 end)
 if not ok then

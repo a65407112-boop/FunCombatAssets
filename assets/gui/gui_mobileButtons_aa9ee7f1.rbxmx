@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX17611DB159A44D03B6C0DB08F7797FEA">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXSRC006922">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0f8</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="TextButton" referent="RBX5837D345B3544C2594876615595258DA">
+			<Item class="TextButton" referent="RBXSRC006923">
 				<Properties>
 					<bool name="Active">true</bool>
 					<Vector2 name="AnchorPoint">
@@ -117,7 +117,7 @@
 					<bool name="Visible">true</bool>
 					<int name="ZIndex">1</int>
 				</Properties>
-				<Item class="UIGradient" referent="RBX4FFBD35E45E0468389997529A7B44B7F">
+				<Item class="UIGradient" referent="RBXSRC006924">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<ColorSequence name="Color">0 0.554955 0.0671397 1 0 1 1 1 1 0 </ColorSequence>
@@ -136,7 +136,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0fa</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="UIStroke" referent="RBX39BC495DA9CC499FBA9BB86263BC7622">
+				<Item class="UIStroke" referent="RBXSRC006925">
 					<Properties>
 						<token name="ApplyStrokeMode">0</token>
 						<BinaryString name="AttributesSerialize"/>
@@ -157,7 +157,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0fb</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="Frame" referent="RBXDB00D5B6A8FC4C88B7833FF449EAF801">
+				<Item class="Frame" referent="RBXSRC006926">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -221,7 +221,7 @@
 						<bool name="Visible">true</bool>
 						<int name="ZIndex">1</int>
 					</Properties>
-					<Item class="UIStroke" referent="RBX04E0E67136A1402CA9E4AD5151C571B7">
+					<Item class="UIStroke" referent="RBXSRC006927">
 						<Properties>
 							<token name="ApplyStrokeMode">0</token>
 							<BinaryString name="AttributesSerialize"/>
@@ -242,7 +242,7 @@
 							<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0fd</UniqueId>
 						</Properties>
 					</Item>
-					<Item class="UICorner" referent="RBXC4F4A124D8AF48D98E5CA5674ECABE4D">
+					<Item class="UICorner" referent="RBXSRC006928">
 						<Properties>
 							<BinaryString name="AttributesSerialize"/>
 							<UDim name="CornerRadius">
@@ -258,7 +258,7 @@
 						</Properties>
 					</Item>
 				</Item>
-				<Item class="TextLabel" referent="RBXD8FB172DD70344C6AE5B65E960DCC6BE">
+				<Item class="TextLabel" referent="RBXSRC006929">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -348,7 +348,7 @@
 						<int name="ZIndex">1</int>
 					</Properties>
 				</Item>
-				<Item class="Sound" referent="RBX3CA7C838B05248EB82BA96D41C2D4B82">
+				<Item class="Sound" referent="RBXSRC006930">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="DefinesCapabilities">false</bool>
@@ -374,7 +374,7 @@
 					</Properties>
 				</Item>
 			</Item>
-			<Item class="TextButton" referent="RBXFC1CF24C3D4A4439A401F264AE3B38A0">
+			<Item class="TextButton" referent="RBXSRC006931">
 				<Properties>
 					<bool name="Active">true</bool>
 					<Vector2 name="AnchorPoint">
@@ -469,7 +469,7 @@
 					<bool name="Visible">true</bool>
 					<int name="ZIndex">1</int>
 				</Properties>
-				<Item class="UIGradient" referent="RBX5E6CA0CE3A5B4348ADBAFDC74FB4411D">
+				<Item class="UIGradient" referent="RBXSRC006932">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<ColorSequence name="Color">0 0.554955 0.0671397 1 0 1 1 1 1 0 </ColorSequence>
@@ -488,7 +488,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d50000e102</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="UIStroke" referent="RBXF4CA79B788BA444384E50C0A59042DC8">
+				<Item class="UIStroke" referent="RBXSRC006933">
 					<Properties>
 						<token name="ApplyStrokeMode">0</token>
 						<BinaryString name="AttributesSerialize"/>
@@ -509,7 +509,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d50000e103</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="Frame" referent="RBX5EE35370F8454931A05D881B113B900F">
+				<Item class="Frame" referent="RBXSRC006934">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -573,7 +573,7 @@
 						<bool name="Visible">true</bool>
 						<int name="ZIndex">1</int>
 					</Properties>
-					<Item class="UIStroke" referent="RBX59E307C191574754BDF382B0DE4121F5">
+					<Item class="UIStroke" referent="RBXSRC006935">
 						<Properties>
 							<token name="ApplyStrokeMode">0</token>
 							<BinaryString name="AttributesSerialize"/>
@@ -594,7 +594,7 @@
 							<UniqueId name="UniqueId">494ce16765689aa004b947d50000e105</UniqueId>
 						</Properties>
 					</Item>
-					<Item class="UICorner" referent="RBXE995173565274C469306B953D92EF522">
+					<Item class="UICorner" referent="RBXSRC006936">
 						<Properties>
 							<BinaryString name="AttributesSerialize"/>
 							<UDim name="CornerRadius">
@@ -610,7 +610,7 @@
 						</Properties>
 					</Item>
 				</Item>
-				<Item class="TextLabel" referent="RBX752B5D04E15F41FE8A37EFE39153D170">
+				<Item class="TextLabel" referent="RBXSRC006937">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -700,7 +700,7 @@
 						<int name="ZIndex">1</int>
 					</Properties>
 				</Item>
-				<Item class="Sound" referent="RBX5D9753ACA57E4240A8AB66FD5DD01334">
+				<Item class="Sound" referent="RBXSRC006938">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<bool name="DefinesCapabilities">false</bool>
@@ -727,4 +727,4 @@
 				</Item>
 			</Item>
 			</Item>
-		</roblox>
+		<SharedStrings/></roblox>

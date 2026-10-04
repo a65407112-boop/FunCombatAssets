@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Folder" referent="RBXBE445348AA4F4C36A2225170D9419BFC">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Folder" referent="RBXSRC007595">
 				<Properties>
 					<BinaryString name="AttributesSerialize"/>
 					<bool name="DefinesCapabilities">false</bool>
@@ -8,7 +8,7 @@
 					<BinaryString name="Tags"/>
 					<UniqueId name="UniqueId">03fa1d2b258a490904bb139000006b6d</UniqueId>
 				</Properties>
-				<Item class="ParticleEmitter" referent="RBX039BC53DF0604261B3237A4E41BA2535">
+				<Item class="ParticleEmitter" referent="RBXSRC007596">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -59,7 +59,7 @@
 						<float name="ZOffset">-0.899999976</float>
 					</Properties>
 				</Item>
-				<Item class="ParticleEmitter" referent="RBXAAA7E91BC60C42F0A9090D1359FD5CF6">
+				<Item class="ParticleEmitter" referent="RBXSRC007597">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -110,7 +110,7 @@
 						<float name="ZOffset">-1</float>
 					</Properties>
 				</Item>
-				<Item class="ParticleEmitter" referent="RBXED03605426194D32B71D69FEA5F56AFB">
+				<Item class="ParticleEmitter" referent="RBXSRC007598">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -161,7 +161,7 @@
 						<float name="ZOffset">-1</float>
 					</Properties>
 				</Item>
-				<Item class="ParticleEmitter" referent="RBX317C73EF020E421B92B01A803968DCDE">
+				<Item class="ParticleEmitter" referent="RBXSRC007599">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -212,7 +212,7 @@
 						<float name="ZOffset">-1</float>
 					</Properties>
 				</Item>
-				<Item class="ParticleEmitter" referent="RBX23149FA8707F4EC39CF366E48630DB3B">
+				<Item class="ParticleEmitter" referent="RBXSRC007600">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -263,7 +263,7 @@
 						<float name="ZOffset">-1</float>
 					</Properties>
 				</Item>
-				<Item class="ParticleEmitter" referent="RBX02871178B7924E52AA0860A5F24F76DE">
+				<Item class="ParticleEmitter" referent="RBXSRC007601">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -314,7 +314,7 @@
 						<float name="ZOffset">-1</float>
 					</Properties>
 				</Item>
-				<Item class="Highlight" referent="RBX5AA1DA5EE6874CBDBF7A493A2DC99C6C">
+				<Item class="Highlight" referent="RBXSRC007602">
 					<Properties>
 						<Ref name="Adornee">null</Ref>
 						<BinaryString name="AttributesSerialize"/>
@@ -341,4 +341,4 @@
 					</Properties>
 				</Item>
 			</Item>
-			</roblox>
+			<SharedStrings/></roblox>

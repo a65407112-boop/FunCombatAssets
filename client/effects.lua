@@ -263,13 +263,13 @@ return function(ctx)
             self:shake(character)
             return
         end
-        if key ~= "effects/Counter" and key ~= "effects/circles" and key ~= "effects/LevelUp/UpKill"
+        if key ~= "effects/Counter" and key ~= "effects/circles" and key ~= "effects/LevelUp/UpKill" and key ~= "effects/LevelUp/UpCompletion" and key ~= "effects/Hits/Hearts"
             and key ~= "effects/Hits/Default" and key ~= "effects/Hits/Heavy"
             and key ~= "effects/Hits/BackBreak" and key ~= "effects/Hits/WallBounce" then return end
         local entry = effect(character, duration(data.duration, 2))
         local target = characterPart(character, "Torso") or root
         local keys = {key}
-        if key == "effects/LevelUp/UpKill" then
+        if key == "effects/LevelUp/UpKill" or key == "effects/LevelUp/UpCompletion" then
             target, keys = root, {}
             for candidate in pairs(ctx.catalog.packages) do
                 if string.sub(candidate, 1, #key) == key then keys[#keys + 1] = candidate end

@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXFF3965F656C541C2AD543CB7472D9805">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXSRC006947">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0ed</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="TextLabel" referent="RBX23943D841261401AAAF0B6A7E67E96B0">
+			<Item class="TextLabel" referent="RBXSRC006948">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -112,7 +112,7 @@
 					<int name="ZIndex">4</int>
 				</Properties>
 				</Item>
-			<Item class="TextLabel" referent="RBX4913611F8F9447C4968B30900D07308D">
+			<Item class="TextLabel" referent="RBXSRC006950">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -202,7 +202,7 @@
 					<int name="ZIndex">4</int>
 				</Properties>
 			</Item>
-			<Item class="TextLabel" referent="RBX66D38267BDCE4CA1A92A33D517192BDC">
+			<Item class="TextLabel" referent="RBXSRC006951">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -293,4 +293,4 @@
 				</Properties>
 			</Item>
 		</Item>
-		</roblox>
+		<SharedStrings/></roblox>

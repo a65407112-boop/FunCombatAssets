@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Sound" referent="RBX4755780051D540978EB4DBAA1C72895F">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Sound" referent="RBXSRC007610">
 				<Properties>
 					<BinaryString name="AttributesSerialize"/>
 					<bool name="DefinesCapabilities">false</bool>
@@ -23,4 +23,4 @@
 					<float name="Volume">3</float>
 				</Properties>
 			</Item>
-			</roblox>
+			<SharedStrings/></roblox>

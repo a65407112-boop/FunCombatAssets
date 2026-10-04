@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ColorCorrectionEffect" referent="RBXC08B894F18664C398B210AF9CC886BD6">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ColorCorrectionEffect" referent="RBXSRC007013">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<float name="Brightness">0.5</float>
@@ -18,4 +18,4 @@
 						<UniqueId name="UniqueId">52377645d5283f0904bb706d00004581</UniqueId>
 					</Properties>
 				</Item>
-			</roblox>
+			<SharedStrings/></roblox>

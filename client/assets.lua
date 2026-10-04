@@ -1,5 +1,5 @@
 return function(ctx)
-    local module = {cache = {}, warnings = {}}
+    local module = {cache = {}, warnings = {}, pending = {}}
     local scope = ctx.cleanup:scope()
     local function warnOnce(key, message)
         if not module.warnings[key] then module.warnings[key] = true; ctx.report(message) end
@@ -115,13 +115,65 @@ return function(ctx)
         if not ok then for _, object in ipairs(made) do pcall(function() object:Destroy() end) end; error(err) end
         return assert(byId[data.root], "Missing root in asset " .. key)
     end
+    function module:deserialize(entry,key)
+        local assetFunction=getcustomasset or getsynasset
+        assert(type(writefile)=="function" and type(assetFunction)=="function",
+            "Original embedded CSG in "..key.." requires writefile and getcustomasset/getsynasset on this executor")
+        local path="funcombat_"..ctx.manifest.buildId.."_"..key:gsub("[^%w_]","_")..".rbxmx"
+        writefile(path,ctx.http(entry.modelPath))
+        local done,result,failure=false,nil,nil
+        local timedOut=false
+        coroutine.wrap(function()
+            local ok,objects=pcall(function()
+                local asset=assetFunction(path)
+                if type(getobjects)=="function" then return getobjects(asset) end
+                return game:GetObjects(asset)
+            end)
+            if ok then
+                if timedOut or ctx.cleanup.dead then
+                    for _,object in ipairs(objects or {}) do pcall(function() object:Destroy() end) end
+                else result=objects end
+            else failure=objects end
+            done=true
+        end)()
+        local deadline=tick()+ctx.config.Timeout
+        repeat wait(0.05) until done or tick()>=deadline or ctx.cleanup.dead
+        timedOut=not done
+        if type(delfile)=="function" then pcall(delfile,path) end
+        assert(done and not failure and type(result)=="table",
+            "Original model deserialization failed for "..key..": "..tostring(failure or "timeout; executor must support local .rbxmx in GetObjects"))
+        if #result~=1 then
+            for _,object in ipairs(result) do object:Destroy() end
+            error("Original model returned "..#result.." roots: "..key)
+        end
+        local root=result[1]
+        local objects=root:GetDescendants();objects[#objects+1]=root
+        for _,object in ipairs(objects) do
+            if object:IsA("LuaSourceContainer") or object:IsA("RemoteEvent") or object:IsA("RemoteFunction") then
+                root:Destroy();error("Unexpected executable in presentation model: "..key)
+            end
+        end
+        if #objects~=entry.count then root:Destroy();error("Original model node count differs: "..key) end
+        return root
+    end
     function module:clone(key)
+        if self.pending[key] then
+            local deadline=tick()+ctx.config.Timeout*2+1
+            repeat wait(0.05) until not self.pending[key] or tick()>=deadline or ctx.cleanup.dead
+            assert(not self.pending[key],"Concurrent asset load timed out: "..key)
+        end
         if not self.cache[key] then
             local entry = assert(ctx.catalog.packages[key], "Missing asset manifest entry: " .. tostring(key))
-            local data = ctx.json(entry.path)
-            assert(not ctx.cleanup.dead, "Asset load cancelled: " .. key)
-            if data.version ~= 1 or #data.nodes ~= entry.count then error("Invalid asset package: " .. key) end
-            local root = self:construct(data, key)
+            self.pending[key]=true
+            local ok,root=pcall(function()
+                local data=ctx.json(entry.path)
+                assert(not ctx.cleanup.dead,"Asset load cancelled: "..key)
+                assert(data.version==1 and #data.nodes==entry.count,"Invalid asset package: "..key)
+                if entry.backend=="model" then return self:deserialize(entry,key) end
+                return self:construct(data,key)
+            end)
+            self.pending[key]=nil
+            if not ok then error(root) end
             if ctx.cleanup.dead then root:Destroy(); error("Asset construction cancelled: " .. key) end
             root.Archivable = true; self.cache[key] = root; scope:add(root)
         end

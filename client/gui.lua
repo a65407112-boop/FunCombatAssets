@@ -18,7 +18,7 @@ return function(ctx)
     local module = {roots = roots}
     local emoteNames = {"Boston Breakdance", "Flex", "Rat", "Akiyama", "idk"}
     local screenNames = {"HitboxToggle", "Shiftlock", "getUp", "mobileButtons", "title", "Subtitles",
-        "Emotes", "awakenScreen", "Gender", "MapVoteGui", "weapon", "weaponGui", "HitIndicator"}
+        "Emotes", "awakenScreen", "Gender", "MapVoteGui", "weapon", "weaponGui", "HitIndicator", "meter", "yeah"}
     local warned = {}
 
     local function clone(key)
@@ -86,7 +86,7 @@ return function(ctx)
             root.Parent = playerGui
         end
     end
-    for _, name in ipairs({"stats", "society", "Info", "BillboardGui"}) do
+    for _, name in ipairs({"stats", "society", "completionLeader", "Info", "BillboardGui"}) do
         roots[name] = clone("gui/" .. name)
         if roots[name] then
             roots[name].ResetOnSpawn = false
@@ -218,6 +218,11 @@ return function(ctx)
     local hitFrame = find(roots.HitIndicator, "Frame")
     local hitCount, hitDamage, hitTime = 0, 0, 0
     if hitFrame then hitFrame.Visible = false end
+    function module:bumpHits()
+        if tick()-hitTime>=3 then hitCount,hitDamage=0,0 end
+        hitCount=hitCount+1;hitTime=tick()
+        if hitFrame then hitFrame.Visible=true;text(find(hitFrame,"Hits"),hitCount);text(find(hitFrame,"Damage"),string.format("%.1f",hitDamage)) end
+    end
     local function confirmedDamage(data)
         if type(data) ~= "table" or (data.attacker ~= player.Character and data.attackerUserId ~= player.UserId) then return end
         if type(data.amount) ~= "number" or data.amount <= 0 then return end
@@ -294,15 +299,22 @@ return function(ctx)
     end
     local function updateSociety()
         local highest, winner = 0, nil
+        local completionHigh,completionWinner=0,nil
         for _, state in pairs(ctx.state:all()) do
             local kills = tonumber(state.kills) or 0
             if state.character and state.character.Parent and state.userId and state.userId > 0
                 and (kills > highest or (kills == highest and kills > 0 and winner and state.userId < winner.userId)) then
                 highest, winner = kills, state
             end
+            local n=tonumber(state.completions) or 0
+            if state.character and state.character.Parent and (state.userId or 0)>0 and
+                (n>completionHigh or (n==completionHigh and n>0 and completionWinner and state.userId<completionWinner.userId)) then
+                completionHigh,completionWinner=n,state
+            end
         end
         for character, entry in pairs(billboards) do
             if entry.society then entry.society.Enabled = winner ~= nil and winner.character == character end
+            if entry.completionLeader then entry.completionLeader.Enabled=completionWinner~=nil and completionWinner.character==character end
         end
     end
     local function updateBillboard(state)
@@ -326,7 +338,7 @@ return function(ctx)
         entry.state = state
         local head = character:FindFirstChild("Head")
         if not head then return end
-        for _, name in ipairs({"stats", "society", "Info", "BillboardGui"}) do
+        for _, name in ipairs({"stats", "society", "completionLeader", "Info", "BillboardGui"}) do
             if not entry[name] and roots[name] and (name ~= "Info" or (state.userId or 0) > 0)
                 and (name ~= "BillboardGui" or state.ownerTag == true) then
                 entry[name] = roots[name]:Clone()
@@ -353,6 +365,9 @@ return function(ctx)
             local healthBar = health and health:FindFirstChild("Frame")
             local fraction = math.max(0, math.min(1, (tonumber(state.health) or 0) / math.max(1, tonumber(state.maxHealth) or 100)))
             if healthBar then tween(healthBar, 0.15, {Size = UDim2.new(fraction, 0, 1, 0)}) end
+            local funbar=find(stats,"fun")
+            local bar=funbar and funbar:FindFirstChild("Frame")
+            if bar then tween(bar,0.15,{Size=UDim2.new(math.max(0,math.min(1,state.funMeter or 0)),0,1,0)}) end
         end
         if entry.Info then
             local characterPlayer = players:GetPlayerFromCharacter(character)

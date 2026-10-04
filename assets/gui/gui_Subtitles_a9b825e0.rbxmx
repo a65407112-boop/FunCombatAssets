@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX27669C7D6A42413BA1991E730A61605D">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXSRC006952">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">2a21e00fbde50c5304ba02bd000075bb</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="TextLabel" referent="RBXBF0BA78AD7184B3893DFAA73968A5A64">
+			<Item class="TextLabel" referent="RBXSRC006953">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -111,7 +111,7 @@
 					<bool name="Visible">true</bool>
 					<int name="ZIndex">1</int>
 				</Properties>
-				<Item class="UIGradient" referent="RBX1914FB3CF5B94F6FADE8B3DBFED06762">
+				<Item class="UIGradient" referent="RBXSRC006954">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<ColorSequence name="Color">0 1 1 1 0 0.515 0.633829 0.64715 0.628061 0 1 1 1 1 0 </ColorSequence>
@@ -132,4 +132,4 @@
 				</Item>
 			</Item>
 		</Item>
-		</roblox>
+		<SharedStrings/></roblox>

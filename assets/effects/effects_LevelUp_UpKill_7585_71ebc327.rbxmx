@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ParticleEmitter" referent="RBX9DE1D8F2F86B4121A04380C020FEA07C">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ParticleEmitter" referent="RBXSRC007585">
 					<Properties>
 						<Vector3 name="Acceleration">
 							<X>0</X>
@@ -49,4 +49,4 @@
 						<float name="ZOffset">1</float>
 					</Properties>
 				</Item>
-				</roblox>
+				<SharedStrings/></roblox>

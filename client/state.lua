@@ -15,6 +15,13 @@ return function(ctx)
         end
     end
     function module:apply(snapshot)
+        local present={}
+        for _,state in pairs(snapshot.states) do if state.character then present[state.character]=true end end
+        local absent={}
+        for character,state in pairs(values) do
+            if not present[character] and (state.serverTime or 0)<=(snapshot.serverTime or math.huge) then absent[#absent+1]=character end
+        end
+        for _,character in ipairs(absent) do ctx.network:dispatch("Remove",{character=character}) end
         for _, state in pairs(snapshot.states) do self:update(state) end
     end
     function module:onChanged(callback)

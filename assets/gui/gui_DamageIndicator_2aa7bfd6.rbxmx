@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBX5C974109F24C4442B1B249B5E84494D9">
+<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBXSRC006788">
 					<Properties>
 						<bool name="Active">true</bool>
 						<Ref name="Adornee">null</Ref>
@@ -59,7 +59,7 @@
 						<UniqueId name="UniqueId">494ce16765689aa004b947d500003e6e</UniqueId>
 						<token name="ZIndexBehavior">1</token>
 					</Properties>
-					<Item class="TextLabel" referent="RBX62EEE37C7F7046DFA96AC02B362B7F21">
+					<Item class="TextLabel" referent="RBXSRC006789">
 						<Properties>
 							<bool name="Active">false</bool>
 							<Vector2 name="AnchorPoint">
@@ -148,7 +148,7 @@
 							<bool name="Visible">true</bool>
 							<int name="ZIndex">1</int>
 						</Properties>
-						<Item class="UIGradient" referent="RBX127D29A3403E49849AC1E4FA9E062BDB">
+						<Item class="UIGradient" referent="RBXSRC006790">
 							<Properties>
 								<BinaryString name="AttributesSerialize"/>
 								<ColorSequence name="Color">0 1 1 1 0 0.460898 1 1 1 0 1 0.303151 0 0.53698 0 </ColorSequence>
@@ -167,7 +167,7 @@
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003e70</UniqueId>
 							</Properties>
 						</Item>
-						<Item class="UITextSizeConstraint" referent="RBX6F013E656D094A888C94B20D9CFFC571">
+						<Item class="UITextSizeConstraint" referent="RBXSRC006791">
 							<Properties>
 								<BinaryString name="AttributesSerialize"/>
 								<bool name="DefinesCapabilities">false</bool>
@@ -180,7 +180,7 @@
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003e71</UniqueId>
 							</Properties>
 						</Item>
-						<Item class="UIStroke" referent="RBX8F1C044629504B4B8DAC28F7AAB55600">
+						<Item class="UIStroke" referent="RBXSRC006792">
 							<Properties>
 								<token name="ApplyStrokeMode">0</token>
 								<BinaryString name="AttributesSerialize"/>
@@ -203,4 +203,4 @@
 						</Item>
 					</Item>
 				</Item>
-				</roblox>
+				<SharedStrings/></roblox>

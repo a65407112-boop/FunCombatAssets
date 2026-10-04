@@ -1,14 +1,23 @@
-# Installation status and steps
+# Установка
 
-The full package includes the matching `FunCombat_Server.rbxlx`, client and builder. The original place remains untouched. Offline checks are recorded in `Validation_Report.md`; actual engine testing remains necessary.
+1. Опубликуйте `funcombat_server.rbxl` как серверный плейс своей игры. `Game_Server.rbxlx` — та же сборка в XML. Для обычной публикации откройте файл в Roblox Studio, настройте Avatar Type **R6**, затем Publish to Roblox. Публикация сервера не выполняется клиентским executor. Если Studio у вас недоступна, файл можно передать человеку с доступом к публикации вашего плейса.
+2. Содержимое `Game_GitHub.zip` соответствует корню репозитория. В опубликованном `FunCombatAssets` уже должны находиться `manifest.json`, `config`, `client`, `assets`, `loader.lua`, `Builder` и документация. Серверный файл и GitHub должны иметь один build ID.
+3. В начале `loader.lua` находится единый блок CONFIG: Owner, Repository, Branch. В поставляемой сборке указаны реальные `a65407112-boop/FunCombatAssets`, ветка `main`. После обновления GitHub используйте отдельный `loader.lua` или raw-файл из репозитория.
+4. Executor должен предоставлять `loadstring`, HTTP GET, `writefile`, `getcustomasset`/`getsynasset` и `getobjects`/`game:GetObjects` с поддержкой локального `.rbxmx`. Последние возможности необходимы для встроенных CSG исходных костюмов. Наличие функции само по себе не гарантирует поддержку формата; загрузчик выполняет настоящее deserialization и сообщает ошибку.
+5. Подключитесь к опубликованному серверу и запустите loader. Другие игроки также запускают внешний клиент, чтобы видеть клиентские оружия, костюмы, интерфейсы и эффекты. Серверное состояние синхронизируется через одинаковый протокол для всех клиентов.
+6. Ошибка build ID означает, что сервер и репозиторий разных сборок. Ошибка HTTP/checksum означает отсутствующий файл, недоступную ветку или незавершённое обновление. Ошибка original model deserialization означает неподдерживаемый локальный `.rbxmx` backend этого executor. Бесконечного ожидания этих ресурсов нет.
 
-1. Import the newly supplied protocol 3 `FunCombat_Server.rbxlx` into the intended Studio/server environment. Replace the previous build, including the previous protocol 3 place: its Main script still required version 2 and could not start. Verify both original map templates, the active Crossroads map, terrain, collision and spawn heights before publishing.
-2. Upload all files from `GitHub/` to the configured repository root, retaining subfolders. Do not upload a surrounding `GitHub` folder unless CONFIG/path handling is adjusted.
-3. Set Owner, Repository and Branch only in `loader.lua` CONFIG if using a different repository. Existing values identify `a65407112-boop/FunCombatAssets`, branch `main`.
-4. Join the matching server. Execute `loader.lua`. A normal raw entry point, after upload, is `loadstring(game:HttpGet("https://raw.githubusercontent.com/" .. owner .. "/" .. repository .. "/" .. branch .. "/loader.lua"))()` using your configured variables. This requires an executor that exposes that HTTP API; executing the downloaded loader itself also supports request/http_request/syn.request.
-5. Read initialization errors and asset warnings. The name of a failed resource is included. A missing Remotes/Version means the server is not this protocol; the loader stops after a bounded wait.
-6. Check that encoded prompts show their original text only after this client loads. Test two separate clients, then test carry/execution disconnects, walking during carry and after drop, late joining, respawn and a second loader run. Check the original Gender/Info labels and `/e` commands. These in-engine checks have not been performed in this environment.
+Управление из исходника: выбор оружия через оригинальный GUI; удар мышью/свободным касанием; Q — dash; G — восстановление после падения, когда сервер разрешает; G/H/J/K/L — исходные emotes. E/R/T и удержание сохраняются у соответствующих ProximityPrompt. R/мобильная R запрашивают следующий этап парного взаимодействия. `/e secretdoor` управляет исходной дверью Crossroads. Команды `spawn`, `d`, `sd`, `/s`, `/sd`, `/spawn` с необязательным userId создают оригинальный dummy; сервер ограничивает частоту и количество.
 
-No owner/admin access is granted by the runtime. Client requests never contain damage or selected attack victims. Reexecuting destroys the previous local runtime before rebuilding interfaces and connections.
+# Воспроизведение сборки
 
-The builder is pinned to the original source checksum. Keep the original file separately; rebuilding requires it plus Python dependencies and rbxmk. Do not overwrite the source with a generated file.
+Python 3.11+, пакеты `Builder/requirements.txt`, **rbxmk 0.9.1**. Builder принимает этот конкретный исходник и проверяет SHA-256 до записи. Исходник должен находиться вне output. В полном архиве рядом с Builder находятся GitHub-проект и его инструменты.
+
+```bash
+python3 -m pip install -r Builder/requirements.txt
+python3 Builder/build.py --source /absolute/path/FunCombat_Renamed2.rbxl --rbxmk /absolute/path/rbxmk --output /absolute/path/output
+```
+
+Из полного архива удобнее запускать `GitHub/Builder/build.py`: builder использует лежащий рядом репозиторий. Выход: два формата плейса, GitHub-папка, два zip, отдельный loader, метаданные и статические проверки. rbxmk выполняет сериализацию форматов, а не игровой тест Roblox.
+
+Перед использованием проведите в Roblox тест двух игроков: загрузка и повторный запуск, позднее подключение, смена карты, все оружия, падение/восстановление, перенос/остановка/выход/респавн, обе финальные атаки, все парные варианты и Completions. Отдельно проверьте hosted assets и свой executor. Геометрическая инспекция в builder отсутствует.

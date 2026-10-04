@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBX4BDA4402E6D54391B487FA2316F73AEB">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBXSRC007587">
 				<Properties>
 					<bool name="Anchored">false</bool>
 					<BinaryString name="AttributesSerialize"/>
@@ -97,7 +97,7 @@
 						<Z>6</Z>
 					</Vector3>
 				</Properties>
-				<Item class="Highlight" referent="RBX388DD74862FE4108BF22F3844BA54908">
+				<Item class="Highlight" referent="RBXSRC007588">
 					<Properties>
 						<Ref name="Adornee">null</Ref>
 						<BinaryString name="AttributesSerialize"/>
@@ -124,4 +124,4 @@
 					</Properties>
 				</Item>
 			</Item>
-			</roblox>
+			<SharedStrings/></roblox>

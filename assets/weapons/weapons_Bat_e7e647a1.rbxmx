@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Tool" referent="RBX87B7E1F1F7E247A2AA5A9BCE30CE3CB1">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Tool" referent="RBXSRC007117">
 						<Properties>
 							<BinaryString name="AttributesSerialize"/>
 							<bool name="CanBeDropped">true</bool>
@@ -69,7 +69,7 @@
 								</CFrame>
 							</OptionalCoordinateFrame>
 						</Properties>
-						<Item class="Part" referent="RBX4E392E4798074DA4B8F8FEF1DF240226">
+						<Item class="Part" referent="RBXSRC007118">
 							<Properties>
 								<bool name="Anchored">false</bool>
 								<BinaryString name="AttributesSerialize"/>
@@ -168,7 +168,7 @@
 									<Z>4</Z>
 								</Vector3>
 							</Properties>
-							<Item class="SpecialMesh" referent="RBX9F8FB656D0904DBB9471E72DB2FD663D">
+							<Item class="SpecialMesh" referent="RBXSRC007119">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -197,7 +197,7 @@
 									</Vector3>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBXBEB3ACFAE5154D2594FDBFB5B7DF85FC">
+							<Item class="Sound" referent="RBXSRC007120">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -222,7 +222,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Attachment" referent="RBXA6C3F502B8E94C158439F96B9694E1D8">
+							<Item class="Attachment" referent="RBXSRC007121">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="CFrame">
@@ -248,7 +248,7 @@
 									<bool name="Visible">false</bool>
 								</Properties>
 							</Item>
-							<Item class="Attachment" referent="RBX901EAF2DED2D4C33B47E5C4BB3A3BB4E">
+							<Item class="Attachment" referent="RBXSRC007122">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="CFrame">
@@ -274,10 +274,10 @@
 									<bool name="Visible">false</bool>
 								</Properties>
 							</Item>
-							<Item class="Trail" referent="RBX0E10106E167B435FB4E82D0E396CA2D2">
+							<Item class="Trail" referent="RBXSRC007123">
 								<Properties>
-									<Ref name="Attachment0">RBX901EAF2DED2D4C33B47E5C4BB3A3BB4E</Ref>
-									<Ref name="Attachment1">RBXA6C3F502B8E94C158439F96B9694E1D8</Ref>
+									<Ref name="Attachment0">RBXSRC007122</Ref>
+									<Ref name="Attachment1">RBXSRC007121</Ref>
 									<BinaryString name="AttributesSerialize"/>
 									<float name="Brightness">0</float>
 									<ColorSequence name="Color">0 0.91902 0.614984 0.414603 0 1 0.91902 0.614984 0.414603 0 </ColorSequence>
@@ -301,7 +301,7 @@
 									<NumberSequence name="WidthScale">0 1 0 1 1 0 </NumberSequence>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX4CDB094F5F2A4E95922DA3CA1E664CAF">
+							<Item class="Sound" referent="RBXSRC007124">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -326,7 +326,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBX1C7CEDE7EDC14F2686394254D6B3C389">
+							<Item class="Sound" referent="RBXSRC007125">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -351,7 +351,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBXA475EAE33CD045C8AE05AF9611E657C8">
+							<Item class="Sound" referent="RBXSRC007126">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
@@ -376,7 +376,7 @@
 									<float name="Volume">2</float>
 								</Properties>
 							</Item>
-							<Item class="Sound" referent="RBXB89623C3A1814DFAA887F7C5F4EBBD52">
+							<Item class="Sound" referent="RBXSRC007127">
 								<Properties>
 									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>

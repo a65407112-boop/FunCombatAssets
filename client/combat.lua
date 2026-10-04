@@ -30,6 +30,11 @@ return function(ctx)
             if type(payload) ~= "string" then return false end
         elseif action == "Gender" then
             if type(payload) ~= "string" or not genders[payload] then return false end
+        elseif action=="SpawnDummy" then
+            if not canAct(state) or (payload~=nil and (type(payload)~="number" or payload~=payload or payload<1 or payload>1e11 or payload%1~=0)) then return false end
+        elseif action=="SecretDoor" then
+            if not canAct(state) then return false end
+            payload=nil
         elseif action == "GetUp" then
             if not state or not state.downed or not state.canGetUp or state.carriedBy then return false end
             payload = nil
@@ -71,14 +76,35 @@ return function(ctx)
     end
 
     scope:add(ctx.gui:onAction(function(action, payload) module:request(action, payload) end))
-    scope:add(player.Chatted:Connect(function(message)
+    local function chat(message)
         -- Original Animate commands; the server chooses an allowed variant and
         -- broadcasts it so other external clients render the same request.
         local name
         if message:sub(1,3) == "/e " then name = message:sub(4)
         elseif message:sub(1,7) == "/emote " then name = message:sub(8) end
         if name and chatEmotes[name] then module:request("Emote", name) end
-    end))
+        if message=="/e secretdoor" then module:request("SecretDoor") end
+        local command,arg=message:match("^(%S+)%s*(%S*)")
+        local aliases={spawn=true,d=true,sd=true,["/s"]=true,["/sd"]=true,["/spawn"]=true}
+        if aliases[command] and (arg=="" or tonumber(arg)) then module:request("SpawnDummy",arg~="" and tonumber(arg) or nil) end
+    end
+    scope:add(player.Chatted:Connect(chat))
+    -- Optional modern chat hook; older clients retain the source Chatted path.
+    pcall(function()
+        local service=game:GetService("TextChatService")
+        scope:add(service.SendingMessage:Connect(function(message) chat(message.Text) end))
+        local tracked=setmetatable({},{__mode="k"})
+        local function command(object)
+            if tracked[object] or not object:IsA("TextChatCommand") then return end
+            if object.PrimaryAlias~="/e" and object.PrimaryAlias~="/emote" and object.SecondaryAlias~="/emote" then return end
+            tracked[object]=true
+            scope:add(object.Triggered:Connect(function(source,message)
+                if source and source.UserId==player.UserId then chat(message) end
+            end))
+        end
+        scope:add(service.DescendantAdded:Connect(command))
+        for _,object in ipairs(service:GetDescendants()) do command(object) end
+    end)
     scope:add(inputService.InputBegan:Connect(function(input, processed)
         if processed or inputService:GetFocusedTextBox() then return end
         if input.UserInputType == Enum.UserInputType.MouseButton1 then

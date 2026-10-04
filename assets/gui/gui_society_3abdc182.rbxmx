@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBXE121266DEB1D47AC947EC3C8A21771A2">
+<roblox version="4"><External>null</External><External>nil</External><Item class="BillboardGui" referent="RBXSRC007313">
 			<Properties>
 				<bool name="Active">true</bool>
 				<Ref name="Adornee">null</Ref>
@@ -59,7 +59,7 @@
 				<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0a8</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="Frame" referent="RBXE5DF564EF2554B1483924464EAE8B887">
+			<Item class="Frame" referent="RBXSRC007314">
 				<Properties>
 					<bool name="Active">false</bool>
 					<Vector2 name="AnchorPoint">
@@ -123,7 +123,7 @@
 					<bool name="Visible">true</bool>
 					<int name="ZIndex">1</int>
 				</Properties>
-				<Item class="TextLabel" referent="RBX988AA5CCF73746C6A0584F9125BB1901">
+				<Item class="TextLabel" referent="RBXSRC007315">
 					<Properties>
 						<bool name="Active">false</bool>
 						<Vector2 name="AnchorPoint">
@@ -215,4 +215,4 @@
 				</Item>
 			</Item>
 		</Item>
-		</roblox>
+		<SharedStrings/></roblox>

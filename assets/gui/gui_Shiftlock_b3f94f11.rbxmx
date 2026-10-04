@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX072B28435E3C46ACB6275A3346279460">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXSRC006888">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">494ce16765689aa004b947d50000e0cb</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="ImageButton" referent="RBX1114EBB4BA2E41BFBD3E9693F1D5B7A0">
+			<Item class="ImageButton" referent="RBXSRC006889">
 				<Properties>
 					<bool name="Active">true</bool>
 					<Vector2 name="AnchorPoint">
@@ -129,4 +129,4 @@
 				</Properties>
 				</Item>
 		</Item>
-		</roblox>
+		<SharedStrings/></roblox>

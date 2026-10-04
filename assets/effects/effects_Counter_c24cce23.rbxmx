@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBXD34CA7BC09714EC49912EE8CAC79BAF9">
+<roblox version="4"><External>null</External><External>nil</External><Item class="Part" referent="RBXSRC007589">
 				<Properties>
 					<bool name="Anchored">true</bool>
 					<BinaryString name="AttributesSerialize"/>
@@ -97,7 +97,7 @@
 						<Z>1</Z>
 					</Vector3>
 				</Properties>
-				<Item class="Attachment" referent="RBXC0D3F858A81F4AD0B05A45C5508FC6E3">
+				<Item class="Attachment" referent="RBXSRC007590">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<CoordinateFrame name="CFrame">
@@ -122,7 +122,7 @@
 						<UniqueId name="UniqueId">2d1f0cea557db37a04ba77f90000700e</UniqueId>
 						<bool name="Visible">false</bool>
 					</Properties>
-					<Item class="ParticleEmitter" referent="RBXA9D8CFF8D36948609B1C88A3DF64DE02">
+					<Item class="ParticleEmitter" referent="RBXSRC007591">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -173,7 +173,7 @@
 							<float name="ZOffset">0</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX1874A2868E644811A9F9B55106DF677E">
+					<Item class="ParticleEmitter" referent="RBXSRC007592">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -224,7 +224,7 @@
 							<float name="ZOffset">1</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBX3666960F4CE9426B9A0CB311273911AD">
+					<Item class="ParticleEmitter" referent="RBXSRC007593">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -275,7 +275,7 @@
 							<float name="ZOffset">0.899496496</float>
 						</Properties>
 					</Item>
-					<Item class="ParticleEmitter" referent="RBXEC9298F883C743228C2EA5E82D331C74">
+					<Item class="ParticleEmitter" referent="RBXSRC007594">
 						<Properties>
 							<Vector3 name="Acceleration">
 								<X>0</X>
@@ -328,4 +328,4 @@
 					</Item>
 				</Item>
 			</Item>
-			</roblox>
+			<SharedStrings/></roblox>

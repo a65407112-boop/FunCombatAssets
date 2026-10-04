@@ -10,6 +10,8 @@ return function(ctx)
     local run = game:GetService("RunService")
     local module = {}
     local function originalSpeed(key)
+        local entry=ctx.catalog.animations[key]
+        if entry and entry.sourcePlaybackSpeed then return entry.sourcePlaybackSpeed end
         if key == "bat/gripAttacker" or key == "bat/gripVictim" or key == "bat/finishHoldAttacker" or key == "bat/finishHoldVictim" then return 250 end
         return 50
     end

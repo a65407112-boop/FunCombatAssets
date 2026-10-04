@@ -1,4 +1,4 @@
-<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBX2B0652B27C3C4317AF01EBFD877CA742">
+<roblox version="4"><External>null</External><External>nil</External><Item class="ScreenGui" referent="RBXSRC007281">
 			<Properties>
 				<BinaryString name="AttributesSerialize"/>
 				<bool name="AutoLocalize">true</bool>
@@ -22,7 +22,7 @@
 				<UniqueId name="UniqueId">5727774d407af4d40862ef5600005bfd</UniqueId>
 				<token name="ZIndexBehavior">1</token>
 			</Properties>
-			<Item class="TextButton" referent="RBX021F28A9C8DB4F8DB41EAA24D2F1FF0B">
+			<Item class="TextButton" referent="RBXSRC007282">
 				<Properties>
 					<bool name="Active">true</bool>
 					<Vector2 name="AnchorPoint">
@@ -117,7 +117,7 @@
 					<bool name="Visible">true</bool>
 					<int name="ZIndex">1</int>
 				</Properties>
-				<Item class="UICorner" referent="RBX85EC9F138A9044098A24EC32E3594F3A">
+				<Item class="UICorner" referent="RBXSRC007283">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<UDim name="CornerRadius">
@@ -132,7 +132,7 @@
 						<UniqueId name="UniqueId">5727774d407af4d40862ef5600005c3f</UniqueId>
 					</Properties>
 				</Item>
-				<Item class="UIGradient" referent="RBXAA7CDA7E4A5F44669248AC7A873B22EB">
+				<Item class="UIGradient" referent="RBXSRC007284">
 					<Properties>
 						<BinaryString name="AttributesSerialize"/>
 						<ColorSequence name="Color">0 0.554955 0.0671397 1 0 1 1 1 1 0 </ColorSequence>
@@ -153,4 +153,4 @@
 				</Item>
 				</Item>
 		</Item>
-	</roblox>
+	<SharedStrings/></roblox>
