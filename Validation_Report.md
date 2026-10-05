@@ -11,10 +11,16 @@
 - Manifest SHA-256, размер и Adler32 проверяются для каждого файла. Загрузчик проверяет размер/Adler32 загружаемых файлов; это контроль целостности развёртывания, не криптографическая аутентификация сервера.
 - Luau-компиляция server templates, client modules, loader и сгенерированного server code. Policy-тесты проверяют schema/NaN, cooldown, состояние, server hold timing, владение переносом/парой, пороги этапов и rate limit.
 - Mock-тесты исполняют реальные networking/state factories: bootstrap buffering, отсечение старых событий, неверный build ID, encoded request mapping, порядок snapshot/state, удаление и новый персонаж. Отдельные mock-тесты исполняют реальный CombatServer: отмена dash, ragdoll network ownership, release cleanup и свежий clock sample у cached snapshot.
-- Шесть Python-тестов builder проверяют сохранение исходника, запрет чужого SHA и рекурсивного output, dangling/duplicate refs и детерминированность zip. 13 существующих тестов импортера дополнительных костюмов сохранены.
+- Девять Python-тестов builder проверяют сохранение исходника, запрет чужого SHA и рекурсивного output, dangling/duplicate refs, детерминированность zip, восстановление BrickColor из неоднозначного XML и отклонение неверных бинарных типов. 13 существующих тестов импортера дополнительных костюмов сохранены.
 - Независимая проверка кода закрыла найденные ошибки отмены dash, delayed pair effects, cached clock, teleport cleanup, costume timeout и рекурсивной сборки.
 
 `Static_Checks.json`, `Build_Metadata.json` и `Release_Checks.json` содержат машинные результаты, build ID, checksum и проверенные ссылки. Итоговая сборка и повторная сборка должны давать одинаковые файлы; результат фиксируется в Release_Checks.
+
+## Исправление сериализации 5 октября 2026
+
+В первой выданной бинарной сборке Studio сообщил `Unexpected format 3 (expected 11)` у `SpawnLocation.TeamColor`. Прежняя проверка чтением тем же конвертером не выявляла этот дефект. XML обозначает BrickColor тегом int; при обратной записи без descriptor тип превратился в Int32. Builder теперь восстанавливает explicit BrickColor из типа PROP исходного бинарного файла. Создаваемый IntValue версии протокола также записывается как int64, соответствующий исходному бинарному типу. Значения цветов, карты и геометрия не изменены.
+
+Новая проверка читает бинарные PROP напрямую и сравнивает типы всех сохранённых class/property с исходником. Она отклоняет оба прежних несоответствия до выдачи архивов. Serialization version 2 участвует в build ID. Успешное открытие исправленного файла в Roblox Studio пока не подтверждено.
 
 ## Что изменено в логике исходника
 

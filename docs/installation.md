@@ -1,6 +1,8 @@
 # Установка
 
 1. Опубликуйте `funcombat_server.rbxl` как серверный плейс своей игры. `Game_Server.rbxlx` — та же сборка в XML. Для обычной публикации откройте файл в Roblox Studio, настройте Avatar Type **R6**, затем Publish to Roblox. Публикация сервера не выполняется клиентским executor. Если Studio у вас недоступна, файл можно передать человеку с доступом к публикации вашего плейса.
+
+   Используйте пересборку с serialization version 2. Первая версия бинарного файла имела неверный тип TeamColor и не открывалась в Studio. Замените старый файл из Downloads; соответствующие сервер и manifest должны иметь одинаковый новый build ID.
 2. Содержимое `Game_GitHub.zip` соответствует корню репозитория. В опубликованном `FunCombatAssets` уже должны находиться `manifest.json`, `config`, `client`, `assets`, `loader.lua`, `Builder` и документация. Серверный файл и GitHub должны иметь один build ID.
 3. В начале `loader.lua` находится единый блок CONFIG: Owner, Repository, Branch. В поставляемой сборке указаны реальные `a65407112-boop/FunCombatAssets`, ветка `main`. После обновления GitHub используйте отдельный `loader.lua` или raw-файл из репозитория.
 4. Executor должен предоставлять `loadstring`, HTTP GET, `writefile`, `getcustomasset`/`getsynasset` и `getobjects`/`game:GetObjects` с поддержкой локального `.rbxmx`. Последние возможности необходимы для встроенных CSG исходных костюмов. Наличие функции само по себе не гарантирует поддержку формата; загрузчик выполняет настоящее deserialization и сообщает ошибку.

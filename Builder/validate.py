@@ -6,6 +6,17 @@ from lxml import etree as E
 def require(condition,message):
     if not condition:raise ValueError(message)
 
+def binary_property_types(source,output):
+    from model_io import binary_property_schema
+    original=binary_property_schema(source);encoded=binary_property_schema(output)
+    compared={key for key in encoded if key in original}
+    differences=[f'{cls}.{name}: source type {original[cls,name]}, exported type {encoded[cls,name]}'
+                 for cls,name in sorted(compared) if original[cls,name]!=encoded[cls,name]]
+    require(not differences,'Binary property type mismatch: '+'; '.join(differences))
+    return {'passed':True,'propertiesCompared':len(compared),
+            'spawnTeamColorType':encoded.get(('SpawnLocation','TeamColor')),
+            'intValueValueType':encoded.get(('IntValue','Value'))}
+
 def references(tree,label):
     items=list(tree.iter('Item'));ids=[e.get('referent') for e in items]
     require(len(ids)==len(set(ids)),label+': duplicate referents')
@@ -46,7 +57,7 @@ def validate(output):
         e=byname[name][0]
         expected='Folder' if key=='Folder' else protocol['instances'][name]
         require(e.get('class')==expected,'Network class mismatch: '+key)
-    require(byname[protocol['names']['Version']][0].findtext('Properties/int[@name="Value"]')=='4','Wrong encoded version value')
+    require(byname[protocol['names']['Version']][0].findtext('Properties/int64[@name="Value"]')=='4','Wrong encoded version value/type')
     require(byname[protocol['names']['BuildId']][0].findtext('Properties/string[@name="Value"]')==manifest['buildId'],'Wrong encoded build value')
     remotes=[e for e in items if e.get('class') in {'RemoteEvent','RemoteFunction'}]
     require(len(remotes)==3,'Unexpected server network instances')
@@ -86,9 +97,11 @@ def validate(output):
     for name in ['LowerRig','TorsoRig']:require('costumes/'+name in catalog['packages'],'Original costume missing')
     raw=(output/'funcombat_server.rbxl').read_bytes()
     require(raw.startswith(b'<roblox!'),'Binary server place was not encoded as rbxl')
+    binary_types=binary_property_types(output/'Source/FunCombat_Original.rbxl',output/'funcombat_server.rbxl')
     return {'passed':True,'checks':['input checksum','manifest SHA256/Adler32/bytes','dependency DAG',
         'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates',
-        'asset hierarchy and internal refs','original costume CSG deserialization route','all 47 source animations','binary rbxl header'],
+        'asset hierarchy and internal refs','original costume CSG deserialization route','all 47 source animations','binary rbxl header','binary property type IDs match original'],
+        'binaryPropertyTypes':binary_types,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),
         'geometryInspected':False,'robloxEngineTested':False,'legacyClientTested':False,

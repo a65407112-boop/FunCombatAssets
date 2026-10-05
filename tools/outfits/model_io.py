@@ -51,7 +51,7 @@ class Reader:
             v=int.from_bytes(bytes(data[j*n+i] for j in range(4)),'big');previous+=(v>>1)^-(v&1);out.append(previous)
         return out
 
-def source_strings(path):
+def binary_chunks(path):
     data=Path(path).read_bytes()
     if data[:14]!=b'<roblox!\x89\xff\r\n\x1a\n':raise ValueError('Expected original binary Roblox place')
     chunks=[];p=32
@@ -73,15 +73,37 @@ def source_strings(path):
                 import zstandard
                 b=zstandard.ZstdDecompressor().decompress(b,max_output_size=n)
             else:b=decompress(b,n)
-        chunks.append((name,Reader(b)))
-    classes={};nodes={}
+        if len(b)!=n:raise ValueError('Binary chunk size mismatch')
+        chunks.append((name,b))
+    return chunks
+
+def binary_property_schema(path):
+    """Read property type IDs directly, independently of ambiguous XML tags."""
+    chunks=binary_chunks(path);classes={};schema={}
+    for name,body in chunks:
+        if name==b'INST':
+            r=Reader(body);cid=r.u32();classes[cid]=r.string().decode()
+    for name,body in chunks:
+        if name==b'PROP':
+            r=Reader(body);cid=r.u32();pn=r.string().decode();typ=r.read(1)[0]
+            key=(classes[cid],pn)
+            if key in schema and schema[key]!=typ:raise ValueError('Conflicting binary property types: '+'.'.join(key))
+            schema[key]=typ
+    return schema
+
+def source_strings(path):
+    chunks=[(name,Reader(body)) for name,body in binary_chunks(path)]
+    classes={};nodes={};property_types={}
     for name,r in chunks:
         if name==b'INST':
             cid=r.u32();cn=r.string().decode();r.read(1);n=r.u32();refs=r.refs(n);classes[cid]=(cn,refs)
-            for i in refs:nodes[i]={'id':i,'class':cn,'parent':-1,'props':{}}
+            types={}
+            property_types[cid]=types
+            for i in refs:nodes[i]={'id':i,'class':cn,'parent':-1,'props':{},'types':types}
     for name,r in chunks:
         if name==b'PROP':
             cid=r.u32();pn=r.string().decode();typ=r.read(1)[0]
+            property_types[cid][pn]=typ
             if typ==1:
                 for ref in classes[cid][1]:nodes[ref]['props'][pn]=r.string()
         elif name==b'PRNT':
@@ -113,8 +135,14 @@ class Source:
         for i,e in enumerate(elements):
             src=self.basic.get(i)
             if src is None or src['class']!=e.get('class'):raise ValueError('Unexpected source referent order: game-specific conversion required')
-            for prop in e.findall('Properties/string'):
-                key=prop.get('name');raw=src['props'].get(key)
+            for prop in e.findall('Properties/*'):
+                key=prop.get('name')
+                # Roblox XML writes BrickColor as <int>. Without a descriptor,
+                # that ambiguous tag becomes Int32 on re-encoding. Preserve the
+                # original binary type using the explicit XML spelling instead.
+                if src['types'].get(key)==0x0B and prop.tag=='int':prop.tag='BrickColor'
+                if prop.tag!='string':continue
+                raw=src['props'].get(key)
                 if raw is not None:
                     if key in BINARY_NAMES:
                         prop.tag='BinaryString';prop.text=base64.b64encode(raw).decode()

@@ -16,6 +16,7 @@ from model_io import Source,package,animation,dump,sha,repository_files
 
 SOURCE_SHA='a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0'
 VERSION=4
+SERIALIZATION_VERSION=2
 ACTIONS=['Equip','Swing','Dash','GetUp','Emote','Vote','Drop','Gender','Admin','SpawnDummy','SecretDoor','PairSpeed']
 EVENTS=['State','Animation','StopAnimation','Sound','Effect','Damage','Subtitle','Awaken','Voting','Weather','Admin','Remove','Notice','Error','Pair']
 NETWORK=[('Folder','Folder'),('Action','RemoteEvent'),('Presentation','RemoteEvent'),('Snapshot','RemoteFunction'),('Version','IntValue'),('BuildId','StringValue')]
@@ -233,7 +234,7 @@ def build_place(source,repo,output,timing):
     worlddata={'tvSongs':string_array('songs'),'tvImages':string_array('images'),
         'music':[int(v) for v in re.findall(r'\b\d{8,}\b',source.basic[2]['props']['Source'].decode())]}
     generated['WorldData.lua']='return '+lua(worlddata)+'\n'
-    seed=source.sha+'\n'+''.join(k+v for k,v in sorted(generated.items()))
+    seed=source.sha+'\nserialization='+str(SERIALIZATION_VERSION)+'\n'+''.join(k+v for k,v in sorted(generated.items()))
     seed+=''.join(p.relative_to(repo).as_posix()+p.read_text(encoding='utf8') for p in sorted((repo/'client').glob('*.lua')))
     seed+=(repo/'config/assets.json').read_text()+(repo/'config/outfits.json').read_text()
     seed+=lua([VERSION,ACTIONS,EVENTS,prompt_names,map_prompt_names])
@@ -266,7 +267,7 @@ def build_place(source,repo,output,timing):
     for i,(_,cls) in enumerate(NETWORK):
         if i==0:continue
         obj=instance(cls,names[i]);net.append(obj)
-        if cls=='IntValue':set_property(obj,'Value','int',VERSION)
+        if cls=='IntValue':set_property(obj,'Value','int64',VERSION)
         if cls=='StringValue':set_property(obj,'Value','string',build_id)
     runtime=instance('Folder','FunCombatServer');by[78221].append(runtime)
     for name,body in sorted(generated.items()):
@@ -293,7 +294,7 @@ def build_place(source,repo,output,timing):
     target.write_bytes(E.tostring(tree,encoding='utf-8',xml_declaration=False))
     server_out=output/'Builder/generated/server';server_out.mkdir(parents=True,exist_ok=True)
     for name,body in generated.items():(server_out/name).write_text(body,encoding='utf8')
-    dump(output/'Build_Metadata.json',{'sourceSha256':source.sha,'protocolVersion':VERSION,'buildId':build_id,
+    dump(output/'Build_Metadata.json',{'sourceSha256':source.sha,'protocolVersion':VERSION,'buildId':build_id,'serializationVersion':SERIALIZATION_VERSION,
         'sourceInstances':len(source.by),'serverInstances':len(list(tree.iter('Item'))),'clearedReferences':cleared,
         'geometryInspected':False,'robloxEngineTested':False,'rbxmkVersion':'0.9.1'})
     return protocol
@@ -301,6 +302,7 @@ def build_place(source,repo,output,timing):
 def seal_manifest(repo,protocol):
     manifest=json.loads((repo/'manifest.json').read_text())
     manifest['protocolVersion']=VERSION;manifest['buildId']=protocol['buildId']
+    manifest['serializationVersion']=SERIALIZATION_VERSION
     manifest['sourceSha256']=SOURCE_SHA;manifest['buildStatus']='assembled; offline checks only; Roblox tests required'
     manifest['scope']='Original source resources, combat, costumes and paired interactions; authoritative server adaptation.'
     manifest['project']='FunCombat_ExecutorSide_Combat'
