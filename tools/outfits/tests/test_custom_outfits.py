@@ -112,6 +112,9 @@ class CustomOutfits(unittest.TestCase):
         self.assertEqual(manifest['custom'],'keep')
         self.assertNotIn('.git/HEAD',manifest['files'])
         self.assertIn('assets/outfits/pp.json',manifest['files'])
+        import zlib
+        self.assertEqual(manifest['files']['assets/outfits/pp.json'].get('adler32'),
+                         zlib.adler32((self.repo/'assets/outfits/pp.json').read_bytes())&0xffffffff)
 
     def test_invalid_second_model_leaves_live_packages_unchanged(self):
         from custom_outfits import import_directory

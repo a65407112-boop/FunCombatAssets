@@ -6,7 +6,7 @@ discarded from the source DOM. Runtime packages deliberately select writable
 presentation properties while .rbxmx exports retain full source properties.
 """
 from __future__ import annotations
-import base64, collections, ctypes, ctypes.util, hashlib, json, math, re, shutil, struct, subprocess
+import base64, collections, ctypes, ctypes.util, hashlib, json, math, re, shutil, struct, subprocess, zlib
 from pathlib import Path
 from lxml import etree as E
 
@@ -23,7 +23,10 @@ def dump(path,value):
 
 def repository_files(repo):
     repo=Path(repo)
-    return {p.relative_to(repo).as_posix():{'sha256':sha(p),'bytes':p.stat().st_size}
+    def integrity(path):
+        raw=path.read_bytes()
+        return {'sha256':hashlib.sha256(raw).hexdigest(),'bytes':len(raw),'adler32':zlib.adler32(raw)&0xffffffff}
+    return {p.relative_to(repo).as_posix():integrity(p)
             for p in sorted(repo.rglob('*')) if p.is_file() and p.name!='manifest.json'
             and not {'.git','__pycache__','.cache'}.intersection(p.relative_to(repo).parts)
             and p.suffix not in {'.pyc','.partial'}}

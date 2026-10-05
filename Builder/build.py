@@ -311,7 +311,6 @@ def seal_manifest(repo,protocol):
     manifest['dependencies']['main'].append('pair') if 'pair' not in manifest['dependencies']['main'] else None
     manifest['namesPreserved']='except encoded network and prompts'
     manifest['files']=repository_files(repo)
-    for path,entry in manifest['files'].items():entry['adler32']=zlib.adler32((repo/path).read_bytes())&0xffffffff
     dump(repo/'manifest.json',manifest)
 
 def archive(path,base,selection=None):
