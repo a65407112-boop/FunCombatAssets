@@ -56,9 +56,20 @@ def spawn_initialization(tree):
     spawns=maps[0].xpath('./Item[Properties/string[@name="Name"]="Spawns"]/Item[@class="SpawnLocation"]')
     enabled=[p for p in spawns if p.findtext('Properties/bool[@name="Enabled"]','true')=='true']
     require(enabled,'The active original map has no enabled spawn locations')
-    return {'passed':True,'initialMap':maps[0].findtext('Properties/string[@name="Name"]'),
+    initial_map=maps[0].findtext('Properties/string[@name="Name"]')
+    data_modules=tree.xpath('./Item[@class="ServerScriptService"]/Item[Properties/string[@name="Name"]="FunCombatServer"]/Item[Properties/string[@name="Name"]="WorldData"]')
+    require(len(data_modules)==1,'Generated WorldData is missing')
+    initial=re.findall(r'\["initialMap"\]=("(?:[^"\\]|\\.)*")',data_modules[0].findtext('Properties/*[@name="Source"]',''))
+    require(len(initial)==1 and json.loads(initial[0])==initial_map,'WorldData initial map differs from the original active map')
+    templates=tree.xpath('./Item[@class="ServerStorage"]/Item[Properties/string[@name="Name"]="FunCombatData"]/Item[Properties/string[@name="Name"]="Maps"]/Item')
+    matching=[p for p in templates if p.get('class')=='Model' and p.findtext('Properties/string[@name="Name"]')==initial_map]
+    require(len(matching)==1,'Original initial map template is missing/duplicate')
+    template_spawns=matching[0].xpath('./Item[Properties/string[@name="Name"]="Spawns"]/Item[@class="SpawnLocation"]')
+    require(any(p.findtext('Properties/bool[@name="Enabled"]','true')=='true' for p in template_spawns),'Original initial map template has no enabled spawns')
+    return {'passed':True,'initialMap':initial_map,
             'enabledSpawnLocations':len(enabled),'r6Motors':len(motors),
-            'sourceTemplateHeldUntilPrepared':True,'engineAppearanceRaceDisabled':True}
+            'sourceTemplateHeldUntilPrepared':True,'engineAppearanceRaceDisabled':True,
+            'initialMapMetadataAndTemplate':True}
 
 def validate(output):
     output=Path(output);repo=output/'GitHub'

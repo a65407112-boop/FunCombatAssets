@@ -48,7 +48,9 @@ function V:load(name)
         end
     end
     for character in pairs(self.combat.dummyOwners) do self.combat:remove(character);character:Destroy() end
-    for _,object in ipairs(workspace:GetChildren()) do if object:FindFirstChild("IsMap") then object:Destroy() end end
+    for _,object in ipairs(workspace:GetChildren()) do
+        if self.world:isSourceMap(object) then object:Destroy() end
+    end
     local map=template:Clone();map.Parent=workspace;self.world.activeMap=map
     for index,player in ipairs(Players:GetPlayers()) do
         local r=self.combat.players[player]

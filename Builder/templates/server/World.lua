@@ -7,14 +7,68 @@ local Policy=require(script.Parent.Policy)
 local W={};W.__index=W
 local function clock() return tick() end
 local function thread(fn) coroutine.wrap(fn)() end
+local function isCharacter(object)
+    return object:FindFirstChildOfClass("Humanoid") or Players:GetPlayerFromCharacter(object)
+end
+local function sourceSpawns(map)
+    local folder=map and map:FindFirstChild("Spawns")
+    local result={}
+    if folder then for _,part in ipairs(folder:GetChildren()) do
+        if part:IsA("BasePart") and (not part:IsA("SpawnLocation") or part.Enabled) then result[#result+1]=part end
+    end end
+    return result
+end
+local function describe(parent)
+    if not parent then return "<missing>" end
+    local names={}
+    for _,child in ipairs(parent:GetChildren()) do names[#names+1]=child.Name.." ("..child.ClassName..")" end
+    return #names>0 and table.concat(names,", ") or "<empty>"
+end
 function W.new(combat,templates)
     local self=setmetatable({combat=combat,templates=templates,tracked={},rotating={},connections={},teleports={},dummyCooldown={},doorAt=0,
         weather={name="Sunny",revision=1},weatherAt=clock()+720,activeMap=nil,nativePrompts={}},W)
     combat.world=self
-    for _,object in ipairs(workspace:GetChildren()) do if object:FindFirstChild("IsMap") then self.activeMap=object;break end end
-    assert(self.activeMap,"The original active map is missing")
-    assert(#self:spawns()>0,"The original active map has no enabled spawn locations")
+    self:initializeMap()
     return self
+end
+function W:initializeMap()
+    local name=Data.initialMap
+    assert(type(name)=="string" and name~="","The source initial map name is missing from WorldData")
+    local deadline=clock()+5
+    repeat
+        local stale={}
+        for _,current in ipairs(workspace:GetChildren()) do
+            if current.Name==name and current:IsA("Model") and not isCharacter(current) then
+                if #sourceSpawns(current)>0 then
+                    self.activeMap=current
+                    return current
+                end
+                if self:isSourceMap(current) then stale[#stale+1]=current end
+            end
+        end
+        local maps=self.templates:FindFirstChild("Maps")
+        local template=maps and maps:FindFirstChild(name)
+        if template and template:IsA("Model") and #sourceSpawns(template)>0 then
+            local restored=template:Clone()
+            assert(restored,"The original map template cannot be cloned: "..name)
+            assert(#sourceSpawns(restored)>0,"The original map clone has no enabled spawns: "..name)
+            for _,current in ipairs(stale) do current:Destroy() end
+            restored.Parent=workspace
+            self.activeMap=restored
+            warn("FunCombat restored original map "..name.." from ServerStorage.FunCombatData.Maps")
+            return restored
+        end
+        wait(0.05)
+    until clock()>=deadline
+    error("Could not initialize original map '"..name.."' within 5 seconds. Workspace: "..describe(workspace)
+        .."; ServerStorage.FunCombatData.Maps: "..describe(self.templates:FindFirstChild("Maps")))
+end
+function W:isSourceMap(object)
+    if not object:IsA("Model") or isCharacter(object) then return false end
+    if object==self.activeMap then return true end
+    local maps=self.templates:FindFirstChild("Maps")
+    return maps~=nil and maps:FindFirstChild(object.Name)~=nil
+        and (object:FindFirstChild("IsMap")~=nil or object:FindFirstChild("Spawns")~=nil)
 end
 function W:weatherState() return {name=self.weather.name,revision=self.weather.revision} end
 function W:notice(text,category) self.combat:emit("Notice",{text=text,category=category}) end
@@ -28,12 +82,7 @@ function W:chooseWeather()
     self.combat:emit("Weather",self:weatherState());self:notice("The Weather is changing to: "..name,"weather")
 end
 function W:spawns()
-    local folder=self.activeMap and self.activeMap:FindFirstChild("Spawns")
-    local result={}
-    if folder then for _,part in ipairs(folder:GetChildren()) do
-        if part:IsA("BasePart") and (not part:IsA("SpawnLocation") or part.Enabled) then result[#result+1]=part end
-    end end
-    return result
+    return sourceSpawns(self.activeMap)
 end
 function W:spawn(r,index)
     local choices=self:spawns()

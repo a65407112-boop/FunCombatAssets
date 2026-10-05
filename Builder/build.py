@@ -241,7 +241,11 @@ def build_place(source,repo,output,timing):
         block=re.search(r'local '+name+r' = \{(.*?)\}',tvsource,re.S)
         if not block:raise ValueError('Source television configuration not found')
         return re.findall(r'"([^"]+)"',block[1])
-    worlddata={'tvSongs':string_array('songs'),'tvImages':string_array('images'),
+    active_source_maps=[m for m in source.tree.find('Item[@class="Workspace"]').findall('Item') if children_named(m,'IsMap')]
+    if len(active_source_maps)!=1:raise ValueError('Source must define exactly one active original map')
+    initial_map=Source.name(active_source_maps[0])
+    if not children_named(maps,initial_map):raise ValueError('The original active map has no saved source template: '+initial_map)
+    worlddata={'initialMap':initial_map,'tvSongs':string_array('songs'),'tvImages':string_array('images'),
         'music':[int(v) for v in re.findall(r'\b\d{8,}\b',source.basic[2]['props']['Source'].decode())]}
     generated['WorldData.lua']='return '+lua(worlddata)+'\n'
     seed=source.sha+'\nserialization='+str(SERIALIZATION_VERSION)+'\n'+''.join(k+v for k,v in sorted(generated.items()))
