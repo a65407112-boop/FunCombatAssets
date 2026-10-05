@@ -43,6 +43,14 @@ local function node(class, name)
         for _, child in ipairs(self.children) do if child.ClassName==wanted then return child end end
     end
     function n:GetChildren() return self.children end
+    function n:IsDescendantOf(parent)
+        local current=self.Parent
+        while type(current)=='table' do
+            if current==parent then return true end
+            current=current.Parent
+        end
+        return false
+    end
     function n:GetDescendants()
         local all = {}
         local function walk(parent)
@@ -146,6 +154,43 @@ local function fixture()
 end
 
 local player,character,hum,root,combat,world=fixture()
+-- Roblox fires CharacterAdded before parenting the new model to Workspace.
+-- The real handler must await mounting rather than treating Parent=nil as
+-- cancellation and leaving the original anchored template stuck forever.
+character.Parent=nil;root.Anchored=true
+local fetchedBeforeMount=false
+fetch=function()
+    fetchedBeforeMount=not character:IsDescendantOf(workspace)
+    return {}
+end
+onWait=function() character.Parent=workspace end
+combat:bindPlayer(player);onWait=nil
+assert(combat.players[player] and not root.Anchored and not fetchedBeforeMount,
+    'CharacterAdded before Workspace mounting was abandoned with an anchored player')
+print('Spawn regression: a newly added unparented character waits for Workspace and becomes playable')
+
+player,character,hum,root,combat,world=fixture()
+character.Parent=nil;root.Anchored=true
+local fetched=false
+fetch=function() fetched=true;return {} end
+onWait=function() player.Character=node('Model','Replacement') end
+combat:bindPlayer(player);onWait=nil
+assert(not combat.players[player] and not fetched,
+    'A character replaced before Workspace mounting still initialized')
+print('Spawn regression: a replaced unparented character cannot finish delayed mounting')
+
+local errors
+player,character,hum,root,combat,world,errors=fixture()
+character.Parent=nil;root.Anchored=true
+fetched=false
+fetch=function() fetched=true;return {} end
+local awaitStarted=now
+combat:bindPlayer(player)
+assert(not combat.players[player] and not fetched and #errors==1 and now-awaitStarted<=10.1,
+    'A character that never mounts did not fail with a bounded explicit initialization error')
+print('Spawn regression: a character that never mounts fails within ten seconds')
+
+player,character,hum,root,combat,world=fixture()
 local seen, pending
 fetch=function(id)
     assert(id==123)

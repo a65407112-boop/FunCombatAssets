@@ -548,8 +548,10 @@ function C:bindPlayer(player)
         coroutine.wrap(function()
             local deadline=timeNow()+10
             repeat
-                if player.Character~=character or not player.Parent or not character.Parent then return end
-                if character:FindFirstChildOfClass("Humanoid") and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Torso") then
+                if player.Character~=character or not player.Parent then return end
+                -- CharacterAdded precedes parenting to Workspace. Parent=nil
+                -- here means the new body is still mounting, not cancellation.
+                if character:IsDescendantOf(workspace) and character:FindFirstChildOfClass("Humanoid") and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Torso") then
                     local humanoid=character:FindFirstChildOfClass("Humanoid")
                     local initialRoot=character:FindFirstChild("HumanoidRootPart")
                     -- ApplyDescription can yield and rebuild the neck. Stage the
@@ -584,12 +586,14 @@ function C:bindPlayer(player)
                         player.leaderstats.Killstreak.Value=streak
                         if streak>=5 then self:awaken(record) end
                     end
+                    print("FunCombat character ready: "..player.Name.."; Anchored="..tostring(record.root.Anchored))
                     return
                 end
                 wait(0.05)
             until timeNow()>=deadline
-            self:emit("Error",{text="R6 character was not available within 10 seconds. Set this place's Avatar Type to R6."},player)
-            warn("FunCombat requires R6: "..player.Name)
+            local why="R6 character did not enter Workspace with Humanoid, HumanoidRootPart and Torso within 10 seconds"
+            self:emit("Error",{text=why},player)
+            warn("FunCombat character initialization: "..player.Name..": "..why)
         end)()
     end
     self.connections[#self.connections+1]=player.CharacterAdded:Connect(added)
