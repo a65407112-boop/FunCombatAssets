@@ -6,7 +6,7 @@ function A.prepare(player,character,humanoid)
     local failure
     coroutine.wrap(function()
         local ok,description=pcall(function() return Players:GetHumanoidDescriptionFromUserId(player.UserId) end)
-        if cancelled or not player.Parent or player.Character~=character or not character.Parent then done=true;return end
+        if cancelled or not player.Parent or player.Character~=character or not character.Parent or humanoid.Health<=0 then done=true;return end
         fetching=false
         if ok then
             for _,name in ipairs({"Head","LeftArm","LeftLeg","RightArm","RightLeg","Torso"}) do description[name]=0 end
@@ -16,7 +16,11 @@ function A.prepare(player,character,humanoid)
         complete=true;done=true
     end)()
     local deadline=tick()+8
-    repeat wait(0.05) until done or tick()>=deadline or not player.Parent or player.Character~=character or not character.Parent
+    repeat wait(0.05) until done or tick()>=deadline or not player.Parent or player.Character~=character or not character.Parent or humanoid.Health<=0
+    if not player.Parent or player.Character~=character or not character.Parent or humanoid.Health<=0 then
+        cancelled=true
+        return false
+    end
     if not done then
         cancelled=true
         -- A late fetch cannot mutate an already bound character. An in-flight

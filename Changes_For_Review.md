@@ -6,4 +6,6 @@
 
 Клиент обновлён под encoded protocol 4 с точным build ID. Восстановление typed Instances/refs дополнено настоящим CSG deserialization. Добавлены bootstrap buffer, dependency traversal, manifest integrity, snapshots, respawn и cleanup повторного запуска.
 
-Проверки: Luau compile, Policy, реальные client/server factories в mock, 6 builder tests, 13 outfit tests, asset/protocol/XML validation и повторная сериализация. Фактический Roblox playtest, executor CSG и старый клиент не проверены. Adonis/Kohl’s Admin hosted dependencies не активированы; полное ограничение — Validation_Report.md.
+Исправлен порядок спавна: исходное R6-тело удерживается на исходном спавне до нормализации внешности; защита шеи включена до ApplyDescription, параллельная engine appearance загрузка отключена. Dead/stale character не может завершить старую инициализацию. Пользовательское сообщение о смерти в пустоте — наблюдение из движка; новый фикс пока проверен офлайн.
+
+Проверки: Luau compile, Policy, реальные client/server factories в mock, 9 builder tests, 13 outfit tests, 5 новых spawn lifecycle сценариев, asset/protocol/XML validation и повторная сериализация. Фактический Roblox playtest исправления, executor CSG и старый клиент не проверены. Adonis/Kohl’s Admin hosted dependencies не активированы; полное ограничение — Validation_Report.md.

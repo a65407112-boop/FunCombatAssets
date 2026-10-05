@@ -27,6 +27,39 @@ def references(tree,label):
         for s in p.findall('Properties/SharedString'):require(s.text in shared or not s.text,label+': missing shared data')
     return len(items)
 
+def spawn_initialization(tree):
+    starter=tree.find('Item[@class="StarterPlayer"]')
+    require(starter is not None,'StarterPlayer is missing')
+    require(starter.findtext('Properties/bool[@name="LoadCharacterAppearance"]')=='false',
+            'Engine avatar loading must not race the server R6 preparation')
+    rigs=starter.xpath('./Item[Properties/string[@name="Name"]="StarterCharacter"]')
+    require(len(rigs)==1,'Original StarterCharacter is missing/duplicate')
+    rig=rigs[0];hum=rig.find('Item[@class="Humanoid"]')
+    require(hum is not None,'Original R6 Humanoid is missing')
+    require(hum.findtext('Properties/bool[@name="RequiresNeck"]')=='false','R6 neck death protection must precede appearance loading')
+    require(hum.findtext('Properties/bool[@name="BreakJointsOnDeath"]')=='false','Original R6 joints must survive initialization')
+    parts={e.findtext('Properties/string[@name="Name"]'):e for e in rig.findall('Item')}
+    for name in ('HumanoidRootPart','Torso','Head','Left Arm','Right Arm','Left Leg','Right Leg'):
+        require(name in parts,'Original R6 body part missing: '+name)
+    root=parts['HumanoidRootPart']
+    require(root.findtext('Properties/bool[@name="Anchored"]')=='true','Initial R6 template can fall before CharacterAdded setup')
+    require(rig.findtext('Properties/Ref[@name="PrimaryPart"]')==root.get('referent'),'Original R6 primary root is not connected')
+    body_ids={e.get('referent') for e in rig.iter('Item')}
+    motors=[e for e in rig.iter('Item') if e.get('class')=='Motor6D']
+    require(len(motors)==6,'Original R6 motor connections are missing')
+    for motor in motors:
+        for key in ('Part0','Part1'):
+            require(motor.findtext('Properties/Ref[@name="'+key+'"]') in body_ids,'R6 motor refers outside the original character')
+    workspace=tree.find('Item[@class="Workspace"]')
+    maps=workspace.xpath('./Item[Item/Properties/string[@name="Name"]="IsMap"]')
+    require(len(maps)==1,'Exactly one original map must be active at startup')
+    spawns=maps[0].xpath('./Item[Properties/string[@name="Name"]="Spawns"]/Item[@class="SpawnLocation"]')
+    enabled=[p for p in spawns if p.findtext('Properties/bool[@name="Enabled"]','true')=='true']
+    require(enabled,'The active original map has no enabled spawn locations')
+    return {'passed':True,'initialMap':maps[0].findtext('Properties/string[@name="Name"]'),
+            'enabledSpawnLocations':len(enabled),'r6Motors':len(motors),
+            'sourceTemplateHeldUntilPrepared':True,'engineAppearanceRaceDisabled':True}
+
 def validate(output):
     output=Path(output);repo=output/'GitHub'
     protocol=json.loads((repo/'config/protocol.json').read_text())
@@ -50,6 +83,7 @@ def validate(output):
     for name in manifest['modules']:walk(name)
     xml=E.parse(str(output/'Game_Server.rbxlx')).getroot()
     count=references(xml,'Server place')
+    spawn_setup=spawn_initialization(xml)
     items=list(xml.iter('Item'));byname={}
     for e in items:byname.setdefault(e.findtext('Properties/string[@name="Name"]'),[]).append(e)
     for key,name in protocol['names'].items():
@@ -100,8 +134,9 @@ def validate(output):
     binary_types=binary_property_types(output/'Source/FunCombat_Original.rbxl',output/'funcombat_server.rbxl')
     return {'passed':True,'checks':['input checksum','manifest SHA256/Adler32/bytes','dependency DAG',
         'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates',
-        'asset hierarchy and internal refs','original costume CSG deserialization route','all 47 source animations','binary rbxl header','binary property type IDs match original'],
+        'asset hierarchy and internal refs','original costume CSG deserialization route','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
         'binaryPropertyTypes':binary_types,
+        'spawnInitialization':spawn_setup,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),
         'geometryInspected':False,'robloxEngineTested':False,'legacyClientTested':False,

@@ -12,6 +12,8 @@ function W.new(combat,templates)
         weather={name="Sunny",revision=1},weatherAt=clock()+720,activeMap=nil,nativePrompts={}},W)
     combat.world=self
     for _,object in ipairs(workspace:GetChildren()) do if object:FindFirstChild("IsMap") then self.activeMap=object;break end end
+    assert(self.activeMap,"The original active map is missing")
+    assert(#self:spawns()>0,"The original active map has no enabled spawn locations")
     return self
 end
 function W:weatherState() return {name=self.weather.name,revision=self.weather.revision} end
@@ -28,14 +30,19 @@ end
 function W:spawns()
     local folder=self.activeMap and self.activeMap:FindFirstChild("Spawns")
     local result={}
-    if folder then for _,part in ipairs(folder:GetChildren()) do if part:IsA("BasePart") then result[#result+1]=part end end end
+    if folder then for _,part in ipairs(folder:GetChildren()) do
+        if part:IsA("BasePart") and (not part:IsA("SpawnLocation") or part.Enabled) then result[#result+1]=part end
+    end end
     return result
 end
 function W:spawn(r,index)
     local choices=self:spawns()
-    if #choices==0 then warn("Active source map has no Spawns");return end
+    if #choices==0 then return false,"Active source map has no enabled spawn locations" end
     local part=index and choices[(index-1)%#choices+1] or choices[math.random(1,#choices)]
     r.root.CFrame=part.CFrame*CFrame.new(math.random(-3,3),3,math.random(-3,3))
+    -- Older Roblox-compatible velocity properties also clear an existing fall.
+    r.root.Velocity=Vector3.new(0,0,0);r.root.RotVelocity=Vector3.new(0,0,0)
+    return true
 end
 function W:secretDoor(player)
     local r=self.combat.players[player]

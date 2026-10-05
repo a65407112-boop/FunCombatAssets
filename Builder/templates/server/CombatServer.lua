@@ -169,6 +169,7 @@ function C:bind(character,player,displayName)
     local root=character:FindFirstChild("HumanoidRootPart")
     local torso=character:FindFirstChild("Torso")
     if not hum or not root or not torso then return nil,"The source requires a complete R6 character" end
+    if hum.Health<=0 then return nil,"A dead R6 character cannot initialize gameplay" end
     self.epoch=self.epoch+1
     local r={character=character,player=player,displayName=displayName or (player and player.DisplayName) or character.Name,
         humanoid=hum,root=root,torso=torso,revision=0,animationRevision=0,connections={},attacks={},prompts={},
@@ -549,12 +550,34 @@ function C:bindPlayer(player)
             repeat
                 if player.Character~=character or not player.Parent or not character.Parent then return end
                 if character:FindFirstChildOfClass("Humanoid") and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Torso") then
-                    local ready,why=Avatar.prepare(player,character,character:FindFirstChildOfClass("Humanoid"))
-                    if why and player.Parent then self:emit("Error",{text=why},player) end
-                    if not ready or not player.Parent or player.Character~=character or not character.Parent then return end
+                    local humanoid=character:FindFirstChildOfClass("Humanoid")
+                    local initialRoot=character:FindFirstChild("HumanoidRootPart")
+                    -- ApplyDescription can yield and rebuild the neck. Stage the
+                    -- original body on its map before allowing either operation.
+                    humanoid.RequiresNeck=false;humanoid.BreakJointsOnDeath=false
+                    initialRoot.Anchored=true
+                    local placed,spawnError
+                    if self.world then placed,spawnError=self.world:spawn({root=initialRoot})
+                    else spawnError="The original map is not initialized" end
+                    if not placed then
+                        initialRoot.Anchored=false
+                        self:emit("Error",{text=spawnError},player);warn("FunCombat spawn: "..spawnError)
+                        return
+                    end
+                    local ok,ready,why=pcall(Avatar.prepare,player,character,humanoid)
+                    if not ok then why="R6 preparation failed: "..tostring(ready);ready=false end
+                    if why and player.Parent then
+                        self:emit("Error",{text=why},player);warn("FunCombat avatar: "..why)
+                    end
+                    if not player.Parent or player.Character~=character or not character.Parent then return end
                     local currentRoot=character:FindFirstChild("HumanoidRootPart")
-                    if currentRoot then currentRoot.Anchored=false end
+                    if not ready or humanoid.Health<=0 then
+                        if currentRoot then currentRoot.Anchored=false end
+                        return
+                    end
+                    if currentRoot then currentRoot.Anchored=true end
                     local record,bindError=self:bind(character,player)
+                    if currentRoot then currentRoot.Anchored=false end
                     if not record then self:emit("Error",{text=bindError or "R6 gameplay binding failed"},player);return end
                     if record and self.preserveStreak and self.preserveStreak[player] then
                         local streak=self.preserveStreak[player];self.preserveStreak[player]=nil

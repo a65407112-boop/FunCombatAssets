@@ -184,6 +184,16 @@ def build_place(source,repo,output,timing):
             if parent is not None:parent.remove(e)
     # Preserve original map/CSG/Terrain and physics. No mesh or geometry probing.
     strip_rig(by[6664])
+    starter=tree.find('Item[@class="StarterPlayer"]')
+    starting_rig=children_named(starter,'StarterCharacter')[0]
+    starting_humanoid=starting_rig.find('Item[@class="Humanoid"]')
+    starting_root=children_named(starting_rig,'HumanoidRootPart')[0]
+    # Our server applies the original R6 description once, after safe placement.
+    # Keep the template alive even before CharacterAdded/server setup runs.
+    set_property(starter,'LoadCharacterAppearance','bool','false')
+    set_property(starting_humanoid,'RequiresNeck','bool','false')
+    set_property(starting_humanoid,'BreakJointsOnDeath','bool','false')
+    set_property(starting_root,'Anchored','bool','true')
     # Original rig decals/body colors are physics-compatible appearance; required
     # engine avatar body parts stay authoritative and are not rebuilt as duplicates.
     data=instance('Folder','FunCombatData');by[78368].append(data)

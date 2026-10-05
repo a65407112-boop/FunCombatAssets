@@ -65,7 +65,7 @@ header+='''
 local subject={Parent=true,UserId=123,Character={Parent=true}}
 local applied=false
 function Players:GetHumanoidDescriptionFromUserId() subject.Parent=nil;return {} end
-local ready=A.prepare(subject,subject.Character,{ApplyDescription=function() applied=true end})
+local ready=A.prepare(subject,subject.Character,{Health=100,ApplyDescription=function() applied=true end})
 assert(not ready and not applied,"Departed player was normalized/bound after asynchronous fetch")
 print("Avatar lifecycle: departed player continuation is cancelled")
 '''
