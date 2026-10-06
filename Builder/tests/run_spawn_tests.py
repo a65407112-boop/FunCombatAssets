@@ -213,6 +213,19 @@ assert(combat.players[player] and hum.Health==100 and not root.Anchored,'Success
 print('Spawn regression: original spawn and safe R6 settings precede yielding appearance fetch')
 
 player,character,hum,root,combat,world=fixture()
+fetch=function() return {Head=12345,Face=4567,MoodAnimation=88,StaticFacialAnimation=true,
+    LeftArm=11,LeftLeg=12,RightArm=13,RightLeg=14,Torso=15} end
+combat:bindPlayer(player)
+assert(hum.description.Head==12345,'R6 normalization discarded the actual avatar head asset')
+assert(hum.description.Face==4567 and hum.description.MoodAnimation==88,'Avatar face or mood asset was replaced')
+assert(hum.description.StaticFacialAnimation==false,'Dynamic head facial animation remains disabled')
+for _,name in ipairs({'LeftArm','LeftLeg','RightArm','RightLeg','Torso'}) do
+    assert(hum.description[name]==0,'A head update replaced the original R6 body: '..name)
+end
+assert(combat.players[player] and not root.Anchored,'Head preservation blocked gameplay initialization')
+print('Avatar regression: original head, face and mood survive R6 body normalization')
+
+player,character,hum,root,combat,world=fixture()
 pending=nil
 fetch=function() pending=coroutine.running();coroutine.yield();return {} end
 onWait=function()

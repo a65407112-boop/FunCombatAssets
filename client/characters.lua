@@ -7,6 +7,60 @@ return function(ctx)
     local definitions = ctx.json("assets/animations/locomotion.json")
     local figures = {}
     local module = {}
+    local function moodId(character)
+        local ok,value=pcall(function() return character:GetAttribute("FunCombatMoodAnimation") end)
+        return ok and type(value)=="number" and value>0 and value or 0
+    end
+    local function trackId(track)
+        local ok,value=pcall(function() return track.Animation.AnimationId end)
+        if not ok or type(value)~="string" then return 0 end
+        return tonumber(value:match("id=(%d+)") or value:match("(%d+)$")) or 0
+    end
+    local function stopMood(record)
+        if record.moodOwned and record.moodTrack then
+            pcall(function() record.moodTrack:Stop(0.1);record.moodTrack:Destroy() end)
+        end
+        if record.moodAnimation then record.moodAnimation:Destroy() end
+        record.moodTrack,record.moodAnimation,record.moodOwned=nil,nil,nil
+    end
+    local function updateMood(record)
+        local head=record.character:FindFirstChild("Head")
+        local id=moodId(record.character)
+        if not head or not head:FindFirstChildOfClass("FaceControls") or id==0 then stopMood(record);return end
+        if record.moodTrack and record.moodHead==head and record.moodId==id then
+            if record.moodOwned and record.moodDeadline and tick()>=record.moodDeadline then
+                record.moodDeadline=nil
+                if record.moodTrack.Length<=0 then
+                    ctx.report("Original facial mood did not load: rbxassetid://"..id)
+                    stopMood(record);record.moodRetry=tick()+5
+                end
+            end
+            return
+        end
+        stopMood(record)
+        if record.moodRetry and tick()<record.moodRetry then return end
+        record.moodHead,record.moodId=head,id
+        -- Reuse an engine-owned mood. The runtime must not stop or duplicate
+        -- it merely because it owns the source R6 body animation controller.
+        local existing
+        pcall(function()
+            for _,track in ipairs(record.humanoid:GetPlayingAnimationTracks()) do
+                if trackId(track)==id then existing=track;break end
+            end
+        end)
+        if existing then record.moodTrack=existing;return end
+        local animation=Instance.new("Animation")
+        animation.Name,animation.AnimationId="FunCombatOriginalMood","rbxassetid://"..id
+        local ok,track=pcall(function() return record.humanoid:LoadAnimation(animation) end)
+        if not ok then
+            animation:Destroy();record.moodRetry=tick()+5
+            ctx.report("Original facial mood unavailable: rbxassetid://"..id..": "..tostring(track));return
+        end
+        record.moodTrack,record.moodAnimation,record.moodOwned=track,animation,true
+        record.moodDeadline=tick()+15
+        track.Priority,track.Looped=Enum.AnimationPriority.Core,true
+        track:Play(0.1)
+    end
     local function stop(record)
         if record.track then
             pcall(function() record.track:Stop(0.1); record.track:Destroy() end)
@@ -80,7 +134,7 @@ return function(ctx)
         localScope:add(character.ChildAdded:Connect(disableDefault))
         pcall(function()
             for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
-                if not ctx.animations:ownsTrack(track) then track:Stop(0.1) end
+                if not ctx.animations:ownsTrack(track) and not (moodId(character)>0 and trackId(track)==moodId(character)) then track:Stop(0.1) end
             end
         end)
         localScope:add(humanoid.Running:Connect(function(speed) record.speed = speed; record.pose = speed > 0.01 and "Running" or "Standing" end))
@@ -95,6 +149,7 @@ return function(ctx)
         if record.joint then record.original = record.joint.C0 end
         localScope:add(function()
             stop(record)
+            stopMood(record)
             if record.joint and record.joint.Parent then record.joint.C0 = record.original end
             for script, disabled in pairs(record.animate) do
                 if script.Parent then pcall(function() script.Disabled = disabled end) end
@@ -108,6 +163,10 @@ return function(ctx)
         for character, state in pairs(ctx.state:all()) do
             local record = figures[character] or attach(character)
             if record then
+                if tick()>=(record.moodRefresh or 0) then
+                    record.moodRefresh=tick()+0.5
+                    updateMood(record)
+                end
                 local locked = state.downed or state.ragdolled or state.stunned or state.carriedBy or ctx.animations:blocksLocomotion(character)
                 if locked or record.humanoid.Health <= 0 then stop(record)
                 else

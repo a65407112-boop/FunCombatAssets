@@ -53,26 +53,8 @@ return function(ctx)
     coroutine.wrap(function()
         while not scope.dead do wait(15);if not scope.dead then synchronize() end end
     end)()
-    -- ContentProvider checks hosted references without making gameplay trust
-    -- local assets. Failures name the content; they cannot freeze bootstrap.
-    local alive = true
-    scope:add(function() alive = false end)
-    coroutine.wrap(function()
-        local content = {}
-        for _, root in pairs(ctx.assets.cache) do
-            for _, object in ipairs(root:GetDescendants()) do
-                if object:IsA("Sound") or object:IsA("SpecialMesh") or object:IsA("Decal") or object:IsA("ImageLabel") or object:IsA("ImageButton") then content[#content + 1] = object end
-            end
-        end
-        if #content > 0 and alive then
-            local ok, why = pcall(function()
-                game:GetService("ContentProvider"):PreloadAsync(content, function(asset, status)
-                    if alive and tostring(status):find("Failure") then ctx.report("Hosted content unavailable: " .. tostring(asset)) end
-                end)
-            end)
-            if not ok and alive then ctx.report("Hosted content validation: " .. tostring(why)) end
-        end
-    end)()
+    -- The preload dependency has already warmed the original presentation and
+    -- bounded hosted-content loading before combat input was connected.
     scope:add(players.PlayerRemoving:Connect(function(player)
         if player.Character then ctx.animations:stop(player.Character) end
     end))

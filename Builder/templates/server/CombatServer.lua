@@ -56,6 +56,8 @@ function C:public(r)
         completions=r.player and r.player.leaderstats.Completions.Value or 0,
         animation=r.animation,animationRevision=r.animationRevision,funMeter=r.funMeter or 0,
         pairVictim=view.pairVictim,pairActor=view.pairActor,pairPhase=view.pairPhase,
+        pairRole=r.pairVictim and "actor" or r.pairActor and "victim" or nil,
+        pairId=r.interaction and r.interaction.pair and r.interaction.id or nil,
         pairTag=r.interaction and r.interaction.pair and r.interaction.tag,pairReleasing=view.pairReleasing}
 end
 function C:publish(r)
@@ -122,6 +124,12 @@ function C:restoreCarry(a,v)
         if part.Parent then part.CanCollide=props.collide;part.Massless=props.massless end
     end
     v.carrySaved=nil
+    local saved=v.carryHumanoid
+    v.carryHumanoid=nil
+    if saved and v.humanoid.Parent then
+        if saved.evaluate~=nil then pcall(function() v.humanoid.EvaluateStateMachine=saved.evaluate end) end
+        v.humanoid.PlatformStand=saved.platform
+    end
     self:stopAnimation(a);self:stopAnimation(v)
     if self:alive(v) and v.downed then self:setRagdoll(v,true) end
     owner(a.root,a.player);owner(v.root,not v.ragdolled and v.player or nil)
@@ -258,6 +266,16 @@ function C:carry(a,v)
     self:cancelAttack(a);self:cancelAttack(v);self:stopAnimation(a);self:stopAnimation(v)
     self:setRagdoll(v,false)
     a.carrying=v;v.carriedBy=a;v.iframes=true;v.carrySaved={}
+    -- The source disables the carried Humanoid's state machine. Leaving a
+    -- second standing controller on the welded assembly fights the carrier.
+    v.carryHumanoid={platform=v.humanoid.PlatformStand}
+    local supported,evaluate=pcall(function() return v.humanoid.EvaluateStateMachine end)
+    if supported and type(evaluate)=="boolean" then
+        v.carryHumanoid.evaluate=evaluate
+        pcall(function() v.humanoid.EvaluateStateMachine=false end)
+    end
+    v.humanoid.PlatformStand=true
+    a.root.Anchored=false;v.root.Anchored=false
     for _,part in ipairs(v.character:GetDescendants()) do
         if part:IsA("BasePart") then v.carrySaved[part]={collide=part.CanCollide,massless=part.Massless};part.CanCollide=false;part.Massless=true end
     end
@@ -265,7 +283,10 @@ function C:carry(a,v)
     weld.Part0,weld.Part1=a.torso,v.root
     v.root.CFrame=a.torso.CFrame*weld.C0*weld.C1:Inverse()
     weld.Parent=a.torso;weld.Enabled=true;a.carryWeld=weld
-    owner(a.root,nil)
+    -- Standard character input runs on the carrier's client. Give it physics
+    -- ownership of the shared welded assembly; action validation, carry/drop,
+    -- damage and all gameplay results continue to be determined by the server.
+    owner(a.root,a.player)
     self:animation(a,"other/carryGrabber",true);self:animation(v,"other/carryGrabbed",true)
     self:sound(v,"audio/Carry");self:publish(a);self:publish(v)
 end

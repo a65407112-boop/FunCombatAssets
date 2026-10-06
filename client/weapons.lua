@@ -139,9 +139,12 @@ return function(ctx)
         end
         for _, item in ipairs(source:GetChildren()) do item.Parent = model end
         local attachment = arm:FindFirstChild("RightGripAttachment")
-        -- R6's generated Tool grip uses this basis when the rig has no attachment.
-        local armGrip = attachment and attachment:IsA("Attachment") and attachment.CFrame
-            or CFrame.new(0, -1, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
+        -- The original R6 RightGripAttachment is a position-only frame. Native
+        -- Tool grip also turns that frame by -90 degrees about X. Omitting the
+        -- turn only on rigs with an attachment rotated every original weapon.
+        local gripPoint = attachment and attachment:IsA("Attachment") and attachment.CFrame
+            or CFrame.new(0, -arm.Size.Y / 2, 0)
+        local armGrip = gripPoint * CFrame.Angles(-math.pi / 2, 0, 0)
         local handleFrame = arm.CFrame * armGrip * grip:Inverse()
         for _, part in ipairs(parts) do
             part.Anchored = false

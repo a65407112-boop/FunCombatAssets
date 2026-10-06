@@ -191,6 +191,7 @@ def build_place(source,repo,output,timing):
     # Our server applies the original R6 description once, after safe placement.
     # Keep the template alive even before CharacterAdded/server setup runs.
     set_property(starter,'LoadCharacterAppearance','bool','false')
+    set_property(starter,'EnableDynamicHeads','token',2)
     set_property(starting_humanoid,'RequiresNeck','bool','false')
     set_property(starting_humanoid,'BreakJointsOnDeath','bool','false')
     set_property(starting_root,'Anchored','bool','true')
@@ -320,6 +321,10 @@ def seal_manifest(repo,protocol):
     manifest['sourceSha256']=SOURCE_SHA;manifest['buildStatus']='assembled; offline checks only; Roblox tests required'
     manifest['scope']='Original source resources, combat, costumes and paired interactions; authoritative server adaptation.'
     manifest['project']='FunCombat_ExecutorSide_Combat'
+    if 'preload' not in manifest['modules']:manifest['modules'].insert(manifest['modules'].index('characters'),'preload')
+    manifest['dependencies']['preload']=['cleanup','assets','networking','animations']
+    for name in ('characters','combat'):
+        if 'preload' not in manifest['dependencies'][name]:manifest['dependencies'][name].append('preload')
     if 'pair' not in manifest['modules']:manifest['modules'].insert(manifest['modules'].index('main'),'pair')
     manifest['dependencies']['pair']=['assets','networking','state','gui','audio']
     manifest['dependencies']['main'].append('pair') if 'pair' not in manifest['dependencies']['main'] else None

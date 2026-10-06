@@ -4,6 +4,7 @@ local Storage=game:GetService("ServerStorage")
 local Run=game:GetService("RunService")
 local Data=require(script.Parent.WorldData)
 local Policy=require(script.Parent.Policy)
+local Avatar=require(script.Parent.Avatar)
 local W={};W.__index=W
 local function clock() return tick() end
 local function thread(fn) coroutine.wrap(fn)() end
@@ -122,28 +123,21 @@ function W:dummy(player,userId)
     local name="Rig"
     thread(function()
         if userId then
-            local done,description=false,nil
-            thread(function()
-                local ok,result=pcall(function() return Players:GetHumanoidDescriptionFromUserId(userId) end)
-                if ok then description=result end
-                done=true
-            end)
-            local deadline=clock()+8
-            repeat wait(0.05) until done or clock()>=deadline or not model.Parent or not player.Parent
-            if done and description and model.Parent then
-                description.Head=0;description.LeftArm=0;description.LeftLeg=0
-                description.RightArm=0;description.RightLeg=0;description.Torso=0
-                local hum=model:FindFirstChildOfClass("Humanoid")
-                pcall(function() hum:ApplyDescription(description) end)
+            root.Anchored=true
+            local hum=model:FindFirstChildOfClass("Humanoid")
+            local ready,why=Avatar.prepareDummy(player,model,hum,userId)
+            if why and player.Parent then self.combat:emit("Error",{text=why},player) end
+            if ready and model.Parent then
                 name=tostring(userId)
                 thread(function()
                     local ok,username=pcall(function() return Players:GetNameFromUserIdAsync(userId) end)
                     local record=self.combat.records[model]
                     if ok and record then record.displayName=username;self.combat:publish(record) end
                 end)
-            elseif player.Parent then self.combat:emit("Error",{text="Avatar description failed or timed out; the original Rig is retained"},player) end
+            else self.combat.dummyOwners[model]=nil;model:Destroy();return end
         end
         if not model.Parent or not player.Parent then self.combat.dummyOwners[model]=nil;model:Destroy();return end
+        root.Anchored=false
         local record=self.combat:bind(model,nil,name)
         if not record then self.combat.dummyOwners[model]=nil;model:Destroy();self.combat:emit("Error",{text="Original dummy rig could not initialize as R6"},player) end
     end)

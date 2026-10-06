@@ -19,6 +19,7 @@ return function(ctx)
         if cache[key] then return cache[key] end
         local item = assert(ctx.catalog.animations[key], "Unknown original animation: " .. tostring(key))
         local raw = ctx.json(item.path)
+        assert(not ctx.cleanup.dead and not ctx.cancelled, "Animation load cancelled: " .. key)
         assert(#raw.frames > 0, "Empty keyframe data: " .. key)
         local timeline, elapsed = {}, 0
         for _, frame in ipairs(raw.frames) do
@@ -42,6 +43,7 @@ return function(ctx)
         cache[key] = result
         return result
     end
+    function module:preload(key) return getSequence(key) end
     local function findJoints(character)
         local joints = {}
         for _, object in ipairs(character:GetDescendants()) do
@@ -72,9 +74,13 @@ return function(ctx)
     function module:isPlaying(character) return active[character] ~= nil end
     function module:blocksLocomotion(character)
         local track = active[character]
-        -- Source carryGrabber contains torso/arm poses only. Original Animate
-        -- continued driving the legs underneath that carried-person hold.
-        return track ~= nil and track.key ~= "other/carryGrabber"
+        if not track then return false end
+        if track.engineTrack then return true end
+        -- Preserve gait underneath original upper-body clips. In particular,
+        -- swing_1/2, flourish, unequip and carryGrabber have no hip curves.
+        -- swing_3 and the victim/full-body sequences own their authored legs.
+        local curves = track.sequence.curves
+        return curves["Torso\0Left Leg"] ~= nil or curves["Torso\0Right Leg"] ~= nil
     end
     function module:ownsTrack(track) return ownedTracks[track] == true end
     local function finishHosted(character, record)
@@ -150,7 +156,15 @@ return function(ctx)
         local alpha = math.min(1, math.max(0, (at - a.time) / math.max(0.000001, b.time - a.time)))
         return a.value:Lerp(b.value, alpha * b.weight)
     end
-    scope:add(run.Stepped:Connect(function()
+    -- Animator overwrites Motor6D.Transform between PreAnimation and
+    -- PreSimulation. Writing after it lets the source arm pose coexist with
+    -- an Animator-driven gait. Older clients retain the source Stepped path.
+    local supported, poseStep = pcall(function() return run.PreSimulation end)
+    if not supported or not poseStep then
+        poseStep = run.Stepped
+        ctx.report("PreSimulation is unavailable; using original Stepped animation timing. Animator layering on this older client requires an engine test.")
+    end
+    scope:add(poseStep:Connect(function()
         local now = ctx.network:now()
         for character, track in pairs(active) do
             local elapsed = math.max(0, (now - track.start) * track.speed)

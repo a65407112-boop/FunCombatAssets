@@ -21,7 +21,8 @@ return function(C)
         if tag=="Default" and a.player:GetAttribute("Gender")=="Female" then tag="FD" end
         if wall then a.root.CFrame=wall.CFrame*CFrame.new(0,0,4) end
         v.root.CFrame=a.root.CFrame*CFrame.new(0,0,tag=="FD" and 0 or -4)
-        local link={pair=true,a=a,v=v,tag=tag,phase=1,nextBeat=tick()+0.8,interval=0.8,released=false}
+        local link={pair=true,a=a,v=v,tag=tag,phase=1,nextBeat=tick()+0.8,interval=0.8,released=false,
+            id=tostring(a.epoch)..":"..tostring(v.epoch)..":"..tostring(tick())}
         a.interaction,v.interaction=link,link;a.pairVictim=v;v.pairActor=a
         a.busy,v.busy=true,true;a.iframes,v.iframes=true,true
         a.root.Anchored,v.root.Anchored=true,true
@@ -32,7 +33,7 @@ return function(C)
         local a,v=link.a,link.v
         a.pairVictim=nil;v.pairActor=nil
         if not link.releasing and (a.funMeter or 0)>=1 then a.funMeter=0.94 end
-        self:emit("Pair",{a=a.character,v=v.character,kind="Clear"})
+        self:emit("Pair",{a=a.character,v=v.character,kind="Clear",pairId=link.id})
     end
     function C:stopPair(a,v)
         local link=a.interaction
@@ -41,7 +42,7 @@ return function(C)
         self:release(link)
     end
     function C:pairBurst(link,finish)
-        self:emit("Pair",{a=link.a.character,v=link.v.character,kind="Particles",tag=link.tag,
+        self:emit("Pair",{a=link.a.character,v=link.v.character,kind="Particles",tag=link.tag,pairId=link.id,
             n1=finish and 30 or 20,n2=finish and 17 or 10})
         if link.a.player then self:emit("Pair",{kind="Hit",a=link.a.character},link.a.player) end
     end
