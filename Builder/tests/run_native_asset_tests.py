@@ -3,18 +3,38 @@
 Only engine APIs are doubled. These checks do not inspect or simulate geometry.
 """
 import argparse
+import json
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT/'Builder'))
+from build import lua
 parser = argparse.ArgumentParser()
 parser.add_argument('--luau', required=True)
 args = parser.parse_args()
 code = 'local cleanupFactory, assetsFactory\n'
 code += (ROOT / 'Builder/tests/presentation_runtime.spec.luau').read_text()
+code += r'''
+-- Datatype constructors are engine boundary doubles. Their payloads are copied,
+-- never interpreted as or checked against model geometry.
+local function datatype(kind) return {new=function(...) return {kind=kind,values={...}} end} end
+local Color3={new=function(r,g,b) return {kind='Color3',R=r,G=g,B=b} end}
+local Vector2=datatype('Vector2')
+local PhysicalProperties=datatype('PhysicalProperties')
+local NumberRange=datatype('NumberRange')
+local NumberSequenceKeypoint=datatype('NumberSequenceKeypoint')
+local NumberSequence=datatype('NumberSequence')
+local ColorSequenceKeypoint=datatype('ColorSequenceKeypoint')
+local ColorSequence=datatype('ColorSequence')
+'''
 for name in ['cleanup', 'assets']:
     code += '\n' + name + 'Factory=(function()\n' + (ROOT / 'client' / (name + '.lua')).read_text() + '\nend)()\n'
+catalog=json.loads((ROOT/'config/assets.json').read_text())
+originals={key:json.loads((ROOT/catalog['packages'][key]['path']).read_text()) for key in ['costumes/LowerRig','costumes/TorsoRig']}
+code+='\nlocal originals='+lua(originals)+'\nlocal originalNative='+lua(catalog['nativeCSG'])+'\n'
 code += r'''
 local replicated=node('Folder','ReplicatedStorage')
 local baseService=game.GetService
@@ -24,6 +44,20 @@ function methods:WaitForChild(name,timeout)
     repeat local value=self:FindFirstChild(name);if value then return value end;wait(0.05) until tick()>=deadline
 end
 function methods:ClearAllChildren() for _,child in ipairs(self:GetChildren()) do child:Destroy() end end
+-- The earlier generic node double accepted hidden serialized member names,
+-- unlike a real Roblox WeldConstraint. Keep that engine boundary strict.
+local newInstance=Instance.new
+Instance.new=function(class,...)
+    local object=newInstance(class,...)
+    if class=='WeldConstraint' then
+        local mt=getmetatable(object);local assign=mt.__newindex
+        mt.__newindex=function(self,key,value)
+            assert(key~='Part0Internal' and key~='Part1Internal',key..' is not a valid member of WeldConstraint')
+            assign(self,key,value)
+        end
+    end
+    return object
+end
 local fixture={version=1,root=1,externalReferences={},nodes={
     {id=1,class='Model',name='TorsoRig',properties={}},
     {id=2,class='Part',name='ref',parent=1,properties={}},
@@ -73,6 +107,58 @@ check('wrong native class is rejected before constructing a substitute',function
     assert(not ok and tostring(why):find('UnionOperation'),'A different native resource was accepted as original CSG')
     ctx.cleanup:destroy()
 end)
+check('serialized original WeldConstraint endpoints restore through public Part0 and Part1',function()
+    local ctx=prepare(true)
+    local data={version=1,root=1,nodes={
+        {id=1,class='Model',name='TorsoRig',properties={}},
+        {id=2,class='Part',name='ref',parent=1,properties={}},
+        {id=3,class='Part',name='Accent',parent=1,properties={}},
+        {id=4,class='WeldConstraint',name='WeldConstraint',parent=2,properties={
+            Part0Internal={type='Ref',value=2},Part1Internal={type='Ref',value=3}}}
+    }}
+    local model=ctx.assets:construct(data,'costumes/TorsoRig')
+    local a=model:FindFirstChild('ref');local b=model:FindFirstChild('Accent');local weld=a:FindFirstChild('WeldConstraint')
+    assert(weld.Part0==a and weld.Part1==b,'Original weld endpoints were dropped or swapped')
+    assert(data.nodes[4].properties.Part0Internal.value==2,'Input reference data was mutated')
+    model:Destroy();ctx.cleanup:destroy()
+end)
+for _,key in ipairs({'costumes/LowerRig','costumes/TorsoRig'}) do
+    check('complete original '..key..' restores every Instance and real joint endpoints',function()
+        replicated:ClearAllChildren()
+        local folder=node('Folder',originalNative.folder);folder.Parent=replicated
+        for id,name in pairs(originalNative.nodes) do
+            local union=node('UnionOperation',name);union.nativePayload='opaque-original-'..id;union.Parent=folder
+        end
+        local ctx=context();ctx.catalog.nativeCSG=originalNative
+        ctx.assets=assetsFactory(ctx)
+        local data=originals[key];local model=ctx.assets:construct(data,key)
+        assert(#model:GetDescendants()+1==#data.nodes,'Original costume membership changed')
+        local joints,unbound=0,0
+        for _,object in ipairs(model:GetDescendants()) do
+            if object.ClassName=='Weld' or object.ClassName=='Motor6D' then
+                joints+=1
+                assert(object.Part1,'An original joint lost its nonempty Part1')
+                -- These original role attachment motors intentionally have no
+                -- Part0 until the costume is attached to a live character.
+                local originalUnbound=object.ClassName=='Motor6D' and (object.Name=='LowerRig'
+                    or object.Name=='LeftTorsoPanel' or object.Name=='RightTorsoPanel')
+                if originalUnbound then
+                    unbound+=1;assert(object.Part0==nil,'An original empty endpoint was invented')
+                else assert(object.Part0,'An original joint lost its nonempty Part0') end
+            end
+        end
+        if key=='costumes/TorsoRig' then
+            assert(#data.nodes==86 and joints==24 and unbound==2,'Original TorsoRig hierarchy changed')
+            local ref=assert(model:FindFirstChild('ref'))
+            local skin=assert(ref:FindFirstChild('skinTorso'))
+            local weld=assert(ref:FindFirstChild('WeldConstraint'))
+            assert(weld.Part0==ref and weld.Part1==skin,'Original TorsoRig weld targets differ')
+        else
+            assert(#data.nodes==58 and joints==20 and unbound==1,'Original LowerRig hierarchy changed')
+        end
+        model:Destroy();ctx.cleanup:destroy()
+    end)
+end
 assert(#failed==0,table.concat(failed,'\n'))
 print('Native asset scenarios passed: '..total)
 '''

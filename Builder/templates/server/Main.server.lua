@@ -17,7 +17,8 @@ local combat=Combat.new({folder=net,config=Config},templates)
 combat.adminAccess=AdminAccess.new(function(player,allowed,status)
     combat.snapshotGates[player]=nil
     combat:emit("Admin",{allowed=allowed,creator=status},player)
-end,10)
+    if allowed then print("FunCombat admin access granted: userId="..player.UserId.."; source="..tostring(player:GetAttribute("FunCombatAdminSource"))) end
+end,10,Config.ownerUserId)
 local world=World.new(combat,templates)
 local voting=Voting.new(combat,world,templates.Maps)
 world:start();combat:start();voting:start()

@@ -1,16 +1,20 @@
--- Native game admin access belongs only to the published experience creator.
+-- Native access grants the actual published creator and one explicitly configured user ID.
 local A={};A.__index=A
 local function userId(value)
-    return type(value)=="number" and value==value and value>0 and value<math.huge and value%1==0
+    return type(value)=="number" and value==value and value>0 and value<=9007199254740991 and value%1==0
 end
 function A:status()
     return {state=self.state,creatorType=self.creatorType,publishedCreatorId=self.publishedCreatorId,
-        ownerUserId=self.ownerUserId,error=self.error}
+        ownerUserId=self.ownerUserId,error=self.error,configuredOwnerUserId=self.configuredOwnerUserId,configError=self.configError}
+end
+function A:grantSource(player)
+    if self.destroyed or typeof(player)~="Instance" or not player:IsA("Player") or player.Parent~=self.players then return nil end
+    if self.state=="ready" and self.ownerUserId~=nil and player.UserId==self.ownerUserId then return "publishedCreator" end
+    if self.configuredOwnerUserId~=nil and player.UserId==self.configuredOwnerUserId then return "configuredOwner" end
+    return nil
 end
 function A:allowed(player)
-    return not self.destroyed and self.state=="ready" and self.ownerUserId~=nil
-        and typeof(player)=="Instance" and player:IsA("Player") and player.Parent==self.players
-        and player.UserId==self.ownerUserId
+    return self:grantSource(player)~=nil
 end
 function A:publish(player)
     if typeof(player)~="Instance" or not player:IsA("Player") or player.Parent~=self.players then return end
@@ -19,6 +23,9 @@ function A:publish(player)
     player:SetAttribute("FunCombatAdminState",self.state)
     player:SetAttribute("FunCombatAdminError",self.error or "")
     player:SetAttribute("FunCombatCreatorUserId",self.ownerUserId or 0)
+    player:SetAttribute("FunCombatConfiguredOwnerUserId",self.configuredOwnerUserId or 0)
+    player:SetAttribute("FunCombatAdminSource",self:grantSource(player) or "")
+    player:SetAttribute("FunCombatAdminConfigError",self.configError or "")
     if self.onChanged then
         local ok,why=pcall(self.onChanged,player,allowed,self:status())
         if not ok then warn("FunCombat admin access callback failed: "..tostring(why)) end
@@ -70,10 +77,18 @@ function A:start()
     end
     return self
 end
-function A.new(onChanged,timeoutSeconds)
+function A.new(onChanged,timeoutSeconds,configuredOwnerId)
     local timeout=type(timeoutSeconds)=="number" and timeoutSeconds or 10
     if timeout~=timeout or timeout<=0 or timeout>30 then timeout=10 end
     local self=setmetatable({players=game:GetService("Players"),state="pending",onChanged=onChanged,timeout=timeout},A)
+    if configuredOwnerId~=nil then
+        if userId(configuredOwnerId) then
+            self.configuredOwnerUserId=configuredOwnerId
+        else
+            self.configError="Configured owner user ID must be a positive integer no greater than 9007199254740991 (received "..tostring(configuredOwnerId)..")."
+            warn("FunCombat configured owner access: "..self.configError)
+        end
+    end
     return self:start()
 end
 function A:destroy()

@@ -77,6 +77,8 @@ def validate(output):
     catalog=json.loads((repo/'config/assets.json').read_text())
     manifest=json.loads((repo/'manifest.json').read_text())
     identifiers=json.loads((repo/'config/identifiers.json').read_text())
+    from build import read_admin_settings
+    admin=read_admin_settings(repo)
     require(protocol['version']==manifest['protocolVersion']==4,'Protocol version mismatch')
     require(protocol['buildId']==manifest['buildId'],'Build ID mismatch')
     require(protocol['sourceSha256']==catalog['sourceSha256']==manifest['sourceSha256'],'Source checksum mismatch')
@@ -125,6 +127,7 @@ def validate(output):
             require(n['class'] not in banned,'Executable presentation asset: '+key)
             require(n['parent'] is None or n['parent'] in ids,'Missing asset parent: '+key)
             for name,p in n['properties'].items():
+                require(n['class']!='WeldConstraint' or name not in {'Part0Internal','Part1Internal'},'Internal serialized weld member escaped into runtime JSON: '+key)
                 if p['type']=='Ref':require(p['value'] is None or p['value'] in ids,'Missing asset reference: '+key+'/'+name)
                 if name in {'MeshId','TextureId','TextureID','SoundId','AnimationId','Image','Texture'} and p['value']:asset_refs.add(str(p['value']))
             if n['class']=='UnionOperation':
@@ -156,6 +159,14 @@ def validate(output):
     kohl_children={e.findtext('Properties/string[@name="Name"]'):e for e in kohl[0].findall('Item')}
     require(set(kohl_children)=={'Settings','Custom Commands'} and all(e.get('class')=='ModuleScript' for e in kohl_children.values()),'Original Kohl settings/custom modules missing')
     require('.commands(bridge)' in kohl_children['Custom Commands'].findtext('Properties/*[@name="Source"]',''),'Native game dummy command bridge missing')
+    owner=admin['ownerUserId']
+    settings_source=kohl_children['Settings'].findtext('Properties/*[@name="Source"]','')
+    require('local ownerUserId='+str(owner)+'\n' in settings_source,'Configured account missing from native Kohl Owners')
+    runtime=next((e for e in items if e.get('class')=='Folder' and e.findtext('Properties/string[@name="Name"]')=='FunCombatServer'),None)
+    require(runtime is not None,'Server runtime is missing')
+    generated={e.findtext('Properties/string[@name="Name"]'):e.findtext('Properties/*[@name="Source"]','') for e in runtime.findall('Item')}
+    require('["ownerUserId"]='+str(owner) in generated['Config'],'Server owner identity differs from builder settings')
+    require('end,10,Config.ownerUserId)' in generated['Main'],'Server access does not use configured owner identity')
     require(manifest['dependencies']['avatar_content']==['cleanup','networking','state'] and 'avatar_content' in manifest['dependencies']['preload'],'Avatar content observer must initialize before resource warmup')
     require(len(catalog['animations'])==47,'Not all original KeyframeSequences exported')
     keyframes=poses=0
@@ -171,10 +182,10 @@ def validate(output):
     binary_types=binary_property_types(output/'Source/FunCombat_Original.rbxl',output/'funcombat_server.rbxl')
     return {'passed':True,'checks':['input checksum','manifest SHA256/Adler32/bytes','dependency DAG',
         'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates',
-        'asset hierarchy and internal refs','original costume native CSG dependencies and opaque payload fidelity','native original Kohl hierarchy and dummy command bridge','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
+        'asset hierarchy and public WeldConstraint refs','original costume native CSG dependencies and opaque payload fidelity','native original Kohl hierarchy and dummy command bridge','same explicit numeric owner in server and native Kohl settings','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
         'binaryPropertyTypes':binary_types,
         'spawnInitialization':spawn_setup,
-        'nativeOriginalCSGDependencies':len(expected_native),'originalKohlAssetId':1868400649,
+        'nativeOriginalCSGDependencies':len(expected_native),'originalKohlAssetId':1868400649,'configuredOwnerUserId':owner,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),
         'geometryInspected':False,'robloxEngineTested':False,'legacyClientTested':False,

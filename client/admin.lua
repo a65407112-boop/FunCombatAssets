@@ -1,4 +1,4 @@
--- Original Admin GUI; the server checks the actual published owner on every command.
+-- Original Admin GUI; the server checks creator/configured-owner access on every command.
 return function(ctx)
     local scope = ctx.cleanup:scope()
     local players = game:GetService("Players")

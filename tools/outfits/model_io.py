@@ -15,6 +15,9 @@ NETWORK_CLASSES={'RemoteEvent','RemoteFunction','BindableEvent','BindableFunctio
 BINARY_NAMES={'AttributesSerialize','Tags','CollisionGroupData','MaterialColors','SmoothGrid','PhysicsGrid','PhysicsData','ChildData','MeshData','GuidBinaryString','SerializedEmulatedPolicyInfo','HiddenServices','VisibleServices'}
 SKIP_PROPERTIES={'UnscaledCofm','UnscaledVolInertiaDiags','UnscaledVolInertiaOffDiags','AttributesSerialize','Tags','Capabilities','DefinesCapabilities','UniqueId','HistoryId','SourceAssetId','Source','LinkedSource','ScriptGuid','Sandboxed','SecurityCapabilities','DefinesCapabilities','PhysicsData','ChildData','MeshData','InitialSize','MeshSize','PhysicalConfigData','PhysicsRepRootPart','NetworkIsSleeping','NetworkOwnershipRule','NetworkOwnerV3','ReceiveAge','AssemblyRootPart','AssemblyMass','AssemblyCenterOfMass','ModelMeshData','ModelMeshSize','ModelMeshCFrame','ModelMeshId','ModelMeshData','ModelInPrimary','WorldPivotData','PivotOffset','Color3uint8','SourceAssetId','AssetId','SerializedEmulatedPolicyInfo'}
 ALIASES={'size':'Size','shape':'Shape','formFactorRaw':'FormFactor','Color3uint8':'Color','xmlRead_MaxDistance_3':'RollOffMaxDistance','xmlRead_MinDistance_3':'RollOffMinDistance'}
+# Studio serializes these endpoints under names unavailable to Luau. Keep the
+# same original target IDs, but expose the public scripting properties in JSON.
+CLASS_ALIASES={'WeldConstraint':{'Part0Internal':'Part0','Part1Internal':'Part1'}}
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def dump(path,value):
@@ -221,7 +224,7 @@ def package(source,root_id,excluded=(),exclude_tools=False):
             if pn=='AttributesSerialize':attrs=decode_attributes(p.text);continue
             if pn in SKIP_PROPERTIES and pn!='Color3uint8':continue
             prop=typed_property(p,source.reverse)
-            if prop:props[prop[0]]=prop[1]
+            if prop:props[CLASS_ALIASES.get(cls,{}).get(prop[0],prop[0])]=prop[1]
         node={'id':i,'class':cls,'name':source.name(e),'parent':parent,'properties':props,'attributes':attrs}
         bounds=e.find('Properties/Vector3[@name="InitialSize"]')
         if cls=='MeshPart' and bounds is not None:node['meshSize']=ordered(bounds,['X','Y','Z'])

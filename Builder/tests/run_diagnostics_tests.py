@@ -1,0 +1,200 @@
+"""Run the standalone diagnostic chunk with Roblox APIs doubled.
+
+These tests verify finite local reads, exact diagnostics and appearance
+preservation. They make no engine/CDN/rendering claim.
+"""
+import argparse
+from pathlib import Path
+import subprocess
+import tempfile
+
+ROOT = Path(__file__).resolve().parents[2]
+parser = argparse.ArgumentParser()
+parser.add_argument('--luau', required=True)
+args = parser.parse_args()
+header = r'''
+local services,environment,warnings,reads,fetches
+local function typeof(value) return type(value)=='table' and value.kind or type(value) end
+local function getgenv() return environment end
+local function warn(message) warnings[#warnings+1]=message end
+local function tick() return 100 end
+local function wait() error('Standalone diagnostics must not wait') end
+local task={wait=wait,spawn=function() error('Diagnostics started background work') end,delay=wait}
+local function request() error('Diagnostics requested network content') end
+local function require() error('Diagnostics required an external module') end
+local DateTime={now=function() return {ToIsoDate=function() return '2026-10-06T15:00:00Z' end} end}
+local methods={}
+local function node(class,name)
+    local props={ClassName=class,Name=name or class,children={},attributes={},denied={}}
+    local object={kind='Instance',props=props}
+    return setmetatable(object,{__index=function(_,key)
+        reads[#reads+1]=key
+        assert(key~='Size' and key~='CFrame' and key~='Position' and key~='MeshSize','Geometry was inspected')
+        if props.denied[key] then error(props.denied[key]) end
+        return methods[key] or props[key]
+    end,__newindex=function(_,key,value)
+        assert(not props.readOnly,'Diagnostic wrote the actual appearance property '..key)
+        props[key]=value
+    end})
+end
+function methods:IsA(class) return self.ClassName==class or class=='Instance' end
+function methods:GetChildren() return self.children end
+function methods:FindFirstChild(name,recursive)
+    for _,child in ipairs(self.children) do
+        if child.Name==name then return child end
+        if recursive then local match=child:FindFirstChild(name,true);if match then return match end end
+    end
+end
+function methods:FindFirstChildOfClass(class) for _,child in ipairs(self.children) do if child:IsA(class) then return child end end end
+function methods:GetAttributes() return self.attributes end
+function methods:GetAttribute(name) return self.attributes[name] end
+function methods:Destroy() assert(self.ClassName=='HumanoidDescription','Diagnostic destroyed a real avatar instance');self.props.destroyed=true end
+local function append(parent,child) parent.children[#parent.children+1]=child;child.Parent=parent;return child end
+local function color(value) return {kind='Color3',R=value,G=value,B=value} end
+local function content(uri,object)
+    return {kind='Content',SourceType=object and 'Enum.ContentSourceType.Object' or 'Enum.ContentSourceType.Uri',Uri=uri,Object=object}
+end
+local game=setmetatable({GetService=function(_,name)
+    local service=services[name];assert(service,'Service denied: '..name);return service
+end,HttpGet=request},{__index=function(_,key)
+    if key=='CreatorId' then return 998877 end
+    if key=='CreatorType' then return 'Enum.CreatorType.User' end
+    if key=='PlaceId' then return 223344 end
+    if key=='GameId' then return 556677 end
+    error('Unavailable DataModel property '..key)
+end})
+local function validate(value,seen)
+    local kind=type(value)
+    assert(kind=='nil' or kind=='boolean' or kind=='number' or kind=='string' or kind=='table','JSON contains unsupported userdata')
+    if kind=='table' then
+        assert(not value.kind,'JSON contains an unsanitized engine object')
+        seen=seen or {};assert(not seen[value],'JSON contains a cycle');seen[value]=true
+        for _,child in pairs(value) do validate(child,seen) end
+        seen[value]=nil
+    end
+end
+local function fixture(empty)
+    environment={};warnings={};reads={};fetches={}
+    local player=node('Player','ActualAccount');player.UserId=11556197791;player.Parent=true
+    player.attributes={FunCombatAdminAllowed=true,FunCombatAdminSource='configuredOwner',FunCombatCreatorUserId=998877,
+        FunCombatConfiguredOwnerUserId=11556197791,FunCombatAdminState='ready',UnrelatedAttribute='omit'}
+    local character=node('Model','ActualCharacter');character.Parent=true;player.Character=character
+    character.attributes={FunCombatHeadAssetId=89515250410521,FunCombatMoodAnimation=14618207727,
+        FunCombatAvatarDiagnostic='Original dynamic head timeout: rbxassetid://89515250410521'}
+    local description=node('HumanoidDescription');description.Head=89515250410521;description.Face=0
+    description.HeadColor=color(248/255);description.MoodAnimation=14618207727
+    local humanoid=append(character,node('Humanoid'));humanoid.RigType='Enum.HumanoidRigType.R6'
+    humanoid.GetAppliedDescription=function() return description end
+    local body=append(character,node('BodyColors'));body.HeadColor='Institutional white';body.HeadColor3=color(248/255)
+    local head
+    if not empty then
+        head=append(character,node('MeshPart','Head'));head.Color=color(248/255);head.Material='Enum.Material.Plastic'
+        head.TextureID='rbxassetid://7001';head.MeshId='rbxassetid://6001';head.Transparency=0
+        head.TextureContent=content('rbxassetid://7001');head.MeshContent=content('rbxassetid://6001')
+        append(head,node('FaceControls'))
+    end
+    local rs=node('ReplicatedStorage');local remote=append(rs,node('RemoteEvent','b\a\n\a\n\a'))
+    local admins=append(remote,node('StringValue','\admi\n'));admins.Value=' ActualAccount:7 115561977910:6 998877:6 11556197791:5'
+    services={Players={LocalPlayer=player},ReplicatedStorage=rs,
+        ContentProvider={GetAssetFetchStatus=function(_,uri) fetches[#fetches+1]=uri;return uri=='rbxassetid://7001' and 'Enum.AssetFetchStatus.Failure' or 'Enum.AssetFetchStatus.Success' end,
+            PreloadAsync=request},
+        LogService={GetLogHistory=function() return {} end},
+        HttpService={JSONEncode=function(_,report) validate(report);return '[mock JSON snapshot]' end}}
+    return player,character,head,description,admins
+end
+local function run() local result=runDiagnostics();assert(type(result)=='string' and #warnings==1,'Standalone chunk did not print and return its report');return environment.FunCombatDiagnostics end
+local function has(list,text) for _,entry in ipairs(list or {}) do if tostring(entry.message or entry):find(text,1,true) then return true end end end
+local failures,total={},0
+local function check(name,fn)
+    total+=1;local ok,why=pcall(fn)
+    if ok then print('Diagnostics: '..name) else failures[#failures+1]=name..': '..tostring(why);print('FAIL '..failures[#failures]) end
+end
+'''
+checks = r'''
+check('actual user, creator and owner attrs use the native numeric KAI entry',function()
+    fixture();local report=run()
+    assert(report.user.UserId==11556197791 and report.creator.CreatorId==998877,'Actual identity was not captured')
+    assert(report.user.attributes.FunCombatConfiguredOwnerUserId==11556197791,'Configured owner attr missing')
+    assert(report.user.attributes.UnrelatedAttribute==nil,'Unrelated player attributes were dumped')
+    assert(report.kai.entry=='11556197791:5' and report.kai.power==5,'Username or a different numeric ID was confused with the native entry')
+    assert(report.character.attributes.FunCombatHeadAssetId==89515250410521 and report.character.attributes.FunCombatMoodAnimation==14618207727,'Original head/mood sources missing')
+end)
+check('fatal cleanup does not hide the exact failure window and native load messages',function()
+    fixture();local gui=node('ScreenGui');local panel=append(gui,node('Frame','Error'))
+    local text=append(panel,node('TextBox','Details'));text.Text='Original resource warm-up failed: costumes/TorsoRig WeldConstraint.Part0Internal not valid member'
+    environment.FunCombat_ExternalRuntime_ErrorGUI=gui
+    services.LogService.GetLogHistory=function() return {{message='Unable to load Texture rbxassetid://7001: denied',messageType='Enum.MessageType.MessageError',timestamp=123},
+        {message='[Fun Combat] retained native warning',messageType='Enum.MessageType.MessageWarning',timestamp=124},
+        {message='Processed image content inaccessible',messageType='Enum.MessageType.MessageError',timestamp=125}} end
+    local report=run()
+    assert(report.runtime.present==false and report.failureWindow:find('Part0Internal',1,true),'Standalone capture required the destroyed loader context')
+    assert(has(report.loadMessages,'7001: denied') and has(report.loadMessages,'retained native warning'),'Exact available errors disappeared')
+    assert(has(report.loadMessages,'Processed image content inaccessible'),'An engine error was hidden by guessed asset-message wording')
+end)
+check('both PBR APIs are read safely and preserve raw Content source provenance',function()
+    local _,_,head=fixture();local pbr=append(head,node('SurfaceAppearance','OriginalPBR'))
+    pbr.Color=color(0);pbr.AlphaMode='Enum.AlphaMode.Overlay';pbr.denied.ColorMap='ColorMap access denied'
+    pbr.ColorMapContent=content('rbxassetid://8001');pbr.NormalMap='rbxassetid://8002';pbr.denied.NormalMapContent='Unknown property'
+    local image=node('EditableImage','OriginalEditableImage');pbr.RoughnessMapContent=content(nil,image)
+    pbr.props.readOnly=true;head.props.readOnly=true
+    local report=run();local entry=report.head.visuals[1]
+    assert(entry.class=='SurfaceAppearance' and entry.properties.ColorMap.unavailable:find('access denied',1,true),'Restricted legacy API was treated as usable or fatal')
+    assert(entry.properties.ColorMapContent.uri=='rbxassetid://8001' and entry.properties.NormalMap=='rbxassetid://8002','Available modern/legacy PBR references were lost')
+    assert(entry.properties.NormalMapContent.unavailable and entry.properties.RoughnessMapContent.objectClass=='EditableImage','Unavailable Content or object provenance was invented')
+    assert(report.fetchStatus['rbxassetid://8001']=='Enum.AssetFetchStatus.Success' and report.note:find('does not confirm rendering',1,true),'Raw PBR URI status was certified as rendering')
+end)
+check('actual white and black appearance values survive unchanged',function()
+    for _,value in ipairs({248/255,0}) do
+        local _,_,head,description=fixture();head.Color=color(value);head.props.readOnly=true
+        local original=head.Color;local report=run()
+        assert(report.head.properties.Color.R==value and head.Color==original and head.TextureID=='rbxassetid://7001','Probe repaired or obscured the actual head color')
+        assert(report.head.faceControls==true and report.head.properties.MeshId=='rbxassetid://6001','Actual head capability or reference missing')
+        assert(report.fetchStatus['rbxassetid://7001']=='Enum.AssetFetchStatus.Failure','Actual hosted failure status missing')
+        assert(description.props.destroyed,'Temporary local description metadata was retained')
+    end
+end)
+check('an absent character or absent Head returns immediately without substitutes',function()
+    local player=fixture();player.Character=nil;local report=run();assert(report.character.missing and #fetches==0,'Missing character caused an invented request')
+    fixture(true);report=run();assert(report.head.missing and #fetches==1 and fetches[1]=='rbxassetid://14618207727',
+        'Missing Head waited or queried invented resources instead of only the real replicated mood')
+end)
+check('denied services, legacy fields and applied descriptions remain diagnostic',function()
+    local _,character,head=fixture();services.ContentProvider=nil;services.LogService=nil
+    services.HttpService.JSONEncode=function() error('JSON unavailable') end
+    head.denied.TextureID='TextureID denied';head.denied.MeshContent='MeshContent unavailable'
+    character:FindFirstChildOfClass('Humanoid').GetAppliedDescription=function() error('Applied description unavailable') end
+    local report=run()
+    assert(report.head.properties.TextureID.unavailable and report.head.properties.MeshContent.unavailable,'Property denial aborted the snapshot')
+    assert(report.appliedDescription.unavailable and report.loadMessagesUnavailable and report.fetchStatusUnavailable,'Unavailable APIs were silently treated as success')
+    assert(type(environment.FunCombatDiagnosticsText)=='string' and environment.FunCombatDiagnosticsText:find('JSON unavailable',1,true),'JSON failure lost the printable snapshot')
+end)
+check('available cancelled runtime reports are read without invoking its modules',function()
+    fixture();environment.FunCombat_ExternalRuntime={cancelled=true,initialized=false,manifest={buildId='actual-build'},
+        protocol={version=4,buildId='server-build'},modules={avatar_content={},preload={}},reports={['Exact warm-up issue']=true},
+        destroy=function() error('Probe destroyed runtime') end,state={localState=function() error('Probe invoked runtime state') end}}
+    local report=run()
+    assert(report.runtime.present and report.runtime.cancelled and report.runtime.initialized==false and report.runtime.buildId=='actual-build','Available diagnostic runtime state lost')
+    assert(report.runtime.protocolVersion==4 and report.runtime.protocolBuildId=='server-build','Available protocol diagnostics missing')
+    assert(has(report.runtime.reports,'Exact warm-up issue') and environment.FunCombat_ExternalRuntime.cancelled,'Probe changed existing runtime state')
+end)
+check('classic decals are captured and head tree/log reads have finite caps',function()
+    local _,_,head=fixture();local face=append(head,node('Decal','face'));face.Texture='rbxassetid://9001';face.Color3=color(1)
+    face.denied.ColorMapContent='Modern API unavailable';face.Transparency=0
+    for i=1,200 do append(head,node('Attachment','BoneMetadata'..i)) end
+    services.LogService.GetLogHistory=function() local list={};for i=1,700 do list[i]={message='Unable to load texture '..i,messageType='Enum.MessageType.MessageWarning',timestamp=i} end;return list end
+    local report=run();local entry=report.head.visuals[1]
+    assert(entry.class=='Decal' and entry.properties.Texture=='rbxassetid://9001','Classic face was lost')
+    assert(report.head.truncated and #report.loadMessages<=20 and has(report.loadMessages,'700'),'Bounded reads lost newest errors or inspected the whole history/tree')
+    assert(#fetches<=16,'Finite head data multiplied hosted status requests')
+end)
+assert(#failures==0,table.concat(failures,'\n'))
+print('Standalone diagnostic regression scenarios passed: '..total)
+'''
+# RED means the old absent script returns no diagnostic, not a Python read error.
+path = ROOT / 'diagnose.lua'
+source = path.read_text() if path.exists() else 'return nil'
+script = 'local runDiagnostics\n' + header + '\nrunDiagnostics=function()\n' + source + '\nend\n' + checks
+with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
+    test_path = Path(temporary) / 'diagnostics.luau'
+    test_path.write_text(script)
+    subprocess.run([str(Path(args.luau).resolve()), str(test_path)], check=True, timeout=15)

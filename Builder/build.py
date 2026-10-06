@@ -70,7 +70,16 @@ def add_native_csg(source,replicated,dependency):
         folder.append(native)
     replicated.append(folder)
 
-def add_kohl_admin(source,service):
+def read_admin_settings(repo):
+    settings=json.loads((Path(repo)/'config/admin.json').read_text(encoding='utf8'))
+    if not isinstance(settings,dict) or type(settings.get('version')) is not int or settings['version']!=1:
+        raise ValueError('config/admin.json version must be 1')
+    owner=settings.get('ownerUserId')
+    if type(owner) is not int or not 0<owner<=9007199254740991:
+        raise ValueError('config/admin.json ownerUserId must be a positive exact integer')
+    return settings
+
+def add_kohl_admin(source,service,owner_id=None):
     """Restore the original native legacy loader settings and extend its commands."""
     credit=copy.deepcopy(source.by[6657])
     if credit.get('class')!='Script':raise ValueError('Original Kohl Credit Script is missing')
@@ -81,6 +90,15 @@ def add_kohl_admin(source,service):
     custom=next((e for e in credit.findall('Item') if Source.name(e)=='Custom Commands'),None)
     settings=next((e for e in credit.findall('Item') if Source.name(e)=='Settings'),None)
     if custom is None or settings is None:raise ValueError('Original Kohl configuration is missing')
+    if owner_id is not None:
+        if type(owner_id) is not int or not 0<owner_id<=9007199254740991:raise ValueError('Invalid Kohl ownerUserId')
+        original_settings=settings.findtext('Properties/*[@name="Source"]','')
+        configured='local original=(function()\n'+original_settings+'\nend)()\n'
+        configured+='local owners=assert(original[2] and original[2][1],"Original Kohl Owners configuration is missing.")\n'
+        configured+='local ownerUserId='+lua(owner_id)+'\n'
+        configured+='local present=false\nfor _,id in ipairs(owners) do if id==ownerUserId then present=true;break end end\n'
+        configured+='if not present then owners[#owners+1]=ownerUserId end\nreturn original\n'
+        set_property(settings,'Source','ProtectedString',configured)
     original=custom.findtext('Properties/*[@name="Source"]','')
     body='local original=(function()\n'+original+'\nend)()\n'
     body+='local bridge=assert(script.Parent:WaitForChild("FunCombatDummy",10),"FunCombat dummy bridge is missing.")\n'
@@ -205,6 +223,7 @@ def empty(item):
     for child in item.findall('Item'):item.remove(child)
 
 def build_place(source,repo,output,timing):
+    admin=read_admin_settings(repo)
     tree=copy.deepcopy(source.tree)
     # Do not retain proxies for 60,000 removed presentation nodes. Keeping all
     # of them alive while detaching their parents makes lxml teardown quadratic.
@@ -223,7 +242,7 @@ def build_place(source,repo,output,timing):
             if parent is not None:parent.remove(e)
     catalog=json.loads((repo/'config/assets.json').read_text())
     add_native_csg(source,by[7303],catalog['nativeCSG'])
-    kohl=add_kohl_admin(source,by[78221])
+    kohl=add_kohl_admin(source,by[78221],admin['ownerUserId'])
     # Preserve original map/CSG/Terrain and physics. No mesh or geometry probing.
     strip_rig(by[6664])
     starter=tree.find('Item[@class="StarterPlayer"]')
@@ -293,7 +312,7 @@ def build_place(source,repo,output,timing):
     generated['WorldData.lua']='return '+lua(worlddata)+'\n'
     seed=source.sha+'\nserialization='+str(SERIALIZATION_VERSION)+'\n'+''.join(k+v for k,v in sorted(generated.items()))
     seed+=''.join(p.relative_to(repo).as_posix()+p.read_text(encoding='utf8') for p in sorted((repo/'client').glob('*.lua')))
-    seed+=(repo/'config/assets.json').read_text()+(repo/'config/outfits.json').read_text()
+    seed+=(repo/'config/assets.json').read_text()+(repo/'config/outfits.json').read_text()+(repo/'config/admin.json').read_text()
     seed+=''.join(e.findtext('Properties/*[@name="Source"]','') for e in kohl.iter('Item'))
     seed+=lua([VERSION,ACTIONS,EVENTS,prompt_names,map_prompt_names])
     build_id=hashlib.sha256(seed.encode()).hexdigest()[:24]
@@ -307,13 +326,13 @@ def build_place(source,repo,output,timing):
         'actions':{'Equip':'allowlisted original name, or empty string','Swing':'no payload','Dash':'optional {direction:Vector3}',
             'GetUp':'one recovery input; server requires 20 accepted inputs and health >= 50%',
             'Emote':'original name/index or Stop','Vote':'allowlisted current candidate','Drop':'owned carry only',
-            'Gender':'Male/Female/Fembxy for requester','Admin':'published place owner UserId only; unambiguous username',
+            'Gender':'Male/Female/Fembxy for requester','Admin':'published creator or configured numeric owner; unambiguous target username',
             'SpawnDummy':'optional positive integer userId; 3s cooldown, 4/player, 20/server','SecretDoor':'original Crossroads command',
             'PairSpeed':'no payload; server checks owned interaction, phase and meter thresholds'},
         'prompts':dict(zip(prompt_keys,prompt_names)),
         'authority':'Server owns damage, targets, timing, state, interactions and shared world results.',
         'obfuscation':'Identifier encoding is not authorization or protection against reverse engineering.'}
-    config={'version':VERSION,'buildId':build_id,'names':names,'prompts':prompt_names,'mapPrompts':{name:True for name in map_prompt_names},
+    config={'version':VERSION,'buildId':build_id,'ownerUserId':admin['ownerUserId'],'names':names,'prompts':prompt_names,'mapPrompts':{name:True for name in map_prompt_names},
         'actions':{actions[a]:i+1 for i,a in enumerate(ACTIONS)},'actionIds':[actions[a] for a in ACTIONS],
         'events':[events[e] for e in EVENTS]}
     generated['Config.lua']='return '+lua(config)+'\n'
@@ -390,6 +409,7 @@ def build(source_path,rbxmk,output):
     original=Path(source_path).resolve();output=safe_output(original,output)
     before=sha(original)
     if before!=SOURCE_SHA:raise ValueError('This builder only accepts the inspected source; checksum mismatch')
+    read_admin_settings(ROOT)
     output.mkdir(parents=True,exist_ok=True)
     source=Source(original,rbxmk,output/'.cache')
     print('Decoded original source; exporting original resources',flush=True)
@@ -413,6 +433,7 @@ def build(source_path,rbxmk,output):
     print('Encoded binary place; sealing manifest and checking structure',flush=True)
     seal_manifest(repo,protocol)
     shutil.copy2(repo/'loader.lua',output/'loader.lua')
+    shutil.copy2(repo/'diagnose.lua',output/'diagnose.lua')
     shutil.copytree(ROOT/'Builder',output/'Builder',dirs_exist_ok=True,ignore=shutil.ignore_patterns('__pycache__','*.pyc'))
     for name in ('Validation_Report.md','Changes_For_Review.md'):
         if (ROOT/name).exists():shutil.copy2(ROOT/name,output/name)

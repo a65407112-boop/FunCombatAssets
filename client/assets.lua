@@ -46,6 +46,9 @@ return function(ctx)
     local optional = {UIStroke = true, UIFlexItem = true, SurfaceAppearance = true, Highlight = true}
     local skip = {ReadOnly = true, Parent = true, Name = true, Archivable = false, Origin = true, CFrame = false}
     local critical = {CFrame = true, Size = true, Position = true, MeshId = true, TextureId = true, TextureID = true, AnimationId = true, SoundId = true, Image = true, Color = true, Text = true}
+    -- Accept earlier exported data too. Internal XML names are not writable
+    -- Luau members; preserve both endpoints through the public WeldConstraint API.
+    local referenceAliases = {WeldConstraint = {Part0Internal = "Part0", Part1Internal = "Part1"}}
 
     function module:originalUnion(node, key)
         local dependency = ctx.catalog.nativeCSG
@@ -123,7 +126,8 @@ return function(ctx)
                     if node.parent then object.Parent = byId[node.parent] end
                     for name, prop in pairs(node.properties) do
                         if prop.type == "Ref" then
-                            local success, why = pcall(function() object[name] = prop.value and byId[prop.value] or nil end)
+                            local publicName = referenceAliases[node.class] and referenceAliases[node.class][name] or name
+                            local success, why = pcall(function() object[publicName] = prop.value and byId[prop.value] or nil end)
                             if not success and prop.value then error(key .. " reference " .. name .. ": " .. tostring(why)) end
                         end
                     end

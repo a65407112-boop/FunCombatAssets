@@ -1,4 +1,4 @@
-import hashlib, importlib.util, pathlib, struct, tempfile, unittest
+import hashlib, importlib.util, json, pathlib, struct, tempfile, unittest
 from lxml import etree as E
 
 BASE=pathlib.Path(__file__).resolve().parents[1]
@@ -21,6 +21,26 @@ class BuilderTests(unittest.TestCase):
         m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m);return m
     def test_builder_exists(self):
         self.assertTrue((BASE/'build.py').is_file(), 'Source-specific builder is missing')
+
+    def test_numeric_owner_settings_preserve_large_roblox_user_id(self):
+        m=self.load()
+        with tempfile.TemporaryDirectory(dir=BASE.parent.parent) as directory:
+            root=pathlib.Path(directory);(root/'config').mkdir()
+            (root/'config/admin.json').write_text(json.dumps({'version':1,'ownerUserId':11556197791}))
+            self.assertTrue(callable(getattr(m,'read_admin_settings',None)), 'Validated server owner configuration is missing')
+            self.assertEqual(m.read_admin_settings(root)['ownerUserId'],11556197791)
+
+    def test_invalid_owner_settings_are_rejected_before_compilation(self):
+        m=self.load()
+        with tempfile.TemporaryDirectory(dir=BASE.parent.parent) as directory:
+            root=pathlib.Path(directory);(root/'config').mkdir()
+            self.assertTrue(callable(getattr(m,'read_admin_settings',None)), 'Validated server owner configuration is missing')
+            for invalid in [None,True,'11556197791',0,-1,1.5,9007199254740992]:
+                with self.subTest(owner=invalid):
+                    (root/'config/admin.json').write_text(json.dumps({'version':1,'ownerUserId':invalid}))
+                    with self.assertRaisesRegex(ValueError,'ownerUserId'):m.read_admin_settings(root)
+            (root/'config/admin.json').write_text(json.dumps({'version':2,'ownerUserId':11556197791}))
+            with self.assertRaisesRegex(ValueError,'version'):m.read_admin_settings(root)
 
     def test_input_cannot_be_overwritten_by_output(self):
         spec=importlib.util.spec_from_file_location('builder',BASE/'build.py')

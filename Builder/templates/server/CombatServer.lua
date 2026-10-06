@@ -450,7 +450,7 @@ function C:adminState(player)
     return {allowed=self:adminAllowed(player),creator=access,kohl=self.kohl and self.kohl:status() or nil}
 end
 function C:admin(player,payload)
-    if not self:adminAllowed(player) then self:emit("Admin",{allowed=false,error="Only the published place owner can use this admin panel."},player);return end
+    if not self:adminAllowed(player) then self:emit("Admin",{allowed=false,error="Only the published creator or configured owner can use this admin panel."},player);return end
     local matched={};local needle=payload.target:lower()
     for _,candidate in ipairs(Players:GetPlayers()) do
         if candidate.Name:lower()==needle then matched={candidate};break end

@@ -26,7 +26,7 @@ end
 function K.commands(bridge)
     assert(typeof(bridge)=="Instance" and bridge:IsA("BindableFunction"),"FunCombat dummy bridge is missing.")
     return {
-        {{"dummy","spawndummy"},{"Spawn an original game combat dummy, optionally using an avatar user ID.","[userId]"},6,{"number/"},
+        {{"dummy","spawndummy"},{"Spawn an original game combat dummy, optionally using an avatar user ID.","[userId]"},5,{"number/"},
             function(player,args)
                 local accepted,why=bridge:Invoke(player,args[1])
                 if not accepted then error(why or "The original game dummy request was rejected.") end
@@ -52,14 +52,14 @@ function K.start(credit,access,world,timeoutSeconds,onChanged)
         handle:complete("error","Kohl's Admin Infinite is already loading; refusing a duplicate hosted dependency.");return handle
     end
     if type(access)~="table" or type(access.allowed)~="function" then
-        handle:complete("error","Published creator access is missing for the Kohl dummy command.");return handle
+        handle:complete("error","Server admin access is missing for the Kohl dummy command.");return handle
     end
     credit.Name=LOADER_NAME;credit.Parent=service
     local previous=credit:FindFirstChild(BRIDGE_NAME)
     if previous then previous:Destroy() end
     local bridge=Instance.new("BindableFunction");bridge.Name=BRIDGE_NAME;bridge.Parent=credit
     bridge.OnInvoke=function(player,userId)
-        if not access:allowed(player) then return false,"Only the published game creator can spawn an admin dummy." end
+        if not access:allowed(player) then return false,"Only the published game creator or configured owner can spawn an admin dummy." end
         if not validUserId(userId) then return false,"Dummy avatar user ID must be a positive integer no greater than 100000000000." end
         if not world or type(world.dummy)~="function" then return false,"The original game dummy spawner is unavailable." end
         local ok,accepted,why=pcall(world.dummy,world,player,userId)

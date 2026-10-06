@@ -1,1 +1,26 @@
-{"target":"Original source R6; precise legacy/executor version not supplied","inEngineVerified":false,"executorRequired":["loadstring","HTTP GET through request/http_request/syn.request or game:HttpGet","writefile","getcustomasset or getsynasset","getobjects or game:GetObjects capable of local .rbxmx deserialization"],"dataBackend":"Typed JSON: create Instances, assign properties, link parents and resolve references. Original costume CSG uses sanitized full .rbxmx local-file deserialization.","knownLimits":["No Roblox engine, executor session or old client was available.","Original hosted mesh/texture/sound/animation permissions were not tested.","Local .rbxmx deserialization support varies by executor; capability failures stop bootstrap with a named error.","MeshPart JSON fallback uses original MeshId/TextureID through SpecialMesh; SurfaceAppearance/PBR is not represented by that fallback.","Unavailable optional cosmetic classes/properties are reported and may change borders or lighting on old clients.","The old animation player is reproduced at nominal 60 Hz using its per-keyframe source timing; frame-rate-dependent bugs are not certified.","Adonis and Kohl's Admin hosted modules are absent from the source and are preserved for separate integration, not activated in the server."],"legacyCertified":false}
+{
+  "target": "Original source R6; precise legacy/executor version not supplied",
+  "inEngineVerified": false,
+  "executorRequired": [
+    "loadstring",
+    "HTTP GET through request/http_request/syn.request or game:HttpGet"
+  ],
+  "dataBackend": "Typed JSON creates Instances, assigns public runtime properties, links parents and references. Three original native UnionOperation dependencies replicate from the server; original costumes do not require local model deserialization.",
+  "knownLimits": [
+    "No Roblox engine, executor session or old client was available.",
+    "Original hosted mesh/texture/sound/animation permissions were not tested.",
+    "MeshPart JSON fallback uses original MeshId/TextureID through SpecialMesh; SurfaceAppearance/PBR is not represented by that fallback.",
+    "Unavailable optional cosmetic classes/properties are reported and may change borders or lighting on old clients.",
+    "The old animation player is reproduced at nominal 60 Hz using its per-keyframe source timing; frame-rate-dependent bugs are not certified.",
+    "Additional model packages without native CSG dependencies require the optional executor local model backend.",
+    "Genuine hosted Kohl module1868400649 starts on the server; its actual version, permissions and runtime rank are not engine-tested. Original Adonis remains inactive.",
+    "Black head rendering cause is unconfirmed. Standalone diagnose.lua records current head properties and actual ownership/rank without changing the avatar.",
+    "Internal XML WeldConstraint references map to public Part0/Part1; offline full costume reconstruction does not certify rendering or physics."
+  ],
+  "legacyCertified": false,
+  "executorOptionalModelFallback": [
+    "writefile",
+    "getcustomasset or getsynasset",
+    "getobjects or game:GetObjects capable of local .rbxmx deserialization"
+  ]
+}
