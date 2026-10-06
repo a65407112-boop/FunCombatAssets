@@ -115,7 +115,7 @@ def validate(output):
         require(float(p.findtext('Properties/float[@name="HoldDuration"]','-1'))>=0,'Missing native hold duration')
     require(len(protocol['prompts'])==6,'Original character prompts missing')
     for name in protocol['prompts'].values():require(len(byname.get(name,[]))==1,'Missing native prompt template')
-    nodes=0;csg=0;asset_refs=set()
+    nodes=0;csg=0;asset_refs=set();expected_native={}
     banned={'Script','LocalScript','ModuleScript','RemoteEvent','RemoteFunction','BindableEvent','BindableFunction'}
     for key,entry in catalog['packages'].items():
         package=json.loads((repo/entry['path']).read_text());ids={n['id'] for n in package['nodes']}
@@ -127,10 +127,36 @@ def validate(output):
             for name,p in n['properties'].items():
                 if p['type']=='Ref':require(p['value'] is None or p['value'] in ids,'Missing asset reference: '+key+'/'+name)
                 if name in {'MeshId','TextureId','TextureID','SoundId','AnimationId','Image','Texture'} and p['value']:asset_refs.add(str(p['value']))
-            if n['class']=='UnionOperation':csg+=1;require(entry['backend']=='model','Embedded CSG lacks deserializer: '+key)
+            if n['class']=='UnionOperation':
+                csg+=1;expected_native[str(n['id'])]=catalog['nativeCSG']['nodes'].get(str(n['id']))
+                require(expected_native[str(n['id'])],'Embedded CSG lacks original native dependency: '+key)
         model=E.parse(str(repo/entry['modelPath'])).getroot()
         require(references(model,key)==entry['count'],'Model/JSON membership mismatch: '+key)
+        for union in model.iter('Item'):
+            if union.get('class')!='UnionOperation':continue
+            source_id=str(int(union.get('referent').removeprefix('RBXSRC')))
+            native=byname.get(expected_native[source_id],[])
+            require(len(native)==1 and native[0].get('class')=='UnionOperation','Original native CSG missing/duplicate: '+source_id)
+            native=native[0]
+            require(not native.findall('Item'),'Native CSG retains exported descendants: '+source_id)
+            # Byte comparisons of opaque payload fields do not inspect geometry.
+            for field in union.findall('Properties/BinaryString')+union.findall('Properties/SharedString'):
+                other=native.find('Properties/*[@name="'+field.get('name')+'"]')
+                require(other is not None and other.tag==field.tag and other.text==field.text,'Original opaque CSG data differs: '+source_id)
         nodes+=entry['count']
+    dependency=catalog['nativeCSG'];require(dependency['nodes']==expected_native,'Native dependency manifest differs from original union membership')
+    native_folders=byname.get(dependency['folder'],[])
+    require(len(native_folders)==1 and native_folders[0].get('class')=='Folder','Encoded native dependency folder missing/duplicate')
+    require(native_folders[0].getparent().get('class')=='ReplicatedStorage','Native CSG folder is not replicated')
+    require({e.findtext('Properties/string[@name="Name"]') for e in native_folders[0].findall('Item')}==set(expected_native.values()),'Unexpected native presentation dependencies')
+    kohl=byname.get("Kohl's Admin Infinite",[])
+    require(len(kohl)==1 and kohl[0].get('class')=='Script' and kohl[0].getparent().get('class')=='ServerScriptService','Native Kohl loader hierarchy missing/duplicate')
+    require(kohl[0].findtext('Properties/bool[@name="Disabled"]')=='true','Native Kohl Credit must be started once by reviewed wrapper')
+    require('1868400649' in kohl[0].findtext('Properties/*[@name="Source"]',''),'Original Kohl dependency ID missing')
+    kohl_children={e.findtext('Properties/string[@name="Name"]'):e for e in kohl[0].findall('Item')}
+    require(set(kohl_children)=={'Settings','Custom Commands'} and all(e.get('class')=='ModuleScript' for e in kohl_children.values()),'Original Kohl settings/custom modules missing')
+    require('.commands(bridge)' in kohl_children['Custom Commands'].findtext('Properties/*[@name="Source"]',''),'Native game dummy command bridge missing')
+    require(manifest['dependencies']['avatar_content']==['cleanup','networking','state'] and 'avatar_content' in manifest['dependencies']['preload'],'Avatar content observer must initialize before resource warmup')
     require(len(catalog['animations'])==47,'Not all original KeyframeSequences exported')
     keyframes=poses=0
     for key,entry in catalog['animations'].items():
@@ -145,9 +171,10 @@ def validate(output):
     binary_types=binary_property_types(output/'Source/FunCombat_Original.rbxl',output/'funcombat_server.rbxl')
     return {'passed':True,'checks':['input checksum','manifest SHA256/Adler32/bytes','dependency DAG',
         'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates',
-        'asset hierarchy and internal refs','original costume CSG deserialization route','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
+        'asset hierarchy and internal refs','original costume native CSG dependencies and opaque payload fidelity','native original Kohl hierarchy and dummy command bridge','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
         'binaryPropertyTypes':binary_types,
         'spawnInitialization':spawn_setup,
+        'nativeOriginalCSGDependencies':len(expected_native),'originalKohlAssetId':1868400649,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),
         'geometryInspected':False,'robloxEngineTested':False,'legacyClientTested':False,

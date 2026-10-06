@@ -86,4 +86,34 @@ class BuilderTests(unittest.TestCase):
             self.assertTrue(result['passed'])
             self.assertEqual(result['propertiesCompared'],2)
 
+    def test_native_csg_dependency_preserves_original_data_without_children(self):
+        from types import SimpleNamespace
+        m=self.load()
+        source=E.fromstring(b'<Item class="UnionOperation" referent="Original"><Properties><string name="Name">OriginalPart</string><BinaryString name="OpaqueData">b3JpZ2luYWw=</BinaryString></Properties><Item class="Attachment" referent="OriginalChild"><Properties><string name="Name">Attachment</string></Properties></Item></Item>')
+        before=E.tostring(source);replicated=E.fromstring(b'<Item class="ReplicatedStorage" referent="Storage"><Properties/></Item>')
+        self.assertTrue(callable(getattr(m,'add_native_csg',None)), 'Builder lacks native original CSG dependency migration')
+        m.add_native_csg(SimpleNamespace(by={12:source}),replicated,{'folder':'EncodedDependency','nodes':{'12':'EncodedOriginalPart'}})
+        native=replicated.find('Item/Item')
+        self.assertEqual(native.get('class'),'UnionOperation')
+        self.assertEqual(native.findtext('Properties/BinaryString[@name="OpaqueData"]'),'b3JpZ2luYWw=')
+        self.assertEqual(native.findtext('Properties/string[@name="Name"]'),'EncodedOriginalPart')
+        self.assertEqual(native.findall('Item'),[])
+        self.assertNotEqual(native.get('referent'),'Original')
+        self.assertEqual(E.tostring(source),before)
+
+    def test_kohl_native_settings_and_commands_survive_migration(self):
+        from types import SimpleNamespace
+        m=self.load()
+        original=E.fromstring(b'<Item class="Script" referent="Credit"><Properties><string name="Name">Credit</string><ProtectedString name="Source">require(1868400649)</ProtectedString></Properties><Item class="ModuleScript" referent="Settings"><Properties><string name="Name">Settings</string><ProtectedString name="Source">return {Prefix=\":\",FreeAdmin=false}</ProtectedString></Properties></Item><Item class="ModuleScript" referent="Custom"><Properties><string name="Name">Custom Commands</string><ProtectedString name="Source">return {{{\"test\"},{\"Original command\"},6,{},function() end}}</ProtectedString></Properties></Item></Item>')
+        before=E.tostring(original);service=E.fromstring(b'<Item class="ServerScriptService" referent="Server"><Properties/></Item>')
+        self.assertTrue(callable(getattr(m,'add_kohl_admin',None)),'Original Kohl settings are not migrated')
+        native=m.add_kohl_admin(SimpleNamespace(by={6657:original}),service)
+        self.assertEqual(native.findtext('Properties/string[@name="Name"]'),"Kohl's Admin Infinite")
+        self.assertEqual(native.findtext('Properties/bool[@name="Disabled"]'),'true')
+        children={m.Source.name(e):e for e in native.findall('Item')}
+        self.assertEqual(children['Settings'].findtext('Properties/ProtectedString[@name="Source"]'),'return {Prefix=":",FreeAdmin=false}')
+        body=children['Custom Commands'].findtext('Properties/ProtectedString[@name="Source"]')
+        self.assertIn('"test"',body);self.assertIn('FunCombatDummy',body);self.assertIn('.commands(bridge)',body)
+        self.assertEqual(E.tostring(original),before)
+
 if __name__=='__main__':unittest.main()

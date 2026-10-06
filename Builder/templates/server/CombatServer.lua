@@ -10,7 +10,6 @@ local Timing=require(script.Parent.AnimationTiming)
 local Avatar=require(script.Parent.Avatar)
 local C={};C.__index=C
 local emotes={"Boston Breakdance","Flex","Rat","Akiyama","idk"}
-local adminNames={GuardianWorld=true,ghuisehgfrshdsrgsdd=true,Roblox_ovovo=true}
 local actionNames={"Equip","Swing","Dash","GetUp","Emote","Vote","Drop","Gender","Admin","SpawnDummy","SecretDoor","PairSpeed"}
 local eventIndex={State=1,Animation=2,StopAnimation=3,Sound=4,Effect=5,Damage=6,Subtitle=7,Awaken=8,Voting=9,Weather=10,Admin=11,Remove=12,Notice=13,Error=14,Pair=15}
 local function timeNow() return tick() end
@@ -443,8 +442,15 @@ function C:emote(r,name)
     r.emoting=true
     self:animation(r,key,loop,not index and not loop and 3 or nil);self:publish(r)
 end
+function C:adminAllowed(player)
+    return self.adminAccess~=nil and self.adminAccess:allowed(player)==true
+end
+function C:adminState(player)
+    local access=self.adminAccess and self.adminAccess:status() or {state="pending",error="Creator access has not initialized."}
+    return {allowed=self:adminAllowed(player),creator=access,kohl=self.kohl and self.kohl:status() or nil}
+end
 function C:admin(player,payload)
-    if not adminNames[player.Name] then self:emit("Admin",{allowed=false,error="Access denied"},player);return end
+    if not self:adminAllowed(player) then self:emit("Admin",{allowed=false,error="Only the published place owner can use this admin panel."},player);return end
     local matched={};local needle=payload.target:lower()
     for _,candidate in ipairs(Players:GetPlayers()) do
         if candidate.Name:lower()==needle then matched={candidate};break end
@@ -494,7 +500,7 @@ function C:getSnapshot(player)
     local now=timeNow();local gate=self.snapshotGates[player]
     if gate and now-gate.at<0.5 and gate.value then gate.value.clockTime=now;return gate.value end
     local result={version=self.protocol.config.version,buildId=self.protocol.config.buildId,serverTime=now,clockTime=now,ready=self.ready,states={},
-        voting=self.voting and self.voting:state(),weather=self.world and self.world:weatherState(),admin={allowed=adminNames[player.Name]==true}}
+        voting=self.voting and self.voting:state(),weather=self.world and self.world:weatherState(),admin=self:adminState(player)}
     for _,record in pairs(self.records) do result.states[#result.states+1]=self:public(record) end
     self.snapshotGates[player]={at=now,value=result}
     return result
@@ -584,13 +590,13 @@ function C:bindPlayer(player)
                     else spawnError="The original map is not initialized" end
                     if not placed then
                         initialRoot.Anchored=false
-                        self:emit("Error",{text=spawnError},player);warn("FunCombat spawn: "..spawnError)
+                        self:emit("Error",{text=spawnError,character=character,userId=player.UserId},player);warn("FunCombat spawn: "..spawnError)
                         return
                     end
                     local ok,ready,why=pcall(Avatar.prepare,player,character,humanoid)
                     if not ok then why="R6 preparation failed: "..tostring(ready);ready=false end
                     if why and player.Parent then
-                        self:emit("Error",{text=why},player);warn("FunCombat avatar: "..why)
+                        self:emit("Error",{text=why,character=character,userId=player.UserId},player);warn("FunCombat avatar: "..why)
                     end
                     if not player.Parent or player.Character~=character or not character.Parent then return end
                     local currentRoot=character:FindFirstChild("HumanoidRootPart")
@@ -601,7 +607,7 @@ function C:bindPlayer(player)
                     if currentRoot then currentRoot.Anchored=true end
                     local record,bindError=self:bind(character,player)
                     if currentRoot then currentRoot.Anchored=false end
-                    if not record then self:emit("Error",{text=bindError or "R6 gameplay binding failed"},player);return end
+                    if not record then self:emit("Error",{text=bindError or "R6 gameplay binding failed",character=character,userId=player.UserId},player);return end
                     if record and self.preserveStreak and self.preserveStreak[player] then
                         local streak=self.preserveStreak[player];self.preserveStreak[player]=nil
                         player.leaderstats.Killstreak.Value=streak
@@ -613,7 +619,7 @@ function C:bindPlayer(player)
                 wait(0.05)
             until timeNow()>=deadline
             local why="R6 character did not enter Workspace with Humanoid, HumanoidRootPart and Torso within 10 seconds"
-            self:emit("Error",{text=why},player)
+            self:emit("Error",{text=why,character=character,userId=player.UserId},player)
             warn("FunCombat character initialization: "..player.Name..": "..why)
         end)()
     end

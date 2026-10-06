@@ -47,6 +47,24 @@ return function(ctx)
     local skip = {ReadOnly = true, Parent = true, Name = true, Archivable = false, Origin = true, CFrame = false}
     local critical = {CFrame = true, Size = true, Position = true, MeshId = true, TextureId = true, TextureID = true, AnimationId = true, SoundId = true, Image = true, Color = true, Text = true}
 
+    function module:originalUnion(node, key)
+        local dependency = ctx.catalog.nativeCSG
+        local name = dependency and dependency.nodes and dependency.nodes[tostring(node.id)]
+        assert(name, "Original native UnionOperation dependency is missing from the catalog: " .. key .. "/" .. node.name)
+        local replicated = game:GetService("ReplicatedStorage")
+        local folder = replicated:FindFirstChild(dependency.folder) or replicated:WaitForChild(dependency.folder, ctx.config.Timeout)
+        assert(folder and folder:IsA("Folder"), "Original native CSG folder did not replicate within " .. ctx.config.Timeout
+            .. " seconds: ReplicatedStorage/" .. dependency.folder .. " (" .. key .. ")")
+        local template = folder:FindFirstChild(name) or folder:WaitForChild(name, ctx.config.Timeout)
+        assert(template and template:IsA("UnionOperation"), "Original UnionOperation did not replicate: ReplicatedStorage/"
+            .. dependency.folder .. "/" .. name .. " (" .. key .. "/" .. node.name .. ")")
+        local copy = assert(template:Clone(), "Original UnionOperation is not Archivable: " .. key .. "/" .. node.name)
+        -- Only opaque, original native CSG data comes from the server. All child
+        -- Instances, properties, joints and references are restored externally.
+        copy:ClearAllChildren()
+        return copy
+    end
+
     function module:construct(data, key)
         local byId, made, meshes = {}, {}, {}
         local ok, err = pcall(function()
@@ -68,7 +86,7 @@ return function(ctx)
                         warnOnce("mesh-fallback", "Using original MeshId geometry through SpecialMesh on this client; PBR SurfaceAppearance cannot be reproduced by that backend.")
                     end
                 elseif cls == "UnionOperation" then
-                    error("This asset requires model deserialization: " .. key .. ". JSON cannot recreate embedded CSG; no replacement geometry was created.")
+                    object = self:originalUnion(node, key)
                 else
                     local created, result = pcall(Instance.new, cls)
                     if created then object = result
@@ -169,7 +187,14 @@ return function(ctx)
                 local data=ctx.json(entry.path)
                 assert(not ctx.cleanup.dead,"Asset load cancelled: "..key)
                 assert(data.version==1 and #data.nodes==entry.count,"Invalid asset package: "..key)
-                if entry.backend=="model" then return self:deserialize(entry,key) end
+                if entry.backend=="model" then
+                    local dependencies=ctx.catalog.nativeCSG and ctx.catalog.nativeCSG.nodes
+                    local native=dependencies~=nil
+                    for _,node in ipairs(data.nodes) do
+                        if node.class=="UnionOperation" and not (dependencies and dependencies[tostring(node.id)]) then native=false end
+                    end
+                    if not native then return self:deserialize(entry,key) end
+                end
                 return self:construct(data,key)
             end)
             self.pending[key]=nil

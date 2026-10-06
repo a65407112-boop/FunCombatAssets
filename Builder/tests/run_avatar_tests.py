@@ -89,6 +89,17 @@ check('an unavailable head asset retains a playable R6 character with a specific
     assert(ready and c:FindFirstChild('Head')==old and why and why:find('12345') and why:find('asset access denied'),
         'Head failure was silent or prevented the R6 character from binding')
 end)
+check('appearance warnings persist for a client arriving after the original server Error',function()
+    local p,c,h=fixture(false)
+    local create=Players.CreateHumanoidModelFromDescription
+    Players.CreateHumanoidModelFromDescription=function() error('asset access denied') end
+    local ready,why=Avatar.prepare(p,c,h)
+    assert(ready and why and c:GetAttribute('FunCombatAvatarDiagnostic')==why,
+        'Late clients cannot recover the original head loading failure')
+    Players.CreateHumanoidModelFromDescription=create
+    assert(Avatar.prepare(p,c,h))
+    assert(c:GetAttribute('FunCombatAvatarDiagnostic')=='','A successful preparation retained a stale head warning')
+end)
 check('retained head trails keep valid references when a donor attachment replaces the old attachment',function()
     local p,c,h,old=fixture(false)
     local attachment=node('Attachment','HairAttachment');attachment.Parent=old
@@ -119,6 +130,7 @@ check('a slow isolated head request times out without locking gameplay',function
     Players.CreateHumanoidModelFromDescription=function(...) pending=coroutine.running();coroutine.yield();return create(...) end
     local ready,why=Avatar.prepare(p,c,h)
     assert(ready and why and now<=108.1,'Isolated head loading did not release initialization within its deadline')
+    assert(c:GetAttribute('FunCombatAvatarDiagnostic')==why,'Late clients cannot recover the original head timeout')
     assert(coroutine.resume(pending));assert(c:FindFirstChild('Head')==old and donor().destroyed,'Timed-out donor changed the bound body')
 end)
 check('user-ID dummies share the head adapter without requiring owner.Character to match',function()

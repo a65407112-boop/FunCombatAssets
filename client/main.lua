@@ -22,8 +22,11 @@ return function(ctx)
     if snapshot.weather then
         ctx.network:dispatch("Weather", type(snapshot.weather) == "table" and snapshot.weather or {name = snapshot.weather})
     end
+    scope:add(ctx.network:on("Error",function(data)
+        if ctx.network.reportError then ctx.network:reportError(data)
+        else ctx.report("Server: "..tostring(data.text or "unspecified error")) end
+    end))
     ctx.network:activate(snapshot.serverTime)
-    scope:add(ctx.network:on("Error",function(data) ctx.report("Server: "..tostring(data.text or "unspecified error")) end))
     scope:add(ctx.network:on("Notice",function(data)
         local root=ctx.gui.roots.yeah
         local label=root and root:FindFirstChild("TextLabel",true)
@@ -39,6 +42,7 @@ return function(ctx)
         if scope.dead then return end
         if ok then
             ctx.state:apply(result)
+            if result.admin then ctx.network:dispatch("Admin",result.admin) end
             if result.voting then ctx.network:dispatch("Voting",result.voting) end
             if result.weather then ctx.network:dispatch("Weather",result.weather) end
         else ctx.report("State refresh: "..tostring(result)) end

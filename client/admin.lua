@@ -1,4 +1,4 @@
--- Original Admin GUI; the server checks its original username allowlist on every command.
+-- Original Admin GUI; the server checks the actual published owner on every command.
 return function(ctx)
     local scope = ctx.cleanup:scope()
     local players = game:GetService("Players")
@@ -111,6 +111,8 @@ return function(ctx)
         allowed = data.allowed == true
         if not allowed and panelScope then panelScope:destroy() end
         if data.error then ctx.report("Admin: " .. tostring(data.error)) end
+        if data.creator and data.creator.error then ctx.report("Creator access: "..tostring(data.creator.error)) end
+        if data.kohl and data.kohl.error then ctx.report("Original Kohl's Admin: "..tostring(data.kohl.error)) end
         show()
     end))
     function module:destroy() scope:destroy() end

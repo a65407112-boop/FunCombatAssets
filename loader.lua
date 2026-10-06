@@ -14,6 +14,11 @@ local CONFIG = {
 assert(type(loadstring) == "function", "Fun Combat requires an executor with loadstring")
 local environment = (type(getgenv) == "function" and getgenv()) or _G
 local slot = "FunCombat_ExternalRuntime"
+local errorSlot = slot .. "_ErrorGUI"
+if environment[errorSlot] then
+    pcall(function() environment[errorSlot]:Destroy() end)
+    environment[errorSlot] = nil
+end
 local previous = environment[slot]
 if type(previous) == "table" then
     previous.cancelled = true
@@ -21,6 +26,51 @@ if type(previous) == "table" then
 end
 local ctx = {config = CONFIG, modules = {}, loading = {}, cancelled = false, reports = {}, files = {}, started=tick()}
 environment[slot] = ctx
+-- Bootstrap failures cannot depend on downloading an external UI module.
+-- Keep the full error selectable and scrollable even before manifest loading.
+local function showFailure(message)
+    local gui
+    local ok = pcall(function()
+        local player=game:GetService("Players").LocalPlayer
+        local parent=player and player:FindFirstChildOfClass("PlayerGui")
+        if not parent then parent=game:GetService("CoreGui") end
+        gui=Instance.new("ScreenGui");gui.Name="FunCombat_LoadError";gui.ResetOnSpawn=false
+        local frame=Instance.new("Frame");frame.Name="Error";frame.Size=UDim2.new(0.8,0,0.65,0)
+        frame.Position=UDim2.new(0.1,0,0.15,0);frame.BackgroundColor3=Color3.fromRGB(24,24,30);frame.Parent=gui
+        local title=Instance.new("TextLabel");title.Size=UDim2.new(1,-110,0,36);title.Position=UDim2.new(0,12,0,0)
+        title.BackgroundTransparency=1;title.Text="Fun Combat could not initialize";title.TextColor3=Color3.fromRGB(255,220,220)
+        title.Font=Enum.Font.SourceSansBold;title.TextSize=20;title.TextXAlignment=Enum.TextXAlignment.Left;title.Parent=frame
+        local close=Instance.new("TextButton");close.Name="Close";close.Text="Close";close.Size=UDim2.new(0,70,0,28)
+        close.Position=UDim2.new(1,-82,0,4);close.Parent=frame
+        close.MouseButton1Click:Connect(function()
+            if environment[errorSlot]==gui then environment[errorSlot]=nil end
+            gui:Destroy()
+        end)
+        local scroll=Instance.new("ScrollingFrame");scroll.Size=UDim2.new(1,-24,1,-84)
+        scroll.Position=UDim2.new(0,12,0,40);scroll.BackgroundTransparency=1;scroll.BorderSizePixel=0;scroll.Parent=frame
+        local text=Instance.new("TextBox");text.Name="Details";text.Text=message;text.ClearTextOnFocus=false
+        text.MultiLine=true;text.TextWrapped=true;text.BackgroundTransparency=1;text.TextColor3=Color3.fromRGB(245,245,245)
+        text.Font=Enum.Font.Code;text.TextSize=14;text.TextXAlignment=Enum.TextXAlignment.Left;text.TextYAlignment=Enum.TextYAlignment.Top
+        pcall(function() text.TextEditable=false end)
+        text.Parent=scroll
+        local function size()
+            local height=40+math.ceil(#message/35)*20
+            pcall(function()
+                height=game:GetService("TextService"):GetTextSize(message,14,Enum.Font.Code,
+                    Vector2.new(math.max(180,scroll.AbsoluteSize.X-20),1000000)).Y+24
+            end)
+            text.Size=UDim2.new(1,-20,0,height);scroll.CanvasSize=UDim2.new(0,0,0,height)
+        end
+        scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(size)
+        if type(setclipboard)=="function" then
+            local copy=Instance.new("TextButton");copy.Name="Copy";copy.Text="Copy full error";copy.Size=UDim2.new(0,160,0,28)
+            copy.Position=UDim2.new(0,12,1,-36);copy.Parent=frame
+            copy.MouseButton1Click:Connect(function() pcall(setclipboard,message) end)
+        end
+        gui.Parent=parent;size();environment[errorSlot]=gui
+    end)
+    if not ok and gui then gui:Destroy() end
+end
 function ctx:destroy()
     self.cancelled = true
     if self.cleanup then self.cleanup:destroy() end
@@ -127,9 +177,14 @@ local ok, failure = pcall(function()
     print("[Fun Combat] External combat runtime initialized. Engine asset warnings, if any, are above.")
 end)
 if not ok then
+    local current=environment[slot]==ctx
     ctx:destroy()
     local message = "[Fun Combat] Initialization failed: " .. tostring(failure)
-    pcall(function() game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Fun Combat", Text = message, Duration = 12}) end)
+    warn(message)
+    if current then
+        showFailure(message)
+        pcall(function() game:GetService("StarterGui"):SetCore("SendNotification", {Title = "Fun Combat", Text = "Initialization failed. The full error is in the error window and console.", Duration = 12}) end)
+    end
     error(message)
 end
 return ctx

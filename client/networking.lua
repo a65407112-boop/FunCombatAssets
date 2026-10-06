@@ -24,11 +24,34 @@ return function(ctx)
     assert(build.Value==ctx.manifest.buildId and build.Value==protocol.buildId,"Server and GitHub build IDs differ: install the matching server file")
     local events={};for name,id in pairs(protocol.eventIds) do events[id]=name end
     local module={}
+    local reportedErrors=setmetatable({},{__mode="k"})
+    local removedCharacters=setmetatable({},{__mode="k"})
+    function module:reportError(data)
+        if scope.dead or ctx.cancelled then return false end
+        local character=data.character
+        if character and (typeof(character)~="Instance" or not character.Parent or removedCharacters[character]) then return false end
+        local player=game:GetService("Players").LocalPlayer
+        if not player or not player.Parent then return false end
+        if data.userId then
+            if data.userId~=player.UserId
+                or (character and character~=player.Character) then return false end
+        end
+        local key=character or self
+        local text=tostring(data.text or "unspecified error")
+        local seen=reportedErrors[key]
+        if not seen then seen={};reportedErrors[key]=seen end
+        if seen[text] then return false end
+        seen[text]=true
+        ctx.report("Server: "..text)
+        return true
+    end
     function module:on(kind,callback)
         listeners[kind]=listeners[kind] or {};local group=listeners[kind];group[callback]=true
         return function() group[callback]=nil end
     end
     function module:dispatch(kind,data)
+        if kind=="Remove" and data.character then removedCharacters[data.character]=true end
+        if kind=="Error" and not self:reportError(data) then return end
         for callback in pairs(listeners[kind] or {}) do
             local ok,why=pcall(callback,data)
             if not ok then ctx.report("Presentation "..tostring(kind)..": "..tostring(why)) end
@@ -37,7 +60,10 @@ return function(ctx)
     scope:add(event.OnClientEvent:Connect(function(id,data)
         local kind=events[id]
         if kind and type(data)=="table" then
-            if active then if (data.serverTime or math.huge)>snapshotTime then module:dispatch(kind,data) end
+            -- A snapshot replaces state, but cannot replace a loading error.
+            -- Report diagnostics immediately even while resource warm-up runs.
+            if kind=="Error" then module:dispatch(kind,data)
+            elseif active then if (data.serverTime or math.huge)>snapshotTime then module:dispatch(kind,data) end
             else
                 if #queue>=2048 then table.remove(queue,1);ctx.report("Bootstrap event buffer overflow; refreshing from server state") end
                 queue[#queue+1]={kind,data}

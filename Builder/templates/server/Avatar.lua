@@ -124,6 +124,12 @@ end
 local function prepare(player,character,humanoid,userId,playerCharacter)
     local done,safeToBind,complete,cancelled=false,true,false,false
     local failure,phase=nil,"Avatar description"
+    local function diagnostic(message)
+        -- The external client can arrive after the initialization Error event.
+        -- Keep that same message on the actual character for late observers.
+        pcall(function() character:SetAttribute("FunCombatAvatarDiagnostic",message or "") end)
+    end
+    diagnostic(nil)
     local function valid()
         return not cancelled and player.Parent and character.Parent and humanoid.Health>0
             and (not playerCharacter or player.Character==character)
@@ -162,9 +168,12 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
         -- A late isolated donor/fetch cannot mutate an already bound body.
         -- An engine ApplyDescription still in flight must finish on a discarded
         -- character, since its engine side effects cannot be cancelled by Luau.
-        return safeToBind,phase.." timed out after 8 seconds; "
+        local message=phase.." timed out after 8 seconds; "
             ..(safeToBind and "the existing R6 appearance is retained" or "the character must be reinitialized")
+        diagnostic(message)
+        return safeToBind,message
     end
+    diagnostic(failure)
     return complete,failure
 end
 function A.prepare(player,character,humanoid)

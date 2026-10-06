@@ -107,13 +107,17 @@ function W:dummy(player,userId)
     local allowed=workspace:FindFirstChild("Configuration")
     allowed=allowed and allowed:FindFirstChild("AllowDummys")
     local r=self.combat.players[player]
-    if not allowed or not allowed.Value or not Policy.free(self.combat:view(r)) then return end
-    if clock()<(self.dummyCooldown[player] or 0) then return end
+    if not allowed or not allowed.Value then return false,"Dummy spawning is disabled in this place." end
+    if not Policy.free(self.combat:view(r)) then return false,"Your character must be alive and free to spawn a dummy." end
+    if clock()<(self.dummyCooldown[player] or 0) then return false,"Dummy cooldown: wait 3 seconds between requests." end
     local all,owned=0,0
     for model,sender in pairs(self.combat.dummyOwners) do
         if model.Parent then all=all+1;if sender==player then owned=owned+1 end end
     end
-    if all>=20 or owned>=4 then self.combat:emit("Error",{text="Dummy limit: 4 per player, 20 per server"},player);return end
+    if all>=20 or owned>=4 then
+        local why="Dummy limit: 4 per player, 20 per server"
+        self.combat:emit("Error",{text=why},player);return false,why
+    end
     self.dummyCooldown[player]=clock()+3
     local model=self.templates.DummyRig:Clone()
     model.Name="Rig";model.Parent=workspace
@@ -126,7 +130,7 @@ function W:dummy(player,userId)
             root.Anchored=true
             local hum=model:FindFirstChildOfClass("Humanoid")
             local ready,why=Avatar.prepareDummy(player,model,hum,userId)
-            if why and player.Parent then self.combat:emit("Error",{text=why},player) end
+            if why and player.Parent then self.combat:emit("Error",{text=why,character=model},player) end
             if ready and model.Parent then
                 name=tostring(userId)
                 thread(function()
@@ -141,6 +145,7 @@ function W:dummy(player,userId)
         local record=self.combat:bind(model,nil,name)
         if not record then self.combat.dummyOwners[model]=nil;model:Destroy();self.combat:emit("Error",{text="Original dummy rig could not initialize as R6"},player) end
     end)
+    return true,"Dummy spawn accepted."
 end
 function W:playerRemoved(player)
     self.dummyCooldown[player]=nil

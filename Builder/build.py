@@ -56,6 +56,41 @@ def instance(cls,name):
     E.SubElement(element,'Properties');set_property(element,'Name','string',name)
     return element
 
+def add_native_csg(source,replicated,dependency):
+    """Retain opaque original unions needed when local model loading is absent."""
+    folder=instance('Folder',dependency['folder'])
+    for source_id,name in sorted(dependency['nodes'].items()):
+        original=source.by[int(source_id)]
+        if original.get('class')!='UnionOperation':raise ValueError('Native CSG dependency is not an original UnionOperation: '+source_id)
+        native=copy.deepcopy(original)
+        for child in native.findall('Item'):native.remove(child)
+        native.set('referent',instance('UnionOperation',name).get('referent'))
+        set_property(native,'Name','string',name)
+        set_property(native,'Archivable','bool','true')
+        folder.append(native)
+    replicated.append(folder)
+
+def add_kohl_admin(source,service):
+    """Restore the original native legacy loader settings and extend its commands."""
+    credit=copy.deepcopy(source.by[6657])
+    if credit.get('class')!='Script':raise ValueError('Original Kohl Credit Script is missing')
+    set_property(credit,'Name','string',"Kohl's Admin Infinite")
+    # Main starts the verified require itself, with a deadline and status. The
+    # native Script is retained for classic KAI's actual configuration lookup.
+    set_property(credit,'Disabled','bool','true')
+    custom=next((e for e in credit.findall('Item') if Source.name(e)=='Custom Commands'),None)
+    settings=next((e for e in credit.findall('Item') if Source.name(e)=='Settings'),None)
+    if custom is None or settings is None:raise ValueError('Original Kohl configuration is missing')
+    original=custom.findtext('Properties/*[@name="Source"]','')
+    body='local original=(function()\n'+original+'\nend)()\n'
+    body+='local bridge=assert(script.Parent:WaitForChild("FunCombatDummy",10),"FunCombat dummy bridge is missing.")\n'
+    body+='local runtime=assert(game:GetService("ServerScriptService"):WaitForChild("FunCombatServer",10),"FunCombat server is missing.")\n'
+    body+='local commands=require(assert(runtime:WaitForChild("KohlAdmin",10),"KohlAdmin integration is missing.")).commands(bridge)\n'
+    body+='for _,command in ipairs(commands) do original[#original+1]=command end\nreturn original\n'
+    set_property(custom,'Source','ProtectedString',body)
+    service.append(credit)
+    return credit
+
 def xml_document(source,item):
     root=E.Element('roblox',{'version':'4'})
     E.SubElement(root,'External').text='null';E.SubElement(root,'External').text='nil'
@@ -100,6 +135,7 @@ def export(source,repo):
             if key not in catalog['animations']:
                 stem=re.sub(r'[^A-Za-z0-9_]+','_',key)+'_'+code_id('animation',key)[:8]
                 catalog['animations'][key]={'sourceId':i,'path':'assets/animations/'+stem+'.json'}
+    native_nodes={}
     for key,entry in sorted(catalog['packages'].items()):
         if key in additions:
             wanted={n['id'] for n in package(source,entry['sourceId'])['nodes']}
@@ -123,6 +159,8 @@ def export(source,repo):
         (repo/entry['modelPath']).write_bytes(xml_document(source,item))
         entry['count']=len(data['nodes']);entry['sha256']=sha(repo/entry['path'])
         entry['backend']='model' if any(n['class']=='UnionOperation' for n in data['nodes']) else 'instances'
+        for node in data['nodes']:
+            if node['class']=='UnionOperation':native_nodes[str(node['id'])]=code_id('original-csg',str(node['id']))
     timing={}
     for key,entry in sorted(catalog['animations'].items()):
         data=animation(source,entry['sourceId'])
@@ -144,6 +182,7 @@ def export(source,repo):
         path=repo/'source/external'/(label+'.rbxmx');path.parent.mkdir(parents=True,exist_ok=True)
         path.write_bytes(xml_document(source,source.by[i]))
     catalog['costumes']=['LowerRig','TorsoRig']
+    catalog['nativeCSG']={'folder':code_id('native-dependency','original-csg'),'nodes':native_nodes}
     catalog['sourceSha256']=source.sha;dump(repo/'config/assets.json',catalog)
     return catalog,timing
 
@@ -182,6 +221,9 @@ def build_place(source,repo,output,timing):
         if e.get('class') in SCRIPT_CLASSES|ORPHAN_NETWORK_CLASSES:
             parent=e.getparent()
             if parent is not None:parent.remove(e)
+    catalog=json.loads((repo/'config/assets.json').read_text())
+    add_native_csg(source,by[7303],catalog['nativeCSG'])
+    kohl=add_kohl_admin(source,by[78221])
     # Preserve original map/CSG/Terrain and physics. No mesh or geometry probing.
     strip_rig(by[6664])
     starter=tree.find('Item[@class="StarterPlayer"]')
@@ -252,6 +294,7 @@ def build_place(source,repo,output,timing):
     seed=source.sha+'\nserialization='+str(SERIALIZATION_VERSION)+'\n'+''.join(k+v for k,v in sorted(generated.items()))
     seed+=''.join(p.relative_to(repo).as_posix()+p.read_text(encoding='utf8') for p in sorted((repo/'client').glob('*.lua')))
     seed+=(repo/'config/assets.json').read_text()+(repo/'config/outfits.json').read_text()
+    seed+=''.join(e.findtext('Properties/*[@name="Source"]','') for e in kohl.iter('Item'))
     seed+=lua([VERSION,ACTIONS,EVENTS,prompt_names,map_prompt_names])
     build_id=hashlib.sha256(seed.encode()).hexdigest()[:24]
     names=[code_id('network',x[0]) for x in NETWORK]
@@ -264,7 +307,7 @@ def build_place(source,repo,output,timing):
         'actions':{'Equip':'allowlisted original name, or empty string','Swing':'no payload','Dash':'optional {direction:Vector3}',
             'GetUp':'one recovery input; server requires 20 accepted inputs and health >= 50%',
             'Emote':'original name/index or Stop','Vote':'allowlisted current candidate','Drop':'owned carry only',
-            'Gender':'Male/Female/Fembxy for requester','Admin':'original admin allowlist; unambiguous username',
+            'Gender':'Male/Female/Fembxy for requester','Admin':'published place owner UserId only; unambiguous username',
             'SpawnDummy':'optional positive integer userId; 3s cooldown, 4/player, 20/server','SecretDoor':'original Crossroads command',
             'PairSpeed':'no payload; server checks owned interaction, phase and meter thresholds'},
         'prompts':dict(zip(prompt_keys,prompt_names)),
@@ -322,7 +365,10 @@ def seal_manifest(repo,protocol):
     manifest['scope']='Original source resources, combat, costumes and paired interactions; authoritative server adaptation.'
     manifest['project']='FunCombat_ExecutorSide_Combat'
     if 'preload' not in manifest['modules']:manifest['modules'].insert(manifest['modules'].index('characters'),'preload')
-    manifest['dependencies']['preload']=['cleanup','assets','networking','animations']
+    if 'avatar_content' in manifest['modules']:manifest['modules'].remove('avatar_content')
+    manifest['modules'].insert(manifest['modules'].index('preload'),'avatar_content')
+    manifest['dependencies']['avatar_content']=['cleanup','networking','state']
+    manifest['dependencies']['preload']=['cleanup','assets','networking','animations','avatar_content']
     for name in ('characters','combat'):
         if 'preload' not in manifest['dependencies'][name]:manifest['dependencies'][name].append('preload')
     if 'pair' not in manifest['modules']:manifest['modules'].insert(manifest['modules'].index('main'),'pair')
