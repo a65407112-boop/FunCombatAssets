@@ -1,6 +1,6 @@
 -- Manually run this separate script, including after a failed loader.
--- It performs finite local reads only: no network, waits, preload, geometry,
--- replacement resources or avatar edits. The loader need not be running.
+-- It reads a finite local snapshot and shows a selectable report with Copy.
+-- No network, waits, preload, geometry or avatar edits. No live loader needed.
 local MAX_NODES,MAX_LOG_SCAN,MAX_LOG_MESSAGES,MAX_TEXT=64,200,20,8192
 local function unavailable(why) return {unavailable=tostring(why)} end
 local function service(name)
@@ -238,5 +238,83 @@ if not ok then
     text="JSON unavailable: "..tostring(text).."; "..format(report,0)
 end
 pcall(function() environment.FunCombatDiagnostics=report;environment.FunCombatDiagnosticsText=text end)
-warn("[Fun Combat Diagnostics] "..text)
+local gui
+local shown,uiError=pcall(function()
+    local old=environment.FunCombatDiagnosticsGUI
+    if old then pcall(function() old:Destroy() end) end
+    environment.FunCombatDiagnosticsGUI=nil
+    gui=Instance.new("ScreenGui");gui.Name="FunCombat_Diagnostics";gui.ResetOnSpawn=false
+    pcall(function() gui.DisplayOrder=100000 end)
+    local frame=Instance.new("Frame");frame.Name="Report";frame.Size=UDim2.new(0.9,0,0.8,0)
+    frame.Position=UDim2.new(0.05,0,0.1,0);frame.BackgroundColor3=Color3.fromRGB(24,24,30)
+    frame.BorderSizePixel=0;frame.Parent=gui
+    local title=Instance.new("TextLabel");title.Name="Title";title.Text="Fun Combat diagnostics"
+    title.Size=UDim2.new(1,-100,0,40);title.Position=UDim2.new(0,12,0,0);title.BackgroundTransparency=1
+    title.TextColor3=Color3.fromRGB(245,245,245);title.Font=Enum.Font.SourceSansBold;title.TextSize=20
+    title.TextXAlignment=Enum.TextXAlignment.Left;title.Parent=frame
+    local close=Instance.new("TextButton");close.Name="Close";close.Text="Close";close.Size=UDim2.new(0,72,0,28)
+    close.Position=UDim2.new(1,-84,0,6);close.Parent=frame
+    close.MouseButton1Click:Connect(function()
+        if environment.FunCombatDiagnosticsGUI==gui then environment.FunCombatDiagnosticsGUI=nil end
+        gui:Destroy()
+    end)
+    local scroll=Instance.new("ScrollingFrame");scroll.Name="Scroll";scroll.Size=UDim2.new(1,-24,1,-116)
+    scroll.Position=UDim2.new(0,12,0,42);scroll.BackgroundTransparency=1;scroll.BorderSizePixel=0;scroll.Parent=frame
+    local details=Instance.new("TextBox");details.Name="Details";details.Text=text;details.ClearTextOnFocus=false
+    details.MultiLine=true;details.TextWrapped=true;details.BackgroundTransparency=1
+    details.TextColor3=Color3.fromRGB(240,240,245);details.Font=Enum.Font.SourceSans;details.TextSize=16
+    details.TextXAlignment=Enum.TextXAlignment.Left;details.TextYAlignment=Enum.TextYAlignment.Top;details.Parent=scroll
+    local function resize()
+        local height=40+math.ceil(#text/35)*20
+        pcall(function()
+            height=game:GetService("TextService"):GetTextSize(text,16,Enum.Font.SourceSans,
+                Vector2.new(math.max(180,scroll.AbsoluteSize.X-20),1000000)).Y+24
+        end)
+        details.Size=UDim2.new(1,-20,0,height);scroll.CanvasSize=UDim2.new(0,0,0,height)
+    end
+    scroll:GetPropertyChangedSignal("AbsoluteSize"):Connect(resize)
+    local status=Instance.new("TextLabel");status.Name="Status";status.Text="Copy the report and send it in chat."
+    status.Size=UDim2.new(1,-190,0,62);status.Position=UDim2.new(0,180,1,-68);status.BackgroundTransparency=1
+    status.TextWrapped=true;status.TextColor3=Color3.fromRGB(215,215,225);status.Font=Enum.Font.SourceSans
+    status.TextSize=15;status.TextXAlignment=Enum.TextXAlignment.Left;status.Parent=frame
+    local copy=Instance.new("TextButton");copy.Name="Copy";copy.Text="Copy report";copy.Size=UDim2.new(0,156,0,34)
+    copy.Position=UDim2.new(0,12,1,-56);copy.Font=Enum.Font.SourceSansBold;copy.TextSize=18;copy.Parent=frame
+    copy.MouseButton1Click:Connect(function()
+        if environment.FunCombatDiagnosticsGUI~=gui then return end
+        local clipboard=setclipboard
+        if type(clipboard)~="function" then clipboard=toclipboard end
+        if type(clipboard)~="function" and type(syn)=="table" then clipboard=syn.write_clipboard end
+        local copied,why=false,nil
+        if type(clipboard)=="function" then copied,why=pcall(clipboard,text) end
+        if copied then
+            status.Text="Copied. Paste the report into chat.";copy.Text="Copy again"
+        else
+            details.Text=text
+            local selected=pcall(function()
+                details:CaptureFocus();details.SelectionStart=1;details.CursorPosition=#text+1
+            end)
+            local hint=selected and "Selected report: Ctrl+C, or long-press Copy on mobile."
+                or "Click the report, then Ctrl+A and Ctrl+C (long-press Copy on mobile)."
+            status.Text=why and "Clipboard failed: "..tostring(why):sub(1,180)..". "..hint or "Clipboard unavailable. "..hint
+        end
+    end)
+    local parents={}
+    local playerGui=find(player,"PlayerGui",true)
+    if playerGui then parents[#parents+1]=playerGui end
+    if type(gethui)=="function" then
+        local ok,parent=pcall(gethui);if ok and parent then parents[#parents+1]=parent end
+    end
+    local core=service("CoreGui");if core then parents[#parents+1]=core end
+    local lastError="No permitted GUI container is available"
+    local mounted=false
+    for _,parent in ipairs(parents) do
+        local ok,why=pcall(function() gui.Parent=parent end)
+        if ok then mounted=true;break else lastError=tostring(why) end
+    end
+    assert(mounted,lastError)
+    resize();environment.FunCombatDiagnosticsGUI=gui
+end)
+if not shown and gui then pcall(function() gui:Destroy() end) end
+pcall(function() environment.FunCombatDiagnosticsUIError=not shown and tostring(uiError) or nil end)
+warn("[Fun Combat Diagnostics] "..text..(not shown and "\nDiagnostic window unavailable: "..tostring(uiError) or ""))
 return text

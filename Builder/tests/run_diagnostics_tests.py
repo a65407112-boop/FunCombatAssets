@@ -14,6 +14,12 @@ parser.add_argument('--luau', required=True)
 args = parser.parse_args()
 header = r'''
 local services,environment,warnings,reads,fetches
+local setclipboard,gethui,clipboardText
+local function signal()
+    local callbacks={}
+    return {Connect=function(_,callback) callbacks[#callbacks+1]=callback;return {Disconnect=function() end} end,
+        Fire=function(_,...) for _,callback in ipairs(callbacks) do callback(...) end end}
+end
 local function typeof(value) return type(value)=='table' and value.kind or type(value) end
 local function getgenv() return environment end
 local function warn(message) warnings[#warnings+1]=message end
@@ -34,6 +40,15 @@ local function node(class,name)
         return methods[key] or props[key]
     end,__newindex=function(_,key,value)
         assert(not props.readOnly,'Diagnostic wrote the actual appearance property '..key)
+        if props.isDiagnosticUI and key=='Parent' then
+            if props.Parent and props.Parent.children then
+                for i=#props.Parent.children,1,-1 do if props.Parent.children[i]==object then table.remove(props.Parent.children,i) end end
+            end
+            if value then
+                assert(not value.props.denyUI,'UI parenting denied')
+                value.children[#value.children+1]=object
+            end
+        end
         props[key]=value
     end})
 end
@@ -48,7 +63,26 @@ end
 function methods:FindFirstChildOfClass(class) for _,child in ipairs(self.children) do if child:IsA(class) then return child end end end
 function methods:GetAttributes() return self.attributes end
 function methods:GetAttribute(name) return self.attributes[name] end
-function methods:Destroy() assert(self.ClassName=='HumanoidDescription','Diagnostic destroyed a real avatar instance');self.props.destroyed=true end
+function methods:Destroy()
+    assert(self.ClassName=='HumanoidDescription' or self.props.isDiagnosticUI,'Diagnostic destroyed a real avatar instance')
+    if self.props.isDiagnosticUI then for _,child in ipairs(self:GetChildren()) do child:Destroy() end;self.Parent=nil end
+    self.props.destroyed=true
+end
+function methods:CaptureFocus() assert(self.ClassName=='TextBox');self.props.focused=true end
+function methods:GetPropertyChangedSignal(name)
+    self.props.changes=self.props.changes or {};self.props.changes[name]=self.props.changes[name] or signal();return self.props.changes[name]
+end
+local Instance={new=function(class)
+    local object=node(class);object.props.isDiagnosticUI=true
+    if class=='TextButton' then object.MouseButton1Click=signal() end
+    if class=='ScrollingFrame' then object.AbsoluteSize={X=800,Y=400} end
+    return object
+end}
+local UDim2={new=function(...) return {...} end}
+local Color3={fromRGB=function(...) return {...} end}
+local Vector2={new=function(x,y) return {X=x,Y=y} end}
+local Enum={Font={SourceSans='SourceSans',SourceSansBold='SourceSansBold',Code='Code'},
+    TextXAlignment={Left='Left'},TextYAlignment={Top='Top'}}
 local function append(parent,child) parent.children[#parent.children+1]=child;child.Parent=parent;return child end
 local function color(value) return {kind='Color3',R=value,G=value,B=value} end
 local function content(uri,object)
@@ -74,7 +108,7 @@ local function validate(value,seen)
     end
 end
 local function fixture(empty)
-    environment={};warnings={};reads={};fetches={}
+    environment={};warnings={};reads={};fetches={};setclipboard=nil;gethui=nil;clipboardText=nil
     local player=node('Player','ActualAccount');player.UserId=11556197791;player.Parent=true
     player.attributes={FunCombatAdminAllowed=true,FunCombatAdminSource='configuredOwner',FunCombatCreatorUserId=998877,
         FunCombatConfiguredOwnerUserId=11556197791,FunCombatAdminState='ready',UnrelatedAttribute='omit'}
@@ -103,6 +137,20 @@ local function fixture(empty)
     return player,character,head,description,admins
 end
 local function run() local result=runDiagnostics();assert(type(result)=='string' and #warnings==1,'Standalone chunk did not print and return its report');return environment.FunCombatDiagnostics end
+local function uiFixture()
+    local player,character,head=fixture()
+    local parent=append(player,node('PlayerGui'))
+    services.TextService={GetTextSize=function() return {X=700,Y=1200} end}
+    return player,character,head,parent
+end
+local function window()
+    local gui=environment.FunCombatDiagnosticsGUI
+    assert(gui and gui.Parent,'Diagnostic did not show a window without console access')
+    local details=assert(gui:FindFirstChild('Details',true),'Report is not selectable')
+    local copy=assert(gui:FindFirstChild('Copy',true),'Copy report button is missing')
+    local status=assert(gui:FindFirstChild('Status',true),'Copy result is not visible')
+    return gui,details,copy,status
+end
 local function has(list,text) for _,entry in ipairs(list or {}) do if tostring(entry.message or entry):find(text,1,true) then return true end end end
 local failures,total={},0
 local function check(name,fn)
@@ -186,6 +234,35 @@ check('classic decals are captured and head tree/log reads have finite caps',fun
     assert(entry.class=='Decal' and entry.properties.Texture=='rbxassetid://9001','Classic face was lost')
     assert(report.head.truncated and #report.loadMessages<=20 and has(report.loadMessages,'700'),'Bounded reads lost newest errors or inspected the whole history/tree')
     assert(#fetches<=16,'Finite head data multiplied hosted status requests')
+end)
+check('report opens without console and Copy sends the exact snapshot to clipboard',function()
+    local _,_,head,parent=uiFixture();head.props.readOnly=true
+    setclipboard=function(text) clipboardText=text end
+    run();local gui,details,copy,status=window()
+    assert(gui.Parent==parent and details.Text==environment.FunCombatDiagnosticsText,'Window displayed a different snapshot')
+    details.Text='Edited display only';copy.MouseButton1Click:Fire()
+    assert(clipboardText==environment.FunCombatDiagnosticsText,'Copy button copied altered or incomplete data')
+    assert(status.Text:find('Copied',1,true),'Successful copying was not confirmed on screen')
+end)
+check('unsupported clipboard keeps Copy and selects the complete report for manual copying',function()
+    uiFixture();run();local _,details,copy,status=window();copy.MouseButton1Click:Fire()
+    assert(details.props.focused and details.SelectionStart==1 and details.CursorPosition==#environment.FunCombatDiagnosticsText+1,'Manual fallback did not select the full report')
+    assert(status.Text:find('Ctrl',1,true) and not status.Text:find('Copied',1,true),'Missing clipboard was falsely reported as copied')
+end)
+check('clipboard rejection is visible and preserves manual copying',function()
+    uiFixture();setclipboard=function() error('clipboard denied by executor') end
+    run();local _,details,copy,status=window();copy.MouseButton1Click:Fire()
+    assert(status.Text:find('clipboard denied',1,true) and details.props.focused,'Clipboard failure lost the exact error or manual fallback')
+end)
+check('rerun replaces only its previous window and Close releases the diagnostic GUI',function()
+    local _,character,head=uiFixture();run();local old=window();warnings={};run();local gui=window()
+    assert(old.props.destroyed and gui~=old and not head.props.destroyed,'Rerun leaked a window or touched the avatar')
+    local close=assert(gui:FindFirstChild('Close',true));close.MouseButton1Click:Fire()
+    assert(gui.props.destroyed and environment.FunCombatDiagnosticsGUI==nil and character.Parent,'Close damaged gameplay or retained its GUI')
+end)
+check('absent PlayerGui uses an available executor GUI container',function()
+    fixture();local parent=node('Folder','ExecutorUI');gethui=function() return parent end
+    run();local gui=window();assert(gui.Parent==parent,'Standalone UI required a live loader or console')
 end)
 assert(#failures==0,table.concat(failures,'\n'))
 print('Standalone diagnostic regression scenarios passed: '..total)
