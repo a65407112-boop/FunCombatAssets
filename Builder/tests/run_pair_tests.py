@@ -1,5 +1,6 @@
 """Original morph/effect lifecycle checks, without geometry or Roblox physics."""
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -8,9 +9,38 @@ ROOT = Path(__file__).resolve().parents[2]
 parser = argparse.ArgumentParser()
 parser.add_argument('--luau', required=True)
 args = parser.parse_args()
+
+def lua(value):
+    if value is None:
+        return 'nil'
+    if isinstance(value, bool):
+        return 'true' if value else 'false'
+    if isinstance(value, (int, float)):
+        return repr(value)
+    if isinstance(value, str):
+        return json.dumps(value)
+    if isinstance(value, list):
+        return '{' + ','.join(lua(item) for item in value) + '}'
+    if isinstance(value, dict):
+        return '{' + ','.join('[' + lua(key) + ']=' + lua(item) for key, item in value.items()) + '}'
+    raise TypeError(type(value))
+
+# Authored property/reference metadata only; no vertices, mesh payloads, bounds
+# extraction or rendering. The actual pair factory consumes these API doubles.
+catalog = json.loads((ROOT / 'config/assets.json').read_text())
+keys = {'CFrame', 'Size', 'Transparency', 'Scale', 'C0', 'C1', 'Part0', 'Part1',
+        'Color', 'Texture', 'Enabled', 'Anchored', 'CanCollide'}
+originals = {}
+for name in ['TorsoRig', 'LowerRig']:
+    data = json.loads((ROOT / catalog['packages']['costumes/' + name]['path']).read_text())
+    originals[name] = {'root': data['root'], 'nodes': [
+        {'id': node['id'], 'class': node['class'], 'name': node['name'], 'parent': node.get('parent'),
+         'properties': {key: value for key, value in node['properties'].items() if key in keys}}
+        for node in data['nodes']]}
 code = 'local cleanupFactory, animationsFactory\n' + (ROOT / 'Builder/tests/presentation_runtime.spec.luau').read_text()
 code += '\ncleanupFactory=(function()\n' + (ROOT / 'client/cleanup.lua').read_text() + '\nend)()\n'
 code += '\nlocal pairFactory=(function()\n' + (ROOT / 'client/pair.lua').read_text() + '\nend)()\n'
+code += '\nlocal originals=' + lua(originals) + '\n'
 code += r'''
 local player={CharacterRemoving=signal()}
 local originalService=game.GetService
@@ -22,22 +52,30 @@ game.GetService=function(_,name)
     return originalService(game,name)
 end
 local function rig(name)
-    local model=node('Model',name);local ref=node('Part','ref');ref.Parent=model
-    if name=='TorsoRig' then
-        local v=node('Part','v');v.Parent=ref
-        local fx=node('Part','InteractionFX');fx.Parent=v
-        local attachment=node('Attachment','Attachment');attachment.Parent=fx
-        local blood=node('ParticleEmitter','Blood');blood.Texture='rbxassetid://1269254614';blood.Enabled=true;blood.Parent=attachment
-        local emitter=node('ParticleEmitter','ParticleEmitter');emitter.Texture='rbxassetid://241576804';emitter.Enabled=false;emitter.Parent=fx
+    local data=assert(originals[name]);local byId={}
+    for _,item in ipairs(data.nodes) do byId[item.id]=node(item.class,item.name) end
+    for _,item in ipairs(data.nodes) do
+        local object=byId[item.id]
+        for key,property in pairs(item.properties) do
+            local result=property.value
+            if property.type=='CFrame' then result=CFrame.new(table.unpack(result))
+            elseif property.type=='Vector3' then result=Vector3.new(table.unpack(result))
+            elseif property.type=='Color3' then result={R=result[1],G=result[2],B=result[3]}
+            elseif property.type=='Ref' then result=result and byId[result] or nil end
+            object[key]=result
+        end
+        if item.parent then object.Parent=byId[item.parent] end
     end
-    return model
+    return assert(byId[data.root]),byId
 end
 function methods:Emit(n) self.emitted=(self.emitted or 0)+n end
 local function fixture()
     local ctx,_,reports,listeners=context();ctx.gui={roots={}};ctx.audio={play=function() end}
     ctx.catalog.costumes={'TorsoRig','LowerRig'}
-    local templates={TorsoRig=rig('TorsoRig'),LowerRig=rig('LowerRig')}
-    ctx.assets={clone=function(_,key) return templates[assert(key:match('^costumes/(.+)$'))]:Clone() end}
+    local assets={}
+    ctx.assets={clone=function(_,key)
+        local model,byId=rig(assert(key:match('^costumes/(.+)$')));assets[model]=byId;return model
+    end}
     local a,v=character(),character();a.Name='Female';v.Name='Victim';player.Character=a
     for _,c in ipairs({a,v}) do local root=node('Part','HumanoidRootPart');root.Parent=c;c:FindFirstChild('Torso').Transparency=0 end
     local states={}
@@ -45,7 +83,7 @@ local function fixture()
     ctx.state.all=function() return states end
     ctx.state.localState=function() return states[a] end
     local module=pairFactory(ctx)
-    return ctx,module,a,v,states,listeners,reports
+    return ctx,module,a,v,states,listeners,reports,assets
 end
 local function emitters(character)
     local rig=assert(character:FindFirstChild('TorsoRig'),'Female original TorsoRig was not mounted')
@@ -57,6 +95,61 @@ local function check(name,fn)
     total+=1;local ok,why=pcall(fn)
     if ok then print('Morph/effect: '..name) else failures[#failures+1]=name..': '..tostring(why);print('FAIL '..failures[#failures]) end
 end
+for _,mount in ipairs({{'actor','TorsoRig'},{'victim','LowerRig'}}) do
+    check(mount[2]..' enters the character with every authored ref-relative CFrame intact',function()
+        local ctx,pair,a,v,states,listeners,_,assets=fixture()
+        local role,name=table.unpack(mount);local c=role=='actor' and a or v;local captured=false
+        local originalModel,authored=rig(name);local originalRef=originalModel:FindFirstChild('ref')
+        c.ChildAdded:Connect(function(model)
+            if model.Name~=name then return end
+            captured=true
+            local ref=model:FindFirstChild('ref')
+            -- Record metadata at parenting. Original constraints are inactive
+            -- outside Workspace; this double runs no native constraint solving
+            -- and does not reproduce phone rendering.
+            for id,object in pairs(assets[model]) do
+                if object:IsA('BasePart') then
+                    sameFrame(ref.CFrame:ToObjectSpace(object.CFrame),originalRef.CFrame:ToObjectSpace(authored[id].CFrame))
+                end
+            end
+        end)
+        states[c]={character=c,pairRole=role,pairId='authored',pairTag='FD'};pair:apply(states[c])
+        assert(captured,'Original morph did not enter its actual character')
+        pair:destroy();ctx.cleanup:destroy()
+    end)
+end
+check('source visibility, dimensions, mesh scales and movable Motor offsets are preserved',function()
+    local ctx,pair,a,v,states,listeners,_,assets=fixture()
+    local mounted={}
+    for _,entry in ipairs({{a,'actor','TorsoRig'},{v,'victim','LowerRig'}}) do
+        local c,role,name=table.unpack(entry)
+        states[c]={character=c,pairRole=role,pairId='source',pairTag='FD'};pair:apply(states[c])
+        local model=assert(c:FindFirstChild(name));mounted[#mounted+1]=model
+        local _,authored=rig(name);local byId=assets[model];local torso=c:FindFirstChild('Torso')
+        for _,item in ipairs(originals[name].nodes) do
+            local object,original=byId[item.id],authored[item.id]
+            if object:IsA('BasePart') then
+                assert(object.Transparency==original.Transparency,'Original morph visibility changed: '..name..'/'..object.Name)
+                for _,axis in ipairs({'X','Y','Z'}) do assert(object.Size[axis]==original.Size[axis],'Original part dimensions changed') end
+            elseif object:IsA('SpecialMesh') then
+                for _,axis in ipairs({'X','Y','Z'}) do assert(object.Scale[axis]==original.Scale[axis],'Authored SpecialMesh.Scale changed') end
+            elseif object:IsA('Motor6D') then
+                sameFrame(object.C0,original.C0);sameFrame(object.C1,original.C1)
+                if original.Parent.Name=='Movables' then
+                    assert(object.Parent==torso and object.Part0==torso,'Movable Motor was not bound to the original R6 torso')
+                    assert(object.Part1 and object.Part1:IsA('BasePart') and object.Part1.Name==object.Name,'Same-name movable target changed')
+                end
+            end
+        end
+        local anchor
+        for _,child in ipairs(torso:GetChildren()) do if child:IsA('Weld') and child.Part1==model:FindFirstChild('ref') then anchor=child end end
+        assert(anchor and anchor.Part0==torso,'Original torso-to-ref weld missing')
+    end
+    listeners.Pair({kind='Clear',pairId='source'})
+    for _,model in ipairs(mounted) do assert(not model.Parent,'Source morph survived its owner cleanup') end
+    assert(a:FindFirstChild('Torso').Transparency==0 and v:FindFirstChild('Torso').Transparency==0,'Original torso visibility did not restore')
+    pair:destroy();ctx.cleanup:destroy()
+end)
 check('female TorsoRig mounts from server role even if the partner Instance has not replicated',function()
     local ctx,pair,a,v,states,listeners=fixture()
     states[a]={character=a,pairRole='actor',pairId='one',pairTag='FD'}

@@ -6,6 +6,13 @@ from lxml import etree as E
 def require(condition,message):
     if not condition:raise ValueError(message)
 
+def serialized_property_value(element):
+    # A model export has no inherited document namespace declarations. Compare
+    # the exact property structure and opaque text, excluding formatting tails.
+    if element is None:return None
+    return (element.tag,sorted(element.attrib.items()),element.text,
+            tuple(serialized_property_value(child) for child in element))
+
 def binary_property_types(source,output):
     from model_io import binary_property_schema
     original=binary_property_schema(source);encoded=binary_property_schema(output)
@@ -117,7 +124,7 @@ def validate(output):
         require(float(p.findtext('Properties/float[@name="HoldDuration"]','-1'))>=0,'Missing native hold duration')
     require(len(protocol['prompts'])==6,'Original character prompts missing')
     for name in protocol['prompts'].values():require(len(byname.get(name,[]))==1,'Missing native prompt template')
-    nodes=0;csg=0;asset_refs=set();expected_native={}
+    nodes=0;csg=0;asset_refs=set();expected_native={};expected_meshes={};expected_surfaces={}
     banned={'Script','LocalScript','ModuleScript','RemoteEvent','RemoteFunction','BindableEvent','BindableFunction'}
     for key,entry in catalog['packages'].items():
         package=json.loads((repo/entry['path']).read_text());ids={n['id'] for n in package['nodes']}
@@ -133,6 +140,14 @@ def validate(output):
             if n['class']=='UnionOperation':
                 csg+=1;expected_native[str(n['id'])]=catalog['nativeCSG']['nodes'].get(str(n['id']))
                 require(expected_native[str(n['id'])],'Embedded CSG lacks original native dependency: '+key)
+            elif n['class']=='MeshPart':
+                name=catalog['nativeMeshes']['nodes'].get(str(n['id']))
+                require(name,'Original MeshPart lacks native load state: '+key)
+                expected_meshes[str(n['id'])]=name
+            elif n['class']=='SurfaceAppearance':
+                surface_entry=catalog['nativeMeshes']['surfaces'].get(str(n['id']))
+                require(surface_entry and surface_entry['meshId']==str(n['parent']),'Original PBR dependency host differs: '+key)
+                expected_surfaces[str(n['id'])]=surface_entry
         model=E.parse(str(repo/entry['modelPath'])).getroot()
         require(references(model,key)==entry['count'],'Model/JSON membership mismatch: '+key)
         for union in model.iter('Item'):
@@ -146,12 +161,34 @@ def validate(output):
             for field in union.findall('Properties/BinaryString')+union.findall('Properties/SharedString'):
                 other=native.find('Properties/*[@name="'+field.get('name')+'"]')
                 require(other is not None and other.tag==field.tag and other.text==field.text,'Original opaque CSG data differs: '+source_id)
+        for original in model.iter('Item'):
+            if original.get('class') not in {'MeshPart','SurfaceAppearance'}:continue
+            source_id=str(int(original.get('referent').removeprefix('RBXSRC')))
+            name=expected_meshes[source_id] if original.get('class')=='MeshPart' else expected_surfaces[source_id]['name']
+            native=byname.get(name,[])
+            require(len(native)==1 and native[0].get('class')==original.get('class'),'Original native mesh/PBR missing or wrong class: '+source_id)
+            native=native[0]
+            # Compare serialized properties as opaque data, never vertex/shape geometry.
+            for field in original.findall('Properties/*'):
+                if field.get('name') in {'Name','Archivable'}:continue
+                other=native.find('Properties/*[@name="'+field.get('name')+'"]')
+                require(other is not None and serialized_property_value(other)==serialized_property_value(field),'Original native mesh/PBR property differs: '+source_id+'/'+field.get('name'))
+            if original.get('class')=='SurfaceAppearance':
+                host=expected_meshes[expected_surfaces[source_id]['meshId']]
+                require(native.getparent().get('class')=='MeshPart' and native.getparent().findtext('Properties/string[@name="Name"]')==host,'Native PBR has an invalid host: '+source_id)
+            else:
+                require(all(child.get('class')=='SurfaceAppearance' for child in native.findall('Item')),'Native MeshPart retains nonessential presentation children: '+source_id)
         nodes+=entry['count']
     dependency=catalog['nativeCSG'];require(dependency['nodes']==expected_native,'Native dependency manifest differs from original union membership')
     native_folders=byname.get(dependency['folder'],[])
     require(len(native_folders)==1 and native_folders[0].get('class')=='Folder','Encoded native dependency folder missing/duplicate')
     require(native_folders[0].getparent().get('class')=='ReplicatedStorage','Native CSG folder is not replicated')
     require({e.findtext('Properties/string[@name="Name"]') for e in native_folders[0].findall('Item')}==set(expected_native.values()),'Unexpected native presentation dependencies')
+    mesh_dependency=catalog['nativeMeshes']
+    require(mesh_dependency['nodes']==expected_meshes and mesh_dependency['surfaces']==expected_surfaces,'Native mesh/PBR manifest differs from source membership')
+    mesh_folders=byname.get(mesh_dependency['folder'],[])
+    require(len(mesh_folders)==1 and mesh_folders[0].get('class')=='Folder' and mesh_folders[0].getparent().get('class')=='ReplicatedStorage','Native mesh dependency folder missing or wrong location')
+    require({e.findtext('Properties/string[@name="Name"]') for e in mesh_folders[0].findall('Item')}==set(expected_meshes.values()),'Unexpected native mesh dependency membership')
     kohl=byname.get("Kohl's Admin Infinite",[])
     require(len(kohl)==1 and kohl[0].get('class')=='Script' and kohl[0].getparent().get('class')=='ServerScriptService','Native Kohl loader hierarchy missing/duplicate')
     require(kohl[0].findtext('Properties/bool[@name="Disabled"]')=='true','Native Kohl Credit must be started once by reviewed wrapper')
@@ -182,10 +219,10 @@ def validate(output):
     binary_types=binary_property_types(output/'Source/FunCombat_Original.rbxl',output/'funcombat_server.rbxl')
     return {'passed':True,'checks':['input checksum','manifest SHA256/Adler32/bytes','dependency DAG',
         'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates',
-        'asset hierarchy and public WeldConstraint refs','original costume native CSG dependencies and opaque payload fidelity','native original Kohl hierarchy and dummy command bridge','same explicit numeric owner in server and native Kohl settings','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
+        'asset hierarchy and public WeldConstraint refs','original costume native CSG dependencies and opaque payload fidelity','original native MeshPart load state and PBR property/host fidelity','native original Kohl hierarchy and dummy command bridge','same explicit numeric owner in server and native Kohl settings','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
         'binaryPropertyTypes':binary_types,
         'spawnInitialization':spawn_setup,
-        'nativeOriginalCSGDependencies':len(expected_native),'originalKohlAssetId':1868400649,'configuredOwnerUserId':owner,
+        'nativeOriginalCSGDependencies':len(expected_native),'nativeOriginalMeshPartDependencies':len(expected_meshes),'nativeOriginalPBRDependencies':len(expected_surfaces),'originalKohlAssetId':1868400649,'configuredOwnerUserId':owner,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),
         'geometryInspected':False,'robloxEngineTested':False,'legacyClientTested':False,

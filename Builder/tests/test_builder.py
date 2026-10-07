@@ -75,6 +75,18 @@ class BuilderTests(unittest.TestCase):
         duplicate=E.fromstring(b'<roblox><Item referent="A"/><Item referent="A"/></roblox>')
         with self.assertRaisesRegex(ValueError,'duplicate'):references(duplicate,'fixture')
 
+    def test_native_property_validation_ignores_inherited_xml_declarations_only(self):
+        import sys;sys.path.insert(0,str(BASE));import validate
+        source=E.fromstring(b'<roblox xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><Properties><SharedString name="AeroMeshData">opaque-id</SharedString><Vector3 name="Size"><X>2</X><Y>1</Y><Z>1</Z></Vector3></Properties></roblox>')
+        exported=E.fromstring(b'<Properties><SharedString name="AeroMeshData">opaque-id</SharedString><Vector3 name="Size"><X>2</X><Y>1</Y><Z>1</Z></Vector3></Properties>')
+        for native,external in zip(source.find('Properties'),exported):
+            self.assertNotEqual(E.tostring(native),E.tostring(external))
+            self.assertEqual(validate.serialized_property_value(native),validate.serialized_property_value(external))
+        exported.find('SharedString').text='changed-opaque-id'
+        self.assertNotEqual(validate.serialized_property_value(source.find('Properties/SharedString')),validate.serialized_property_value(exported.find('SharedString')))
+        exported.find('Vector3/X').text='20'
+        self.assertNotEqual(validate.serialized_property_value(source.find('Properties/Vector3')),validate.serialized_property_value(exported.find('Vector3')))
+
     def test_source_restores_ambiguous_brickcolor_xml_tag(self):
         self.load()
         from model_io import Source
@@ -120,6 +132,23 @@ class BuilderTests(unittest.TestCase):
         self.assertEqual(native.findall('Item'),[])
         self.assertNotEqual(native.get('referent'),'Original')
         self.assertEqual(E.tostring(source),before)
+
+    def test_native_mesh_preserves_original_metadata_and_surface_under_valid_host(self):
+        from types import SimpleNamespace
+        m=self.load()
+        mesh=E.fromstring(b'<Item class="MeshPart" referent="Mesh"><Properties><string name="Name">maxwell</string><Content name="MeshId"><url>original-mesh</url></Content><BinaryString name="PhysicalConfigData">b3JpZ2luYWw=</BinaryString></Properties><Item class="SurfaceAppearance" referent="Surface"><Properties><string name="Name">SurfaceAppearance</string><Content name="TexturePack"><url>original-pack</url></Content></Properties></Item><Item class="Weld" referent="Weld"><Properties/></Item></Item>')
+        surface=mesh.find('Item');before=E.tostring(mesh)
+        service=E.fromstring(b'<Item class="ReplicatedStorage" referent="Storage"><Properties/></Item>')
+        self.assertTrue(callable(getattr(m,'add_native_meshes',None)), 'Original native MeshPart migration is missing')
+        m.add_native_meshes(SimpleNamespace(by={10:mesh,11:surface}),service,{'folder':'EncodedMeshes','nodes':{'10':'EncodedMesh'},'surfaces':{'11':{'meshId':'10','name':'EncodedSurface'}}})
+        native=service.find('Item/Item');pbr=native.find('Item')
+        self.assertEqual(native.get('class'),'MeshPart');self.assertEqual(pbr.get('class'),'SurfaceAppearance')
+        self.assertEqual(native.findtext('Properties/BinaryString[@name="PhysicalConfigData"]'),'b3JpZ2luYWw=')
+        self.assertEqual(pbr.findtext('Properties/Content[@name="TexturePack"]/url'),'original-pack')
+        self.assertEqual(len(native.findall('Item')),1)
+        self.assertEqual(native.findtext('Properties/string[@name="Name"]'),'EncodedMesh')
+        self.assertEqual(pbr.findtext('Properties/string[@name="Name"]'),'EncodedSurface')
+        self.assertEqual(E.tostring(mesh),before)
 
     def test_kohl_native_settings_and_commands_survive_migration(self):
         from types import SimpleNamespace

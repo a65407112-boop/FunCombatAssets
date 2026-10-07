@@ -5,17 +5,17 @@
     "loadstring",
     "HTTP GET through request/http_request/syn.request or game:HttpGet"
   ],
-  "dataBackend": "Typed JSON creates Instances, assigns public runtime properties, links parents and references. Three original native UnionOperation dependencies replicate from the server; original costumes do not require local model deserialization.",
+  "dataBackend": "Typed JSON creates Instances, assigns public runtime properties, links parents and references. Three original UnionOperation, eleven original MeshPart and one original SurfaceAppearance replicate as minimal native leaf dependencies. Original weapons/costumes do not require local model deserialization. Immutable mesh initialization and protected PBR maps/packs are retained by cloning.",
   "knownLimits": [
     "No Roblox engine, executor session or old client was available.",
     "Original hosted mesh/texture/sound/animation permissions were not tested.",
-    "MeshPart JSON fallback uses original MeshId/TextureID through SpecialMesh; SurfaceAppearance/PBR is not represented by that fallback.",
+    "Unsafe new MeshPart.MeshId and Part/SpecialMesh fallback are removed. Source mesh load state and source Size are retained; actual Sword/Maxwell/costume scale, rendering and PBR after this repair are not engine-tested.",
     "Unavailable optional cosmetic classes/properties are reported and may change borders or lighting on old clients.",
     "The old animation player is reproduced at nominal 60 Hz using its per-keyframe source timing; frame-rate-dependent bugs are not certified.",
-    "Additional model packages without native CSG dependencies require the optional executor local model backend.",
+    "Additional model packages without native CSG/mesh/PBR dependencies require a supported optional executor local model backend or builder migration of their original dependencies. Missing native dependencies fail concretely.",
     "Genuine hosted Kohl module1868400649 starts on the server; its actual version, permissions and runtime rank are not engine-tested. Original Adonis remains inactive.",
     "Black head rendering cause is unconfirmed. Standalone diagnose.lua records current head properties and actual ownership/rank without changing the avatar.",
-    "Internal XML WeldConstraint references map to public Part0/Part1; offline full costume reconstruction does not certify rendering or physics."
+    "Internal XML WeldConstraint references map to public Part0/Part1. Costume refs retain authored CFrame before parenting, as in NewChanger. Offline full costume reconstruction does not certify visibility, male torso dimensions, rendering or physics."
   ],
   "legacyCertified": false,
   "executorOptionalModelFallback": [

@@ -1,8 +1,22 @@
-# Отчёт проверки — 6 октября 2026
+# Отчёт проверки — 7 октября 2026
 
 Источник: предоставленный `FunCombat_Renamed2.rbxl`, SHA256 `a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0`. Builder сохраняет исходник нетронутым. Геометрия моделей, mesh, карты и визуальное сходство не инспектировались по просьбе пользователя.
 
-## Подтверждённый отказ клиента
+## PC Maxwell, исходный MeshPart и крепление костюмов
+
+Пользователь сообщил, что предыдущий loader работал на телефоне, но на ПК падал при warm-up weapons/Maxwell: `SurfaceAppearance can only be parented to MeshParts`. Также сообщены огромные Sword/Maxwell, невидимый female torso и увеличенный male torso. Эти наблюдения относятся к предыдущей сборке.
+
+Точный PC fatal воспроизведён через настоящий assets factory с API double: запись MeshPart.MeshId запрещена, а SurfaceAppearance можно parent только в MeshPart. Прежний fallback создавал Part/SpecialMesh; сохранённый SurfaceAppearance затем получал несовместимого родителя. Writable MeshId на телефоне обходил этот fatal, но не доказывал сохранение native initialization/InitialSize оригинального MeshPart. Размеры не исправлялись произвольными множителями.
+
+Builder теперь переносит 11 оригинальных leaf MeshPart и один SurfaceAppearance как минимальные encoded native-зависимости в ReplicatedStorage. Все их сериализованные свойства, opaque load state и используемые SharedStrings сохраняются; SurfaceAppearance хранится под оригинальным MeshPart с исходным processed TexturePack. Полные weapon/costume hierarchies остаются во внешнем пакете. Factory клонирует настоящие объекты, очищает template children и восстанавливает JSON parents/references; PBR child создаётся ровно один раз. Защищённые MeshId/MeshContent/InitialSize и PBR maps/pack не перезаписываются. Writable исходные Size/CFrame/TextureID/RenderFidelity продолжают применяться. Изменений source mesh/texture IDs, масштабов модели или геометрической инспекции нет.
+
+Полные LowerRig/TorsoRig, Sword и Maxwell проходят constructor/member/ref tests. Строгий PC double и writable phone double оба сохраняют native metadata; оригинальный SurfaceAppearance остаётся у реального MeshPart. Отсутствующая native mesh dependency завершается с encoded path и deadline. Статика сравнивает оригинальные сериализованные свойства с сохранёнными leaf dependencies как непрозрачные данные.
+
+В Pair найдено отдельное отличие от source NewChanger: прежний код перемещал только ref до parenting костюма, когда его WeldConstraint ещё не активны. Эта запись удалена. Clone входит в персонажа с исходными part frames, затем identity torso-to-ref weld крепит его как в оригинале. Новые проверки авторских ref-relative CFrame наблюдались RED→GREEN для обоих костюмов. Проверка visibility/Size/SpecialMesh.Scale/Motor offsets проходила и до изменения; удвоение male torso не воспроизведено и его причина этим тестом не доказана.
+
+Это исправление конкретных путей реконструкции, а не подтверждение нового рендера. Roblox Studio/движок/настоящий executor отсутствуют. Видимость female torso, размеры Sword/Maxwell/male torso, hosted PBR и совместимость конкретного старого клиента после нового build требуют пользовательского playtest. Требуется публикация нового серверного файла целиком: одна правка GitHub не добавляет native dependencies.
+
+## Сохранённое исправление WeldConstraint
 
 Пользователь передал полный fatal error: `costumes/TorsoRig reference Part0Internal: Part0Internal is not a valid member of WeldConstraint`. Этот отказ воспроизведён через реальный assets factory со строгим WeldConstraint double; прежний generic mock ошибочно разрешал запись любых имён членов.
 
@@ -48,14 +62,14 @@ Policy/CombatServer проверяют intentions, distances, character/target s
 
 - 35 admin scenarios: explicit ID выше32bit, actual creator/group owner, original pending/error/timeout, malformed config, early joins, exact Player lifecycle, реальные CombatServer intents/snapshot, genuine hosted loader и server dummy bridge/game rules.
 - 3 native Kohl settings scenarios исполняют обёртку builder над настоящим исходным Settings6658: настройки и другие role lists сохранены, ID добавлен, дубликат не возникает.
-- 7 native assets scenarios: строгая реальная граница WeldConstraint, exact source endpoints, оба полных исходных costumes, original CSG, missing/wrong native dependency и deadline.
-- 10 avatar content, 9 avatar adapter, 4 real-loader bootstrap, 12 presentation, 5 carry, 6 morph/effect, 16 spawn/map; server lifecycle, client networking/state/diagnostics, Policy.
-- 13 builder и 14 outfit importer Python tests. Новые fatal reference и configured owner проверки наблюдались RED→GREEN.
+- 14 native assets scenarios: строгая граница WeldConstraint и MeshPart/PBR, readonly PC и writable phone doubles, original native metadata, exact source endpoints, полные LowerRig/TorsoRig/Sword/Maxwell, original CSG, missing/wrong native dependency и deadline; пользовательский mesh/PBR import выбирает существующий model backend, в том числе при совпадении source IDs, а оригинальные unmapped assets не получают silent fallback.
+- 10 avatar content, 9 avatar adapter, 4 real-loader bootstrap, 12 presentation, 5 carry, 9 morph/effect (включая авторские offsets и исходные visibility/Size/Scale/Motor properties), 16 spawn/map; server lifecycle, client networking/state/diagnostics, Policy.
+- 15 builder и 14 outfit importer Python tests. Native mesh migration, exact PC parent fatal и costume mount offsets наблюдались RED→GREEN.
 - Separate diagnostic scenarios и их фактическое число записаны в Release_Checks.json.
 
-Static_Checks.json проверяет source checksum, manifest SHA256/Adler32/bytes, dependency DAG, XML referents/shared strings, protocol/build identity, три combat network templates, original prompt templates, package hierarchy/references, native union opaque fidelity, настоящий Kohl hierarchy, единственный configured numeric ID в server/native settings, binary header/property types и safe R6/original map spawns.
+Static_Checks.json проверяет source checksum, manifest SHA256/Adler32/bytes, dependency DAG, XML referents/shared strings, protocol/build identity, три combat network templates, original prompt templates, package hierarchy/references, native union opaque fidelity, все сериализованные original MeshPart/PBR properties и PBR parent, настоящий Kohl hierarchy, единственный configured numeric ID в server/native settings, binary header/property types и safe R6/original map spawns.
 
-Release_Checks.json содержит actual compile counts, rbxl→rbxlx codec roundtrip (server script sources byte equivalent), повторную byte-identical сборку, hashes и реальные HTTP/raw GitHub deployment checks. Это CLI/static/mock проверки, а не Roblox playtest. Источники Roblox API: [WeldConstraint](https://create.roblox.com/docs/reference/engine/classes/WeldConstraint), первичная reflection serialization [rojo-rbx/rbx-dom](https://github.com/rojo-rbx/rbx-dom). Metadata аватара — official Roblox Avatar/Users/Economy/Thumbnails API.
+Release_Checks.json содержит actual compile counts, rbxl→rbxlx codec roundtrip (server script sources byte equivalent), повторную byte-identical сборку, hashes и реальные HTTP/raw GitHub deployment checks. Это CLI/static/mock проверки, а не Roblox playtest. Источники Roblox API: [MeshPart](https://create.roblox.com/docs/reference/engine/classes/MeshPart), [SurfaceAppearance](https://create.roblox.com/docs/reference/engine/classes/SurfaceAppearance), [WeldConstraint](https://create.roblox.com/docs/reference/engine/classes/WeldConstraint), первичная reflection serialization [rojo-rbx/rbx-dom](https://github.com/rojo-rbx/rbx-dom). Metadata аватара — official Roblox Avatar/Users/Economy/Thumbnails API.
 
 ## Непроверено или отсутствует
 
@@ -63,7 +77,7 @@ Release_Checks.json содержит actual compile counts, rbxl→rbxlx codec r
 - Чёрная голова не воспроизведена в движке. Исправлены конкретный fatal weld и owner config; динамический face/render success не заявляется. Separate diagnose — способ получить фактические данные, а не исправление рендера.
 - Genuine hosted Kohl require/version/rank и hosted mesh/texture/audio/animation разрешения не engine-tested. User UI observation относится к предыдущей сборке; explicit Owners5 новый grant требует проверки в новом сервере.
 - Adonis не активирован; исходник сохранён в source/external. Отсутствующий original server handler Microphone/TransmitBaseEvent не придуман. Additional custom outfit packages не предоставлены; исходные LowerRig/TorsoRig присутствуют.
-- Если создание MeshPart не позволяет запись MeshId, client fallback использует исходный MeshId/TextureID через SpecialMesh и не воспроизводит SurfaceAppearance/PBR. Native avatar head и native unions этим fallback не заменяются. Optional unsupported class/property failures сообщаются.
+- Небезопасный Part/SpecialMesh fallback для MeshPart удалён. Исходные 11 MeshPart и PBR используют native clones; actual engine initialization/render после этого изменения не подтверждены. User-created costume с MeshPart/PBR загружает исходный `.rbxmx` через существующий bounded local model backend; поддержка этого backend настоящим executor здесь не проверена. Other unmapped original JSON assets завершаются с точной ошибкой. Optional unsupported class/property failures сообщаются.
 - Конкретный старый Roblox-клиент/executor не подтверждён. Дополнительные model packages без native dependencies могут требовать local rbxmx backend.
 - Roblox place не опубликован в аккаунт пользователя. Для проверки нужен новый серверный rbxl целиком, публикация и новый server session с совпадающим build ID; одной правки GitHub недостаточно.
 

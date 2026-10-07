@@ -70,6 +70,32 @@ def add_native_csg(source,replicated,dependency):
         folder.append(native)
     replicated.append(folder)
 
+def add_native_meshes(source,replicated,dependency):
+    """Retain original immutable mesh/PBR load state without presentation children."""
+    folder=instance('Folder',dependency['folder'])
+    surfaces=dependency['surfaces']
+    for source_id,name in sorted(dependency['nodes'].items()):
+        original=source.by[int(source_id)]
+        if original.get('class')!='MeshPart':raise ValueError('Native mesh dependency is not an original MeshPart: '+source_id)
+        native=copy.deepcopy(original)
+        for child in native.findall('Item'):native.remove(child)
+        native.set('referent',instance('MeshPart',name).get('referent'))
+        set_property(native,'Name','string',name);set_property(native,'Archivable','bool','true')
+        for surface_id,entry in sorted(surfaces.items()):
+            if entry['meshId']!=source_id:continue
+            surface=source.by[int(surface_id)]
+            if surface.get('class')!='SurfaceAppearance' or surface.getparent() is not original:
+                raise ValueError('Original SurfaceAppearance host differs from its native dependency: '+surface_id)
+            appearance=copy.deepcopy(surface)
+            for child in appearance.findall('Item'):appearance.remove(child)
+            appearance.set('referent',instance('SurfaceAppearance',entry['name']).get('referent'))
+            set_property(appearance,'Name','string',entry['name']);set_property(appearance,'Archivable','bool','true')
+            native.append(appearance)
+        folder.append(native)
+    if any(entry['meshId'] not in dependency['nodes'] for entry in surfaces.values()):
+        raise ValueError('SurfaceAppearance native mesh host is missing')
+    replicated.append(folder)
+
 def read_admin_settings(repo):
     settings=json.loads((Path(repo)/'config/admin.json').read_text(encoding='utf8'))
     if not isinstance(settings,dict) or type(settings.get('version')) is not int or settings['version']!=1:
@@ -153,7 +179,7 @@ def export(source,repo):
             if key not in catalog['animations']:
                 stem=re.sub(r'[^A-Za-z0-9_]+','_',key)+'_'+code_id('animation',key)[:8]
                 catalog['animations'][key]={'sourceId':i,'path':'assets/animations/'+stem+'.json'}
-    native_nodes={}
+    native_nodes={};native_meshes={};native_surfaces={}
     for key,entry in sorted(catalog['packages'].items()):
         if key in additions:
             wanted={n['id'] for n in package(source,entry['sourceId'])['nodes']}
@@ -179,6 +205,11 @@ def export(source,repo):
         entry['backend']='model' if any(n['class']=='UnionOperation' for n in data['nodes']) else 'instances'
         for node in data['nodes']:
             if node['class']=='UnionOperation':native_nodes[str(node['id'])]=code_id('original-csg',str(node['id']))
+            elif node['class']=='MeshPart':native_meshes[str(node['id'])]=code_id('original-mesh',str(node['id']))
+            elif node['class']=='SurfaceAppearance':
+                parent=next((n for n in data['nodes'] if n['id']==node['parent']),None)
+                if not parent or parent['class']!='MeshPart':raise ValueError('Original SurfaceAppearance must have a MeshPart host: '+key)
+                native_surfaces[str(node['id'])]={'meshId':str(node['parent']),'name':code_id('original-surface',str(node['id']))}
     timing={}
     for key,entry in sorted(catalog['animations'].items()):
         data=animation(source,entry['sourceId'])
@@ -201,6 +232,7 @@ def export(source,repo):
         path.write_bytes(xml_document(source,source.by[i]))
     catalog['costumes']=['LowerRig','TorsoRig']
     catalog['nativeCSG']={'folder':code_id('native-dependency','original-csg'),'nodes':native_nodes}
+    catalog['nativeMeshes']={'folder':code_id('native-dependency','original-meshes'),'nodes':native_meshes,'surfaces':native_surfaces}
     catalog['sourceSha256']=source.sha;dump(repo/'config/assets.json',catalog)
     return catalog,timing
 
@@ -242,6 +274,7 @@ def build_place(source,repo,output,timing):
             if parent is not None:parent.remove(e)
     catalog=json.loads((repo/'config/assets.json').read_text())
     add_native_csg(source,by[7303],catalog['nativeCSG'])
+    add_native_meshes(source,by[7303],catalog['nativeMeshes'])
     kohl=add_kohl_admin(source,by[78221],admin['ownerUserId'])
     # Preserve original map/CSG/Terrain and physics. No mesh or geometry probing.
     strip_rig(by[6664])

@@ -56,7 +56,9 @@ return function(ctx)
                 pcall(function() part.CanTouch=false;part.CanQuery=false end)
             end
         end
-        ref.CFrame=torso.CFrame
+        -- Match NewChanger: retain the authored part frames until the clone
+        -- enters Workspace, then let its joints and torso-to-ref weld align it.
+        -- Moving only ref while unparented changes the other parts' offsets.
         model.Parent=character
         local weld=Instance.new("Weld");weld.Part0=torso;weld.Part1=ref;weld.Parent=torso;s:add(weld)
         local movables=ref:FindFirstChild("Movables")

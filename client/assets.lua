@@ -49,6 +49,31 @@ return function(ctx)
     -- Accept earlier exported data too. Internal XML names are not writable
     -- Luau members; preserve both endpoints through the public WeldConstraint API.
     local referenceAliases = {WeldConstraint = {Part0Internal = "Part0", Part1Internal = "Part1"}}
+    local nativeSurfaceProperties = {ColorMap=true,ColorMapContent=true,NormalMap=true,NormalMapContent=true,
+        MetalnessMap=true,MetalnessMapContent=true,RoughnessMap=true,RoughnessMapContent=true,TexturePack=true,TexturePackContent=true}
+
+    function module:originalMesh(node, key)
+        local dependency = ctx.catalog.nativeMeshes
+        local surface = dependency and dependency.surfaces and dependency.surfaces[tostring(node.id)]
+        local meshId = surface and surface.meshId or tostring(node.id)
+        local name = dependency and dependency.nodes and dependency.nodes[meshId]
+        assert(name, "Original native " .. node.class .. " dependency is missing from the catalog: " .. key .. "/" .. node.name)
+        local replicated = game:GetService("ReplicatedStorage")
+        local folder = replicated:FindFirstChild(dependency.folder) or replicated:WaitForChild(dependency.folder, ctx.config.Timeout)
+        assert(folder and folder:IsA("Folder"), "Original native mesh folder did not replicate within " .. ctx.config.Timeout
+            .. " seconds: ReplicatedStorage/" .. dependency.folder .. " (" .. key .. ")")
+        local template = folder:FindFirstChild(name) or folder:WaitForChild(name, ctx.config.Timeout)
+        assert(template and template:IsA("MeshPart"), "Original MeshPart did not replicate: ReplicatedStorage/" .. dependency.folder .. "/" .. name .. " (" .. key .. "/" .. node.name .. ")")
+        if node.class == "SurfaceAppearance" then
+            assert(surface, "Original SurfaceAppearance dependency is missing: " .. key .. "/" .. node.name)
+            template = template:FindFirstChild(surface.name) or template:WaitForChild(surface.name, ctx.config.Timeout)
+            assert(template and template:IsA("SurfaceAppearance"), "Original SurfaceAppearance did not replicate: ReplicatedStorage/"
+                .. dependency.folder .. "/" .. name .. "/" .. surface.name .. " (" .. key .. ")")
+        end
+        local copy = assert(template:Clone(), "Original native " .. node.class .. " is not Archivable: " .. key .. "/" .. node.name)
+        copy:ClearAllChildren()
+        return copy
+    end
 
     function module:originalUnion(node, key)
         local dependency = ctx.catalog.nativeCSG
@@ -69,25 +94,16 @@ return function(ctx)
     end
 
     function module:construct(data, key)
-        local byId, made, meshes = {}, {}, {}
+        local byId, made = {}, {}
         local ok, err = pcall(function()
             for _, node in ipairs(data.nodes) do
                 local cls = node.class
                 if cls == "Script" or cls == "LocalScript" or cls == "ModuleScript" or cls == "RemoteEvent" or cls == "RemoteFunction" then error("Unexpected executable/network asset " .. key) end
                 local object
-                if cls == "MeshPart" then
-                    -- MeshId is not normally writable on a new MeshPart. A
-                    -- FileMesh using the same original vertices is an exact
-                    -- visual geometry fallback, not a substitute weapon.
-                    local meshId = node.properties.MeshId and node.properties.MeshId.value
-                    object = Instance.new("MeshPart")
-                    local assigned = pcall(function() object.MeshId = meshId end)
-                    if not assigned or object.MeshId ~= meshId then
-                        object:Destroy(); object = Instance.new("Part")
-                        local mesh = Instance.new("SpecialMesh"); mesh.MeshType = Enum.MeshType.FileMesh; mesh.MeshId = meshId or ""; mesh.Parent = object
-                        meshes[node.id] = {mesh = mesh, node = node}
-                        warnOnce("mesh-fallback", "Using original MeshId geometry through SpecialMesh on this client; PBR SurfaceAppearance cannot be reproduced by that backend.")
-                    end
+                if cls == "MeshPart" or cls == "SurfaceAppearance" then
+                    -- Native cloning preserves immutable mesh initialization
+                    -- and protected processed PBR content on every executor.
+                    object = self:originalMesh(node, key)
                 elseif cls == "UnionOperation" then
                     object = self:originalUnion(node, key)
                 else
@@ -102,7 +118,9 @@ return function(ctx)
                 local object = byId[node.id]
                 if object then
                     for name, prop in pairs(node.properties) do
-                        if prop.type ~= "Ref" and not skip[name] and not (meshes[node.id] and (name == "MeshId" or name == "TextureID" or name == "RenderFidelity" or name == "CollisionFidelity" or name == "DoubleSided")) then
+                        local retainedNative = (node.class == "SurfaceAppearance" and nativeSurfaceProperties[name]) or (node.class == "MeshPart"
+                            and (name == "MeshId" or name == "MeshContent" or name == "InitialSize"))
+                        if prop.type ~= "Ref" and not skip[name] and not retainedNative then
                             local applied, why = pcall(function() object[name] = decode(prop, object, name) end)
                             if not applied then
                                 if critical[name] then error(key .. ": " .. node.class .. "." .. name .. ": " .. tostring(why)) end
@@ -111,13 +129,6 @@ return function(ctx)
                         end
                     end
                     for name, value in pairs(node.attributes or {}) do pcall(function() object:SetAttribute(name, value) end) end
-                    local fallback = meshes[node.id]
-                    if fallback then
-                        local size = node.properties.Size.value; local original = node.meshSize
-                        if not original or original[1] <= 0 or original[2] <= 0 or original[3] <= 0 then error("Missing original mesh bounds for " .. key .. "/" .. node.name) end
-                        fallback.mesh.Scale = Vector3.new(size[1]/original[1], size[2]/original[2], size[3]/original[3])
-                        fallback.mesh.TextureId = node.properties.TextureID and node.properties.TextureID.value or ""
-                    end
                 end
             end
             for _, node in ipairs(data.nodes) do
@@ -198,6 +209,16 @@ return function(ctx)
                         if node.class=="UnionOperation" and not (dependencies and dependencies[tostring(node.id)]) then native=false end
                     end
                     if not native then return self:deserialize(entry,key) end
+                end
+                -- Imported costumes include their original model file but have
+                -- no immutable mesh/PBR dependencies in this server build.
+                if entry.origin=="user-created costume" then
+                    for _,node in ipairs(data.nodes) do
+                        if node.class=="MeshPart" or node.class=="SurfaceAppearance" then
+                            assert(entry.modelPath,"Imported original model is missing: "..key)
+                            return self:deserialize(entry,key)
+                        end
+                    end
                 end
                 return self:construct(data,key)
             end)
