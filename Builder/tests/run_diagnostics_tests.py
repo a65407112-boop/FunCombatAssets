@@ -159,6 +159,43 @@ local function check(name,fn)
 end
 '''
 checks = r'''
+check('replicated dummy toggle reports true and false without enabling either',function()
+    for _,enabled in ipairs({true,false}) do
+        fixture();local world=node('Workspace');services.Workspace=world
+        local config=append(world,node('Configuration','Configuration'))
+        local flag=append(config,node('BoolValue','AllowDummys'));flag.Value=enabled;flag.props.readOnly=true
+        local report=run()
+        assert(report.dummy and report.dummy.allowDummys and report.dummy.allowDummys.Value==enabled,
+            'Actual replicated AllowDummys is absent or misreported')
+        assert(report.dummy.allowDummys.ClassName=='BoolValue' and flag.Value==enabled,'Diagnostic changed or invented the toggle')
+    end
+end)
+check('missing dummy configuration remains explicitly missing',function()
+    fixture();services.Workspace=node('Workspace');local report=run()
+    assert(report.dummy and report.dummy.allowDummys.missing==true,'Absent toggle was assumed enabled or disabled')
+end)
+check('an unanchored dummy requester is reported as false rather than missing',function()
+    local _,character=fixture();local root=append(character,node('Part','HumanoidRootPart'));root.Anchored=false;root.props.readOnly=true
+    local report=run()
+    assert(report.dummy and report.dummy.rootAnchored==false,'A false Anchored value was mistaken for a missing root')
+end)
+check('native Kohl custom command failures are retained even when printed as output',function()
+    fixture();services.LogService.GetLogHistory=function() return {{message="Kohl's Admin Infinite Custom Command Error: command callback failed",messageType='Enum.MessageType.MessageOutput',timestamp=123}} end
+    local report=run()
+    assert(has(report.loadMessages,'Custom Command Error'),'Native Kohl command load failure was filtered out')
+end)
+check('dummy local character conditions are copied without calling server or inspecting geometry',function()
+    local _,character=fixture();local humanoid=character:FindFirstChildOfClass('Humanoid')
+    humanoid.Health=100;humanoid.PlatformStand=false
+    local root=append(character,node('Part','HumanoidRootPart'));root.Anchored=true;root.props.readOnly=true
+    local state={character=character,health=100,downed=false,busy=true,ragdolled=false,canAct=false,carrying='local reference'}
+    environment.FunCombat_ExternalRuntime={initialized=true,cancelled=false,state={localState=function() return state end}}
+    local report=run()
+    assert(report.dummy and report.dummy.rootAnchored==true and report.dummy.humanoid.Health==100,'Live movement/health conditions were lost')
+    assert(report.dummy.localState.busy==true and report.dummy.localState.canAct==false and report.dummy.stateCharacterMatches==true,
+        'Blocking local state or character identity was not captured')
+    assert(root.Anchored and state.busy,'Read-only probe changed gameplay state')
+end)
 check('actual user, creator and owner attrs use the native numeric KAI entry',function()
     fixture();local report=run()
     assert(report.user.UserId==11556197791 and report.creator.CreatorId==998877,'Actual identity was not captured')

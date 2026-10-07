@@ -101,6 +101,57 @@ check("stalled warm-up exits at its deadline and late fetches cannot leak assets
     for _,thread in ipairs(pending) do assert(coroutine.resume(thread)) end
     assert(next(ctx.assets.cache)==nil,"A cancelled late fetch installed original assets into the destroyed runtime")
 end)
+check("remote observer preserves the already replicated owner gait without a duplicate",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum,tracks=walkingFigure(ctx,false)
+    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    local animation=node('Animation','OwnerWalk');animation.AnimationId='fixture-original-gait'
+    local native=hum:LoadAnimation(animation);native:Play();native:AdjustSpeed(1.37);native.TimePosition=0.42
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    local count=0;for _,t in ipairs(hum:GetPlayingAnimationTracks()) do if t.Animation.AnimationId=='fixture-original-gait' then count+=1 end end
+    assert(not native.stopped and count==1 and native.speed==1.37 and native.TimePosition==0.42,
+        'Observer stopped, duplicated or retimed the owner gait')
+    characters:destroy();assert(not native.stopped and not native.destroyed,'Observer cleanup destroyed a track owned by the other player')
+    ctx.cleanup:destroy()
+end)
+check("late replicated gait replaces only the observer fallback",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum,tracks=walkingFigure(ctx,false)
+    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016);local fallback=assert(tracks[1])
+    local animation=node('Animation','OwnerWalk');animation.AnimationId='fixture-original-gait'
+    local native=hum:LoadAnimation(animation);native:Play();native.TimePosition=0.75
+    run.Heartbeat:fire(0.016)
+    assert(fallback.stopped and not native.stopped and native.TimePosition==0.75,'Late replication left two competing gait tracks')
+    characters:destroy();assert(not native.stopped,'Late owner track was mistaken for an owned fallback')
+    ctx.cleanup:destroy()
+end)
+check("remote native jump is not replaced by an observer walk estimate",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum,tracks=walkingFigure(ctx,false)
+    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    ctx.json('assets/animations/locomotion.json')['jump/JumpAnim']={Name='JumpAnim',AnimationId='rbxassetid://125750702'}
+    local animation=node('Animation','OwnerJump');animation.AnimationId='http://www.roblox.com/asset/?id=125750702'
+    local native=hum:LoadAnimation(animation);native:Play()
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    local count=0;for _,t in ipairs(hum:GetPlayingAnimationTracks()) do count+=1 end
+    assert(not native.stopped and count==1,'Remote velocity estimate overwrote the owner jump')
+    characters:destroy();ctx.cleanup:destroy()
+end)
+check("remote lean uses visible horizontal movement while MoveDirection is zero",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum=walkingFigure(ctx,false)
+    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    local root=c:FindFirstChild('HumanoidRootPart');local joint=node('Motor6D','RootJoint');joint.C0=frame();joint.Parent=root
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(1/7)
+    assert(math.abs(joint.C0[6]-math.sin(-0.13))<0.00001,'Remote lean incorrectly used unreplicated MoveDirection')
+    root.Velocity=Vector3.new();run.Heartbeat:fire(1/7);sameFrame(joint.C0,frame())
+    characters:destroy();ctx.cleanup:destroy()
+end)
+check("local lean retains original input direction rather than a remote velocity estimate",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum=walkingFigure(ctx,false)
+    c:SetAttribute('FunCombatMoodAnimation',0);hum.MoveDirection=Vector3.new(0,0,-1)
+    local root=c:FindFirstChild('HumanoidRootPart');local joint=node('Motor6D','RootJoint');joint.C0=frame();joint.Parent=root
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(1/7)
+    assert(math.abs(joint.C0[9]+math.sin(0.065))<0.00001,'Local authored lean changed to the root velocity direction')
+    characters:destroy();ctx.cleanup:destroy()
+end)
 check("original facial mood loads and continues under a full-body combat lock",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,_,tracks=walkingFigure(ctx,false)
     local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)

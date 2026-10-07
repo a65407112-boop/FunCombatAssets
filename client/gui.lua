@@ -259,7 +259,8 @@ return function(ctx)
         voteLastSecond = nil
         local candidates = {}
         for _, candidate in ipairs(data.candidates or {}) do
-            if type(candidate) == "string" then candidates[#candidates + 1] = candidate end
+            local name = type(candidate) == "table" and candidate.name or candidate
+            if type(name) == "string" then candidates[#candidates + 1] = name end
         end
         table.sort(candidates)
         local signature = table.concat(candidates, "\0")

@@ -32,10 +32,21 @@ end
 function cf:ToObjectSpace(b) return self:Inverse()*b end
 function cf:Lerp(b,alpha) local c={};for i=1,12 do c[i]=self[i]+(b[i]-self[i])*alpha end;return setmetatable(c,cf) end
 local CFrame={new=frame,Angles=function(x,y,z)
-    assert(y==0 and z==0,"Only the X-axis grip rotation is used in these fixtures")
-    return frame(0,0,0,1,0,0,0,math.cos(x),-math.sin(x),0,math.sin(x),math.cos(x))
+    assert(z==0,"Only source grip and R6 lean rotations are used in these fixtures")
+    local sx,cx,sy,cy=math.sin(x),math.cos(x),math.sin(y),math.cos(y)
+    return frame(0,0,0,cy,0,sy,sx*sy,cx,-sx*cy,-cx*sy,sx,cx*cy)
 end}
-local Vector3={new=function(x,y,z) return {X=x or 0,Y=y or 0,Z=z or 0,Magnitude=math.sqrt((x or 0)^2+(y or 0)^2+(z or 0)^2)} end}
+local Vector3={}
+function Vector3.new(x,y,z)
+    x,y,z=x or 0,y or 0,z or 0
+    local magnitude=math.sqrt(x*x+y*y+z*z)
+    return setmetatable({X=x,Y=y,Z=z,Magnitude=magnitude},{__index=function(_,key)
+        if key=='Unit' then assert(magnitude>0,'A zero movement vector was normalized');return Vector3.new(x/magnitude,y/magnitude,z/magnitude) end
+    end})
+end
+function cf:VectorToObjectSpace(v)
+    return Vector3.new(self[4]*v.X+self[7]*v.Y+self[10]*v.Z,self[5]*v.X+self[8]*v.Y+self[11]*v.Z,self[6]*v.X+self[9]*v.Y+self[12]*v.Z)
+end
 local function sameFrame(a,want)
     for i=1,12 do assert(math.abs(a[i]-want[i])<0.00001,"Unexpected CFrame component "..i..": "..tostring(a[i])) end
 end
@@ -73,20 +84,23 @@ function methods:Clone()
     return copy
 end
 function methods:Destroy() for _,child in ipairs(self:GetChildren()) do child:Destroy() end;self.Parent=nil;self.destroyed=true end
-function methods:Stop() self.stopped=true end
+function methods:Stop() self.stopped=true;self.IsPlaying=false end
 function methods:SetAttribute(k,v) self.attributes[k]=v end
 function methods:GetAttribute(k) return self.attributes[k] end
 local Instance={new=node}
 local Enum={AnimationPriority={Core=0}}
-local run
+local run,players
 local contentProvider={PreloadAsync=function() end}
 local game={GetService=function(_,name)
     if name=="RunService" then return run end
     if name=="ContentProvider" then return contentProvider end
+    if name=="Players" then return players end
     error("Unexpected service "..name)
 end}
 local function context(legacy)
     now=100;run={Stepped=signal(),Heartbeat=signal()};if not legacy then run.PreSimulation=signal() end
+    players={LocalPlayer={Character=nil},characters={}}
+    function players:GetPlayerFromCharacter(character) return self.characters[character] end
     contentProvider.PreloadAsync=function() end
     local reads,reports,listeners={},{},{}
     local ctx={config={AnimationClock="keyframes",Timeout=1,BootstrapTimeout=10},started=now,
@@ -122,7 +136,7 @@ local function walkingFigure(ctx,nativeMood)
     local tracks={}
     local function track(animation)
         local value=node("AnimationTrack","Track");value.Animation=animation;value.KeyframeReached=signal();value.Stopped=signal()
-        function value:Play() self.played=true end
+        function value:Play() self.played=true;self.IsPlaying=true end
         function value:AdjustSpeed(speed) self.speed=speed end
         tracks[#tracks+1]=value;return value
     end
@@ -130,6 +144,7 @@ local function walkingFigure(ctx,nativeMood)
     function hum:LoadAnimation(animation) return track(animation) end
     function hum:GetPlayingAnimationTracks() local all={};for _,t in ipairs(tracks) do if t.played and not t.stopped then all[#all+1]=t end end;return all end
     ctx.state.all=function() return {[c]={character=c}} end
+    players.LocalPlayer.Character=c;players.characters[c]=players.LocalPlayer
     return c,hum,tracks,arm,hip
 end
 function character()

@@ -194,6 +194,30 @@ if report.runtime.present then
         end
     end
 end
+-- Read the replicated switch and character conditions. This does not dispatch
+-- a command or certify the unseen server-side handler/cooldown/dummy limits.
+local world=service("Workspace")
+local configuration=find(world,"Configuration")
+local dummyFlag=find(configuration,"AllowDummys")
+report.dummy={configurationPresent=configuration~=nil,
+    allowDummys=dummyFlag and fields(dummyFlag,{"ClassName","Value"}) or {missing=true},
+    note="Local replicated snapshot only; command delivery and server-side rejection are not confirmed."}
+local dummyHumanoid=find(character,"Humanoid",true)
+report.dummy.humanoid=dummyHumanoid and fields(dummyHumanoid,{"Health","PlatformStand","WalkSpeed","JumpPower"}) or {missing=true}
+local dummyRoot=find(character,"HumanoidRootPart")
+if dummyRoot then report.dummy.rootAnchored=read(dummyRoot,"Anchored")
+else report.dummy.rootAnchored={missing=true} end
+if report.runtime.present then
+    local ok,stateModule=raw(runtime,"state")
+    if ok and type(stateModule)=="table" and type(stateModule.localState)=="function" then
+        local stateOK,state=pcall(stateModule.localState,stateModule)
+        if stateOK and type(state)=="table" then
+            report.dummy.localState=fields(state,{"health","downed","ragdolled","busy","canAct","carrying","carriedBy"})
+            report.dummy.stateCharacterMatches=state.character==character
+        elseif not stateOK then report.dummy.localState=unavailable(state)
+        else report.dummy.localState={missing=true} end
+    else report.dummy.localState={missing=true} end
+end
 local guiOK,gui=raw(environment,"FunCombat_ExternalRuntime_ErrorGUI")
 if guiOK and gui then
     walk(gui,function(item)
@@ -213,6 +237,7 @@ if logs then
             local lower=text:lower()
             local relevant=tostring(type(entry)=="table" and entry.messageType or ""):find("MessageError",1,true)
                 or lower:find("fun combat",1,true) or lower:find("funcombat",1,true)
+                or lower:find("kohl",1,true)
                 or lower:find("failed to load",1,true) or lower:find("unable to load",1,true)
                 or lower:find("rbxasset",1,true) or lower:find("contentprovider",1,true)
             if relevant and not lower:find("[fun combat diagnostics]",1,true) then

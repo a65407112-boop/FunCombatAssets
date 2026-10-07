@@ -4,6 +4,7 @@
 return function(ctx)
     local scope = ctx.cleanup:scope()
     local run = game:GetService("RunService")
+    local player = game:GetService("Players").LocalPlayer
     local definitions = ctx.json("assets/animations/locomotion.json")
     local figures = {}
     local module = {}
@@ -63,13 +64,42 @@ return function(ctx)
     end
     local function stop(record)
         if record.track then
-            pcall(function() record.track:Stop(0.1); record.track:Destroy() end)
+            if record.trackOwned ~= false then
+                pcall(function() record.track:Stop(0.1); record.track:Destroy() end)
+            end
             record.track = nil
         end
+        record.trackOwned = nil
         if record.keyframe then record.keyframe:Disconnect(); record.keyframe = nil end
         record.mode = nil
     end
+    local function isLocomotionTrack(record, track)
+        local ok, id = pcall(function() return track.Animation.AnimationId end)
+        return ok and (record.locomotionIds[id] == true or record.locomotionIds[trackId(track)] == true)
+    end
+    local function replicatedGait(record)
+        if not record.remote then return end
+        local ok, tracks = pcall(function() return record.humanoid:GetPlayingAnimationTracks() end)
+        if not ok then return end
+        for _, track in ipairs(tracks) do
+            if not (record.trackOwned and track == record.track) and track.IsPlaying ~= false
+                and isLocomotionTrack(record, track) then return track end
+        end
+    end
     local function play(record, mode, transition, speed)
+        -- The owner's server-created Animator already replicates native gait.
+        -- Observe that track without changing its speed, phase or lifecycle.
+        -- NPCs and a not-yet-arrived owner track retain the existing fallback.
+        local native = replicatedGait(record)
+        if native then
+            if record.track ~= native then
+                stop(record)
+                record.track, record.trackOwned = native, false
+            end
+            record.mode = mode
+            return
+        end
+        if record.trackOwned == false then stop(record) end
         if record.mode == mode and record.track then
             if speed then record.track:AdjustSpeed(speed) end
             return
@@ -91,7 +121,7 @@ return function(ctx)
             record.failedMode, record.retryAt = mode, tick() + 5
             ctx.report("Original locomotion unavailable: " .. selected.instance.AnimationId .. ": " .. tostring(track)); return
         end
-        record.track, record.mode = track, mode
+        record.track, record.mode, record.trackOwned = track, mode, true
         track.Priority = Enum.AnimationPriority.Core
         track:Play(transition or 0.1)
         if speed then track:AdjustSpeed(speed) end
@@ -113,13 +143,17 @@ return function(ctx)
         if not humanoid or not root or not torso then return end
         local localScope = scope:scope()
         local record = {character = character, humanoid = humanoid, root = root, scope = localScope,
-            animations = {}, pose = "Standing", speed = 0, jumpUntil = 0, animate = {}}
+            animations = {}, locomotionIds = {}, remote = character ~= player.Character,
+            pose = "Standing", speed = 0, jumpUntil = 0, animate = {}}
         figures[character] = record
         for path, entry in pairs(definitions) do
             local mode = path:match("^([^/]+)/")
             if mode and entry.AnimationId and entry.AnimationId ~= "rbxassetid://0" then
                 local animation = localScope:add(Instance.new("Animation"))
                 animation.Name, animation.AnimationId = entry.Name, entry.AnimationId
+                record.locomotionIds[entry.AnimationId] = true
+                local id = trackId({Animation=animation})
+                if id > 0 then record.locomotionIds[id] = true end
                 record.animations[mode] = record.animations[mode] or {}
                 table.insert(record.animations[mode], {instance = animation, weight = entry.weight or 1})
             end
@@ -134,7 +168,9 @@ return function(ctx)
         localScope:add(character.ChildAdded:Connect(disableDefault))
         pcall(function()
             for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
-                if not ctx.animations:ownsTrack(track) and not (moodId(character)>0 and trackId(track)==moodId(character)) then track:Stop(0.1) end
+                if not ctx.animations:ownsTrack(track)
+                    and not (record.remote and isLocomotionTrack(record,track))
+                    and not (moodId(character)>0 and trackId(track)==moodId(character)) then track:Stop(0.1) end
             end
         end)
         localScope:add(humanoid.Running:Connect(function(speed) record.speed = speed; record.pose = speed > 0.01 and "Running" or "Standing" end))
@@ -190,7 +226,13 @@ return function(ctx)
                 if record.joint and record.joint.Parent then
                     if locked then record.joint.C0 = record.original
                     else
-                        local direction = record.root.CFrame:VectorToObjectSpace(record.humanoid.MoveDirection)
+                        local movement = record.humanoid.MoveDirection
+                        if record.remote then
+                            local velocity = record.root.Velocity
+                            local horizontal = Vector3.new(velocity.X, 0, velocity.Z)
+                            movement = horizontal.Magnitude > 0.01 and horizontal.Unit or Vector3.new()
+                        end
+                        local direction = record.root.CFrame:VectorToObjectSpace(movement)
                         -- Original MIN_MOMENTUM == MAX_MOMENTUM == .13.
                         local x, z = direction.X * 0.13, direction.Z * 0.13 / 2
                         record.joint.C0 = record.joint.C0:Lerp(record.original * CFrame.Angles(-z, -x, 0), math.min(1, dt * 7))
