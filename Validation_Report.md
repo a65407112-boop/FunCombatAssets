@@ -84,3 +84,14 @@ Release_Checks.json содержит actual compile counts, rbxl→rbxlx codec r
 - Roblox place не опубликован в аккаунт пользователя. Для проверки нужен новый серверный rbxl целиком, публикация и новый server session с совпадающим build ID; одной правки GitHub недостаточно.
 
 Полная копия, визуальная идентичность и успешный engine playtest не заявляются.
+
+
+## Живой отчёт головы и отдельное сравнение 7 октября
+
+Пользователь сообщил, что остальная игра после предыдущего обновления работает, и прислал head report 2026-10-07T13:53:24Z плюс скриншот чёрного лица. Runtime initialized, protocol 4/build6a27795e99d5b46ef4847aec, R6; Head — MeshPart с FaceControls, почти белым Color и оригинальными mesh77342075522894/texture130652123696339. Content fetch Success не подтверждает рендер. Creator/server grant и native Kohl entry11556197791:7/power7 подтверждены именно этим живым отчётом.
+
+Из официального assetdelivery извлечена неизменённая RGBA PNG130652123696339 (512×512); прозрачный фон имеет чёрные RGB. Внешний JSON хранит точные пиксели, PNG/RGBA SHA256; decoder проверяет полную длину и исходный Adler32. Никакая геометрия не исследовалась. Отдельный head_test.lua создаёт временный native EditableImage/SurfaceAppearance Overlay после Test texture, сохраняет original Head.Color/TextureID/MeshId/FaceControls/joints, содержит Restore/Close/Copy report, bounded HTTP/native calls, очистку поздних результатов, повторного запуска, удаления персонажа и смены Player.Character. Он не встроен в loader, не меняет protocol/build ID, не требует перепубликации сервера.
+
+Статические/офлайн проверки: 4 exporter-теста (включая точный RGBA roundtrip и сохранение исходника), 15 Luau-сценариев (успех, ошибочный source, malformed data, отсутствующий API, network/native failure, timeout, отмена после принятого результата, изменение texture во время native обработки, Restore/rerun/respawn). API doubles не подтверждают рендер; доступность EditableImage/SurfaceAppearance на устройстве пользователя неизвестна. Визуальный результат записывается только как ответ пользователя. Инструкция: docs/head-test.md.
+
+Подтверждена отдельная ошибка facial mood: каталог14618207727 — пакет Default Mood/type78 с Animation1→14618196485 (EmptyDefaultMood/type24, без Keyframe); текущий characters.lua передаёт wrapper ID непосредственно в LoadAnimation. Это объясняет invalid AnimationClip. Постоянное изменение mood пока не опубликовано: тест сравнивает только обработку alpha оригинальной текстуры. Чёрный рендер и правильность выражения лица в Roblox ещё не исправлены/не подтверждены.

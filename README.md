@@ -20,4 +20,6 @@
 
 [Установка](docs/installation.md) · [Архитектура](docs/architecture.md) · [Отчёт проверки](Validation_Report.md) · [Builder](Builder/build.py)
 
+Отдельный [head_test.lua](head_test.lua) проверяет чёрный фон конкретной динамической головы из живого отчёта 7 октября. Он показывает Test texture / Restore / Copy report, накладывает точные исходные RGBA-пиксели поверх прежнего Head.Color через native SurfaceAppearance Overlay и не меняет обычный loader или сервер. Это обратимое сравнение, не подтверждённое исправление рендера. Нужны современные EditableImage/SurfaceAppearance API; отказ виден в окне. [Инструкция и ограничения](docs/head-test.md).
+
 Roblox Studio, движок, executor и старый клиент в среде сборки отсутствуют. Офлайн-проверки не подтверждают игровой запуск, сетевую физику, рендер головы или разрешения на hosted assets. Kohl остаётся hosted Roblox-зависимостью и создаёт свои native UI/scripts/remotes во время запуска; отказ/timeout сообщает точную причину и не блокирует combat. Adonis не активирован; его исходные настройки сохранены в `source/external`. Эта сборка не сертифицирована как полная рабочая копия в движке.
