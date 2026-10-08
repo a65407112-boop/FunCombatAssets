@@ -118,14 +118,37 @@ if character then
     report.bodyColors={}
     for index,child in ipairs(children(character)) do
         if index>MAX_NODES then report.character.childrenTruncated=true;break end
-        if isA(child,"BodyColors") then report.bodyColors[#report.bodyColors+1]=fields(child,{"HeadColor","HeadColor3"}) end
+        if isA(child,"BodyColors") then
+            report.bodyColors[#report.bodyColors+1]=fields(child,{"HeadColor","HeadColor3","TorsoColor","TorsoColor3",
+                "LeftArmColor","LeftArmColor3","RightArmColor","RightArmColor3","LeftLegColor","LeftLegColor3","RightLegColor","RightLegColor3"})
+        end
+    end
+    report.bodyParts={}
+    for _,name in ipairs({"Head","Torso","Left Arm","Right Arm","Left Leg","Right Leg","HumanoidRootPart"}) do
+        local part=find(character,name)
+        if part then
+            local properties=fields(part,{"ClassName","Color","Material","Transparency","LocalTransparencyModifier"})
+            if isA(part,"MeshPart") then
+                for key,item in pairs(fields(part,{"MeshId","MeshContent","TextureID","TextureContent"})) do properties[key]=item end
+                addReferences(properties)
+            end
+            report.bodyParts[name]={properties=properties}
+        else report.bodyParts[name]={missing=true} end
     end
     local humanoid=find(character,"Humanoid",true)
     if humanoid then
         report.rigType=read(humanoid,"RigType")
         local ok,description=pcall(function() return humanoid:GetAppliedDescription() end)
         if ok and description then
-            report.appliedDescription=fields(description,{"Head","Face","HeadColor","HeadScale","MoodAnimation","StaticFacialAnimation","UseAvatarSettings"})
+            report.appliedDescription=fields(description,{"Head","Face","HeadColor","HeadScale","MoodAnimation","StaticFacialAnimation","UseAvatarSettings",
+                "Torso","LeftArm","RightArm","LeftLeg","RightLeg","TorsoColor","LeftArmColor","RightArmColor","LeftLegColor","RightLegColor"})
+            report.appliedBodyParts={}
+            for index,child in ipairs(children(description)) do
+                if index>MAX_NODES then report.appliedBodyPartsTruncated=true;break end
+                if isA(child,"BodyPartDescription") then
+                    report.appliedBodyParts[#report.appliedBodyParts+1]=fields(child,{"Name","BodyPart","AssetId","Color","HeadShape"})
+                end
+            end
             pcall(function() description:Destroy() end)
         else report.appliedDescription=unavailable(description) end
     end
@@ -150,6 +173,17 @@ if character then
         end)
     else report.head={missing=true} end
 else report.character={missing=true};report.head={missing=true} end
+local lighting,lightingError=service("Lighting")
+if lighting then
+    report.lighting={properties=fields(lighting,{"Ambient","OutdoorAmbient","Brightness","ClockTime","ExposureCompensation","GlobalShadows"}),colorCorrections={}}
+    for index,child in ipairs(children(lighting)) do
+        if index>MAX_NODES then report.lighting.truncated=true;break end
+        if isA(child,"ColorCorrectionEffect") then
+            report.lighting.colorCorrections[#report.lighting.colorCorrections+1]={name=read(child,"Name"),
+                properties=fields(child,{"Enabled","Brightness","Contrast","Saturation","TintColor"})}
+        end
+    end
+else report.lighting=unavailable(lightingError or "Lighting unavailable") end
 local provider,providerError=service("ContentProvider")
 if provider then
     for uri in pairs(references) do

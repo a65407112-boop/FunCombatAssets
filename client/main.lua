@@ -28,10 +28,11 @@ return function(ctx)
     end))
     ctx.network:activate(snapshot.serverTime)
     scope:add(ctx.network:on("Notice",function(data)
-        local root=ctx.gui.roots.yeah
-        local label=root and root:FindFirstChild("TextLabel",true)
-        if label then label.Text=tostring(data.text or "");root.Enabled=true end
-        pcall(function() game:GetService("StarterGui"):SetCore("SendNotification",{Title="Fun Combat",Text=tostring(data.text or ""),Duration=5}) end)
+        if type(data)~="table" or type(data.text)~="string" or data.text=="" then return end
+        if data.category=="dummy" and data.status=="spawned" then return end
+        -- The original "yeah" screen is an opaque loading cover, not a toast.
+        -- Keep it disabled; ordinary notices must not cover the game view.
+        pcall(function() game:GetService("StarterGui"):SetCore("SendNotification",{Title="Fun Combat",Text=data.text,Duration=5}) end)
     end))
     local syncing=false
     local function synchronize()

@@ -13,7 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--luau', required=True)
 args = parser.parse_args()
 header = r'''
-local services,environment,warnings,reads,fetches
+local services,environment,warnings,reads,fetches,blockedAppearanceWrites
 local setclipboard,gethui,clipboardText
 local function signal()
     local callbacks={}
@@ -39,6 +39,7 @@ local function node(class,name)
         if props.denied[key] then error(props.denied[key]) end
         return methods[key] or props[key]
     end,__newindex=function(_,key,value)
+        if props.readOnly then blockedAppearanceWrites+=1 end
         assert(not props.readOnly,'Diagnostic wrote the actual appearance property '..key)
         if props.isDiagnosticUI and key=='Parent' then
             if props.Parent and props.Parent.children then
@@ -108,7 +109,7 @@ local function validate(value,seen)
     end
 end
 local function fixture(empty)
-    environment={};warnings={};reads={};fetches={};setclipboard=nil;gethui=nil;clipboardText=nil
+    environment={};warnings={};reads={};fetches={};blockedAppearanceWrites=0;setclipboard=nil;gethui=nil;clipboardText=nil
     local player=node('Player','ActualAccount');player.UserId=11556197791;player.Parent=true
     player.attributes={FunCombatAdminAllowed=true,FunCombatAdminSource='configuredOwner',FunCombatCreatorUserId=998877,
         FunCombatConfiguredOwnerUserId=11556197791,FunCombatAdminState='ready',UnrelatedAttribute='omit'}
@@ -136,7 +137,15 @@ local function fixture(empty)
         HttpService={JSONEncode=function(_,report) validate(report);return '[mock JSON snapshot]' end}}
     return player,character,head,description,admins
 end
-local function run() local result=runDiagnostics();assert(type(result)=='string' and #warnings==1,'Standalone chunk did not print and return its report');return environment.FunCombatDiagnostics end
+local function run()
+    local result=runDiagnostics()
+    assert(type(result)=='string' and #warnings==1,'Standalone chunk did not print and return its report')
+    assert(blockedAppearanceWrites==0,'A protected pcall hid an attempted appearance edit')
+    for _,key in ipairs(reads) do
+        assert(key~='Size' and key~='CFrame' and key~='Position' and key~='MeshSize','A protected pcall hid a geometry read')
+    end
+    return environment.FunCombatDiagnostics
+end
 local function uiFixture()
     local player,character,head=fixture()
     local parent=append(player,node('PlayerGui'))
@@ -159,6 +168,56 @@ local function check(name,fn)
 end
 '''
 checks = r'''
+check('all original body colors and applied colors remain distinct in the report',function()
+    local _,character,_,description=fixture();local body=character:FindFirstChildOfClass('BodyColors')
+    for index,prefix in ipairs({'Head','Torso','LeftArm','RightArm','LeftLeg','RightLeg'}) do
+        body[prefix..'Color3']=color(index/10);description[prefix..'Color']=color(index/10)
+    end
+    body.props.readOnly=true
+    local report=run()
+    assert(report.bodyColors[1].TorsoColor3 and report.bodyColors[1].TorsoColor3.R==0.2,'Actual torso BodyColors were omitted')
+    for index,prefix in ipairs({'Head','Torso','LeftArm','RightArm','LeftLeg','RightLeg'}) do
+        assert(report.bodyColors[1][prefix..'Color3'].R==index/10,'A limb color was replaced with the head color')
+        assert(report.appliedDescription[prefix..'Color'].R==index/10,'Applied description body color was omitted')
+    end
+end)
+check('black body parts and local visibility are recorded without appearance edits or geometry reads',function()
+    local _,character=fixture()
+    for index,name in ipairs({'Torso','Left Arm','Right Arm','Left Leg','Right Leg','HumanoidRootPart'}) do
+        local part=append(character,node('Part',name));part.Color=color(index==1 and 0 or index/10)
+        part.Transparency=index==6 and 1 or 0;part.LocalTransparencyModifier=0.25;part.Material='Enum.Material.Plastic'
+        part.props.readOnly=true
+    end
+    local report=run()
+    assert(report.bodyParts and report.bodyParts.Torso.properties.Color.R==0,'Actual black torso color was not captured')
+    assert(report.bodyParts['Left Arm'].properties.Color.R==0.2 and report.bodyParts['Right Leg'].properties.LocalTransparencyModifier==0.25,
+        'Distinct limb appearance or local visibility was not captured')
+    assert(report.bodyParts.HumanoidRootPart.properties.Transparency==1,'The root was mistaken for a visible limb')
+    assert(report.bodyParts.Head.properties.Color.R==248/255,'The working head appearance was altered')
+end)
+check('structured applied body metadata preserves color and explicit asset IDs in a bounded snapshot',function()
+    local _,_,_,description=fixture()
+    local part=append(description,node('BodyPartDescription','ActualTorso'))
+    part.BodyPart='Enum.BodyPart.Torso';part.Color=color(0);part.AssetId=0;part.HeadShape='';part.props.readOnly=true
+    for index=1,100 do append(description,node('Folder','Unrelated'..index)) end
+    local report=run()
+    assert(report.appliedBodyParts and #report.appliedBodyParts==1 and report.appliedBodyParts[1].Color.R==0,
+        'Structured body color was omitted or replaced')
+    assert(report.appliedBodyParts[1].AssetId==0 and report.appliedBodyPartsTruncated,'Zero body ID or truncation was misreported')
+end)
+check('current lighting and color correction are reported without changing them',function()
+    fixture();local lighting=node('Lighting');lighting.Ambient=color(0);lighting.OutdoorAmbient=color(0.5)
+    lighting.Brightness=2;lighting.ExposureCompensation=-1;lighting.ClockTime=18;services.Lighting=lighting
+    local correction=append(lighting,node('ColorCorrectionEffect','ActualCorrection'))
+    correction.Enabled=true;correction.TintColor=color(0.1);correction.Brightness=-0.2;correction.Saturation=0.4;correction.Contrast=0.3
+    lighting.props.readOnly=true;correction.props.readOnly=true
+    local report=run()
+    assert(report.lighting and report.lighting.properties.Ambient.R==0 and report.lighting.properties.ExposureCompensation==-1,
+        'The actual lighting values were omitted')
+    assert(#report.lighting.colorCorrections==1 and report.lighting.colorCorrections[1].properties.TintColor.R==0.1,
+        'Active color correction was omitted')
+    warnings={};services.Lighting=nil;report=run();assert(report.lighting.unavailable,'Denied lighting API was treated as a known state')
+end)
 check('replicated dummy toggle reports true and false without enabling either',function()
     for _,enabled in ipairs({true,false}) do
         fixture();local world=node('Workspace');services.Workspace=world

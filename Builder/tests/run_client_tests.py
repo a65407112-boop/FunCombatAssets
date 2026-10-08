@@ -78,18 +78,42 @@ function transport:snapshot() return {serverTime=100,states={}} end
 function transport:activate() if delivered.Error then delivered.Error({text="buffered avatar warning"}) end end
 function transport:dispatch() end
 local mainPlayers={LocalPlayer={CharacterAdded=signal()},PlayerRemoving=signal()}
+local notifications={}
+local starterGui={SetCore=function(_,kind,data)
+ assert(kind=="SendNotification");notifications[#notifications+1]=data
+end}
 local originalService=game.GetService
-game.GetService=function(self,name) if name=="Players" then return mainPlayers end;return originalService(self,name) end
+game.GetService=function(self,name)
+ if name=="Players" then return mainPlayers elseif name=="StarterGui" then return starterGui end
+ return originalService(self,name)
+end
+local blackout=instance("ScreenGui","yeah");blackout.Enabled=false
+local label=instance("TextLabel","TextLabel");label.Text="Hold on, just checking some"
+blackout.children.TextLabel=label
 local mainCtx={cleanup=maid(),network=transport,pair={apply=function() end},animations={stop=function() end},gui={roots={}},
  state={onChanged=function() return function() end end,apply=function() end,all=function() return {} end},
  report=function(message) mainReports[#mainReports+1]=message end}
+mainCtx.gui.roots.yeah=blackout
 local originalWait=wait
 wait=function(seconds) if seconds==15 then coroutine.yield() else originalWait(seconds) end end
 mainFactory(mainCtx)
-wait=originalWait;game.GetService=originalService
 assert(#mainReports==1 and mainReports[1]:find("buffered avatar warning",1,true),"Main activated bootstrap before registering the server Error listener")
+delivered.Notice({category="dummy",status="spawned",text="Combat dummy spawned."})
+assert(not blackout.Enabled,"A successful dummy spawn enabled the full-screen black loading GUI")
+assert(#notifications==0,"Successful dummy spawns still display an unwanted popup")
+delivered.Notice({category="weather",text="The Weather is changing to: Rainy"})
+assert(not blackout.Enabled,"An ordinary notice enabled the full-screen black loading GUI")
+assert(#notifications==1 and notifications[1].Text=="The Weather is changing to: Rainy",
+ "Useful notices were removed instead of using the bounded native notification")
+delivered.Notice({category="dummy",status="rejected",text="Dummy limit reached."})
+assert(not blackout.Enabled and #notifications==2 and notifications[2].Text=="Dummy limit reached.",
+ "Rejected dummy actions lost their visible error or covered the game")
+assert(pcall(delivered.Notice,nil) and pcall(delivered.Notice,{}),"An incomplete notice crashed the handler")
+assert(#notifications==2,"An empty notice displayed a popup")
+wait=originalWait;game.GetService=originalService
 mainCtx.cleanup:destroy()
 print("Client diagnostics: early errors, deduplication, cutoff, respawn/removal and main listener ordering passed")
+print("Client notices: dummy success is silent; errors/weather remain visible without the full-screen loading GUI")
 '''
 script=header+'\nlocal networkFactory=(function()\n'+network+'\nend)()\nlocal stateFactory=(function()\n'+state+'\nend)()\nlocal mainFactory=(function()\n'+main+'\nend)()\n'+checks
 with tempfile.TemporaryDirectory(dir=ROOT) as tmp:
