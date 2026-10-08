@@ -1,3 +1,9 @@
+# Исправление dummy — 8 октября 2026
+
+Подтверждён клиентский missing AllowDummys при зарегистрированных командах и свободном персонаже; отсутствие флага на живом сервере не доказано. Исправлен воспроизведённый отсутствующий settings path: точная исходная Configuration/BoolValue копируется builder в server-only WorldSettings, потерянные экземпляры восстанавливаются при startup без изменения явного false. Добавлен адресный игровой Notice/Error для отказов; spawned посылается только после real combat bind. Clone/bind failure и респавн во время avatar dummy preparation очищают pending модель/record. Никаких обходов owner validation, cooldown, лимитов или серверного combat. Новая парная серверная поставка обязательна из-за точного build ID. Статические/исполняемые API-double проверки отделены от отсутствующих engine tests; геометрия не проверяется.
+
+Предыдущая история:
+
 # Изменения текущей сборки — 7 октября 2026
 
 Воспроизведён переданный PC fatal weapons/Maxwell: SurfaceAppearance can only be parented to MeshParts. Прежний Part/SpecialMesh fallback удалён. Builder переносит 11 оригинальных leaf MeshPart и один SurfaceAppearance как минимальные native dependencies под encoded именами. Все сериализованные свойства и opaque load/shared данные сохранены; PBR остаётся child настоящего MeshPart. Полные модели, joints и refs восстанавливаются извне. Factory не записывает защищённые MeshId/InitialSize/PBR maps/TexturePack, сохраняет writable исходные Size/CFrame/TextureID/RenderFidelity и не вводит size multiplier. PC readonly и phone writable API doubles проходят один native путь. Источник и исходные model exports не изменены; геометрия не инспектировалась.

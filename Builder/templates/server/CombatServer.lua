@@ -466,6 +466,12 @@ function C:admin(player,payload)
         local record=self.players[target];if record then record.humanoid.Health=0 end
     end
 end
+function C:dummyFeedback(player,status,text,target)
+    if not player or not player.Parent then return end
+    local data={action="SpawnDummy",category="dummy",status=status,text=text,target=target,character=player.Character,userId=player.UserId}
+    if status~="spawned" then self:emit("Error",data,player) end
+    self:emit("Notice",data,player)
+end
 function C:request(player,id,payload)
     local gate=self.gates[player]
     if not gate then gate={tokens=30,at=timeNow()};self.gates[player]=gate end
@@ -474,12 +480,24 @@ function C:request(player,id,payload)
     local index=self.protocol.config.actions[id]
     local action=index and actionNames[index]
     local r=self.players[player]
-    if not action or not Policy.request(self:view(r),action,payload,timeNow()) then return end
+    if not action then return end
+    if not Policy.request(self:view(r),action,payload,timeNow()) then
+        if action=="SpawnDummy" then
+            local why=not Policy.free(self:view(r)) and "Your character must be alive and free to spawn a dummy."
+                or "Dummy avatar user ID must be a positive integer no greater than 100000000000."
+            self:dummyFeedback(player,"rejected",why)
+        end
+        return
+    end
     if action=="Gender" then
         player:SetAttribute("Gender",payload);if r then self:publish(r) end
     elseif action=="Admin" then self:admin(player,payload)
     elseif action=="Vote" then if self.voting then self.voting:vote(player,payload) end
-    elseif action=="SpawnDummy" then if self.world then self.world:dummy(player,payload) end
+    elseif action=="SpawnDummy" then
+        if self.world then
+            local ok,why=pcall(self.world.dummy,self.world,player,payload)
+            if not ok then self:dummyFeedback(player,"rejected","Original dummy spawner failed: "..tostring(why)) end
+        else self:dummyFeedback(player,"rejected","The original game dummy spawner is unavailable.") end
     elseif action=="SecretDoor" then if self.world then self.world:secretDoor(player) end
     elseif action=="PairSpeed" then self:pairSpeed(r)
     elseif action=="Swing" then self:swing(r)

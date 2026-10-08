@@ -30,7 +30,32 @@ function W.new(combat,templates)
         weather={name="Sunny",revision=1},weatherAt=clock()+720,activeMap=nil,nativePrompts={}},W)
     combat.world=self
     self:initializeMap()
+    self:initializeSettings()
     return self
+end
+function W:initializeSettings()
+    local configuration=workspace:FindFirstChild("Configuration")
+    local flag=configuration and configuration:FindFirstChild("AllowDummys")
+    if configuration then
+        assert(configuration:IsA("Configuration") or configuration:IsA("Folder"),"Workspace.Configuration has an unexpected class; the original settings were not overwritten.")
+    end
+    if flag then
+        assert(flag:IsA("BoolValue"),"Workspace.Configuration.AllowDummys must be the original BoolValue.")
+        return flag -- An explicit false is an owner setting, not lost data.
+    end
+    local original=self.templates:FindFirstChild("WorldSettings")
+    assert(original and original:IsA("Configuration"),"Original settings recovery template ServerStorage.FunCombatData.WorldSettings is missing.")
+    local originalFlag=original:FindFirstChild("AllowDummys")
+    assert(originalFlag and originalFlag:IsA("BoolValue"),"Original WorldSettings.AllowDummys BoolValue is missing.")
+    if not configuration then
+        configuration=assert(original:Clone(),"Original WorldSettings cannot be cloned.")
+        configuration.Name="Configuration";configuration.Parent=workspace
+        flag=configuration:FindFirstChild("AllowDummys")
+    else
+        flag=assert(originalFlag:Clone(),"Original AllowDummys cannot be cloned.");flag.Parent=configuration
+    end
+    warn("FunCombat restored original Workspace.Configuration.AllowDummys="..tostring(flag.Value).." from ServerStorage.FunCombatData.WorldSettings")
+    return flag
 end
 function W:initializeMap()
     local name=Data.initialMap
@@ -104,46 +129,70 @@ function W:secretDoor(player)
     self.doorAt=clock()+1;door.CanCollide=not door.CanCollide
 end
 function W:dummy(player,userId)
+    local function reject(why)
+        self.combat:dummyFeedback(player,"rejected",why)
+        return false,why
+    end
     local allowed=workspace:FindFirstChild("Configuration")
     allowed=allowed and allowed:FindFirstChild("AllowDummys")
     local r=self.combat.players[player]
-    if not allowed or not allowed.Value then return false,"Dummy spawning is disabled in this place." end
-    if not Policy.free(self.combat:view(r)) then return false,"Your character must be alive and free to spawn a dummy." end
-    if clock()<(self.dummyCooldown[player] or 0) then return false,"Dummy cooldown: wait 3 seconds between requests." end
+    if not allowed then return reject("Server Workspace.Configuration.AllowDummys is missing. Install the matching server place and restart the server.") end
+    if not allowed:IsA("BoolValue") then return reject("Server Workspace.Configuration.AllowDummys is not a BoolValue.") end
+    if not allowed.Value then return reject("Dummy spawning is disabled in this place.") end
+    if not Policy.free(self.combat:view(r)) or r.character~=player.Character then return reject("Your character must be alive and free to spawn a dummy.") end
+    if not Policy.request(self.combat:view(r),"SpawnDummy",userId,clock()) then return reject("Dummy avatar user ID must be a positive integer no greater than 100000000000.") end
+    if clock()<(self.dummyCooldown[player] or 0) then return reject("Dummy cooldown: wait 3 seconds between requests.") end
     local all,owned=0,0
     for model,sender in pairs(self.combat.dummyOwners) do
         if model.Parent then all=all+1;if sender==player then owned=owned+1 end end
     end
     if all>=20 or owned>=4 then
         local why="Dummy limit: 4 per player, 20 per server"
-        self.combat:emit("Error",{text=why},player);return false,why
+        return reject(why)
+    end
+    local cloned,model=pcall(function() return self.templates.DummyRig:Clone() end)
+    if not cloned or not model then return reject("Original dummy spawner failed: "..tostring(model or "DummyRig could not be cloned")) end
+    local root=model:FindFirstChild("HumanoidRootPart")
+    local humanoid=model:FindFirstChildOfClass("Humanoid")
+    if not root or not root:IsA("BasePart") or not humanoid or not model:FindFirstChild("Torso") then
+        model:Destroy();return reject("Original DummyRig is missing its R6 Humanoid, HumanoidRootPart or Torso.")
     end
     self.dummyCooldown[player]=clock()+3
-    local model=self.templates.DummyRig:Clone()
+    local ownerCharacter=r.character
+    root.CFrame=r.root.CFrame*CFrame.new(0,0,-5)
     model.Name="Rig";model.Parent=workspace
     self.combat.dummyOwners[model]=player
-    local root=model:FindFirstChild("HumanoidRootPart")
-    root.CFrame=r.root.CFrame*CFrame.new(0,0,-5)
     local name="Rig"
+    local function dispose()
+        if self.combat.records[model] then self.combat:remove(model) end
+        self.combat.dummyOwners[model]=nil;model:Destroy()
+    end
     thread(function()
-        if userId then
-            root.Anchored=true
-            local hum=model:FindFirstChildOfClass("Humanoid")
-            local ready,why=Avatar.prepareDummy(player,model,hum,userId)
-            if why and player.Parent then self.combat:emit("Error",{text=why,character=model},player) end
-            if ready and model.Parent then
-                name=tostring(userId)
-                thread(function()
-                    local ok,username=pcall(function() return Players:GetNameFromUserIdAsync(userId) end)
-                    local record=self.combat.records[model]
-                    if ok and record then record.displayName=username;self.combat:publish(record) end
-                end)
-            else self.combat.dummyOwners[model]=nil;model:Destroy();return end
+        local ok,failure=pcall(function()
+            if userId then
+                root.Anchored=true
+                local ready,why=Avatar.prepareDummy(player,model,humanoid,userId)
+                if not ready then error(why or "Original avatar dummy preparation failed.") end
+                if why and player.Parent then self.combat:emit("Error",{text=why,character=model},player) end
+                if model.Parent then
+                    name=tostring(userId)
+                    thread(function()
+                        local ok,username=pcall(function() return Players:GetNameFromUserIdAsync(userId) end)
+                        local record=self.combat.records[model]
+                        if ok and record then record.displayName=username;self.combat:publish(record) end
+                    end)
+                end
+            end
+            if not model.Parent or not player.Parent or player.Character~=ownerCharacter then dispose();return end
+            root.Anchored=false
+            local record,why=self.combat:bind(model,nil,name)
+            assert(record,"Original dummy rig could not initialize as R6: "..tostring(why))
+            self.combat:dummyFeedback(player,"spawned","Combat dummy spawned.",model)
+        end)
+        if not ok then
+            dispose()
+            if player.Parent and player.Character==ownerCharacter then reject("Original dummy initialization failed: "..tostring(failure)) end
         end
-        if not model.Parent or not player.Parent then self.combat.dummyOwners[model]=nil;model:Destroy();return end
-        root.Anchored=false
-        local record=self.combat:bind(model,nil,name)
-        if not record then self.combat.dummyOwners[model]=nil;model:Destroy();self.combat:emit("Error",{text="Original dummy rig could not initialize as R6"},player) end
     end)
     return true,"Dummy spawn accepted."
 end

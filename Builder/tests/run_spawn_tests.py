@@ -141,6 +141,8 @@ local function fixture()
     function presentation:FireClient(_, _, payload) if payload.text then errors[#errors+1]=payload.text end end
     attach(folder,node('RemoteEvent','action'));attach(folder,node('RemoteFunction','snapshot'))
     local templates=node('Folder','Templates');templates.Prompts=attach(templates,node('Folder','Prompts'))
+    local settings=attach(templates,node('Configuration','WorldSettings'))
+    local dummyFlag=attach(settings,node('BoolValue','AllowDummys'));dummyFlag.Value=true
     local prompts={}
     for i=1,6 do
         prompts[i]='prompt'..i
@@ -272,7 +274,10 @@ assert(recovered.activeMap and recovered.activeMap~=template and recovered.activ
     'Missing Workspace map was not mounted from the original ServerStorage template')
 assert(recovered.activeMap.Name=='Crossroads' and #recovered:spawns()==1)
 assert(recovered:spawns()[1].CFrame.Y==123.436943,'Startup recovery replaced the original map spawn coordinates')
-assert(#workspace.children==1,'Startup recovery created duplicate active maps')
+local function worldModels()
+    local result={};for _,object in ipairs(workspace:GetChildren()) do if object:IsA('Model') then result[#result+1]=object end end;return result
+end
+assert(#worldModels()==1,'Startup recovery created duplicate active maps')
 print('Map regression: empty Workspace mounts the original map template once')
 
 workspace.children={}
@@ -287,14 +292,14 @@ workspace.children={}
 local unrelated=attach(workspace,node('Model','Crossroads'))
 local existing=attach(workspace,template:Clone())
 local found=modules.World.new(combat,combat.templates)
-assert(found.activeMap==existing and not unrelated.destroyed and #workspace.children==2,
+assert(found.activeMap==existing and not unrelated.destroyed and #worldModels()==2,
     'A same-name unrelated model hid the existing source map or was destroyed')
 print('Map regression: duplicate names do not hide a valid existing source map')
 
 workspace.children={}
 unrelated=attach(workspace,node('Model','Crossroads'))
 local alongside=modules.World.new(combat,combat.templates)
-assert(not unrelated.destroyed and alongside.activeMap~=unrelated and #workspace.children==2,
+assert(not unrelated.destroyed and alongside.activeMap~=unrelated and #worldModels()==2,
     'Source template recovery destroyed an unrelated same-name model')
 print('Map regression: original template recovery preserves unrelated same-name models')
 

@@ -254,6 +254,25 @@ def children_named(item,name):return [e for e in item.findall('Item') if Source.
 def empty(item):
     for child in item.findall('Item'):item.remove(child)
 
+def add_world_settings(source,data):
+    """Keep the actual source configuration as a server-only recovery template."""
+    workspace=source.tree.find('Item[@class="Workspace"]')
+    if workspace is None:raise ValueError('Original Workspace is missing')
+    originals=children_named(workspace,'Configuration')
+    if len(originals)!=1 or originals[0].get('class')!='Configuration':
+        raise ValueError('Original Workspace.Configuration is missing or ambiguous')
+    flags=children_named(originals[0],'AllowDummys')
+    if len(flags)!=1 or flags[0].get('class')!='BoolValue' or flags[0].findtext('Properties/bool[@name="Value"]') not in {'true','false'}:
+        raise ValueError('Original Workspace.Configuration.AllowDummys BoolValue is missing or invalid')
+    backup=copy.deepcopy(originals[0]);set_property(backup,'Name','string','WorldSettings')
+    refs={item.get('referent'):'RBXGEN'+code_id('worldSettings',item.get('referent')) for item in backup.iter('Item')}
+    for item in backup.iter('Item'):
+        item.set('referent',refs[item.get('referent')]);set_property(item,'Archivable','bool','true')
+    for prop in backup.iter('Ref'):
+        if prop.text in refs:prop.text=refs[prop.text]
+    data.append(backup)
+    return backup
+
 def build_place(source,repo,output,timing):
     admin=read_admin_settings(repo)
     tree=copy.deepcopy(source.tree)
@@ -292,6 +311,7 @@ def build_place(source,repo,output,timing):
     # Original rig decals/body colors are physics-compatible appearance; required
     # engine avatar body parts stay authoritative and are not rebuilt as duplicates.
     data=instance('Folder','FunCombatData');by[78368].append(data)
+    add_world_settings(source,data)
     maps=copy.deepcopy(source.by[7796]);set_property(maps,'Name','string','Maps');strip_executables(maps)
     data.append(maps)
     rig=strip_rig(copy.deepcopy(source.by[7319]));set_property(rig,'Name','string','DummyRig');data.append(rig)

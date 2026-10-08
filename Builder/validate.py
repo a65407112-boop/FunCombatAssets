@@ -78,6 +78,21 @@ def spawn_initialization(tree):
             'sourceTemplateHeldUntilPrepared':True,'engineAppearanceRaceDisabled':True,
             'initialMapMetadataAndTemplate':True}
 
+def world_settings(tree):
+    live=tree.xpath('./Item[@class="Workspace"]/Item[Properties/string[@name="Name"]="Configuration"]')
+    backup=tree.xpath('./Item[@class="ServerStorage"]/Item[Properties/string[@name="Name"]="FunCombatData"]/Item[Properties/string[@name="Name"]="WorldSettings"]')
+    require(len(live)==len(backup)==1,'Original live settings/recovery template are missing or duplicate')
+    values=[]
+    for container in (live[0],backup[0]):
+        require(container.get('class')=='Configuration','Original settings container class differs')
+        flags=container.xpath('./Item[Properties/string[@name="Name"]="AllowDummys"]')
+        require(len(flags)==1 and flags[0].get('class')=='BoolValue','Original AllowDummys is missing/invalid')
+        value=flags[0].findtext('Properties/bool[@name="Value"]')
+        require(value in {'true','false'},'Original AllowDummys has no valid boolean state')
+        values.append(value)
+    require(values[0]==values[1],'Recovery AllowDummys differs from exported original state')
+    return {'passed':True,'sourceAllowDummys':values[0]=='true','originalServerOnlyBackup':True}
+
 def validate(output):
     output=Path(output);repo=output/'GitHub'
     protocol=json.loads((repo/'config/protocol.json').read_text())
@@ -104,6 +119,7 @@ def validate(output):
     xml=E.parse(str(output/'Game_Server.rbxlx')).getroot()
     count=references(xml,'Server place')
     spawn_setup=spawn_initialization(xml)
+    settings_setup=world_settings(xml)
     items=list(xml.iter('Item'));byname={}
     for e in items:byname.setdefault(e.findtext('Properties/string[@name="Name"]'),[]).append(e)
     for key,name in protocol['names'].items():
@@ -222,6 +238,7 @@ def validate(output):
         'asset hierarchy and public WeldConstraint refs','original costume native CSG dependencies and opaque payload fidelity','original native MeshPart load state and PBR property/host fidelity','native original Kohl hierarchy and dummy command bridge','same explicit numeric owner in server and native Kohl settings','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
         'binaryPropertyTypes':binary_types,
         'spawnInitialization':spawn_setup,
+        'worldSettings':settings_setup,
         'nativeOriginalCSGDependencies':len(expected_native),'nativeOriginalMeshPartDependencies':len(expected_meshes),'nativeOriginalPBRDependencies':len(expected_surfaces),'originalKohlAssetId':1868400649,'configuredOwnerUserId':owner,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),

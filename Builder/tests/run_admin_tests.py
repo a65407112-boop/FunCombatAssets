@@ -117,18 +117,25 @@ end
 local function dummyWorld(owner)
     local templates=node('Folder','Templates');templates.Prompts=node('Folder','Prompts')
     templates.DummyRig=rig('DummyRig')
+    local originalSettings=node('Configuration','WorldSettings');originalSettings.Parent=templates
+    local sourceFlag=node('BoolValue','AllowDummys');sourceFlag.Value=true;sourceFlag.Parent=originalSettings
+    local map=node('Model','Map');map.Parent=workspace
+    local spawns=node('Folder','Spawns');spawns.Parent=map
+    local spawn=node('Part','Spawn');spawn.Parent=spawns
+    local emitted={}
     local net=node('Folder','Protocol');for _,name in ipairs({'Action','Event','Snapshot'}) do local x=node('RemoteEvent',name);x.Parent=net
-        function x:FireAllClients() end;function x:FireClient() end
+        function x:FireAllClients(id,data) emitted[#emitted+1]={id=id,data=data} end
+        function x:FireClient(player,id,data) emitted[#emitted+1]={player=player,id=id,data=data} end
     end
-    local config={version=4,buildId='admin-test',names={'Protocol','Action','Event','Snapshot'},prompts={},events={}}
+    local config={version=4,buildId='admin-test',names={'Protocol','Action','Event','Snapshot'},prompts={},events={},actions={['62cc1e80e42b']=10}}
     for i=1,14 do config.events[i]='Event'..i end
     local combat=modules.CombatServer.new({folder=net,config=config},templates)
     local original=rig('OwnerCharacter');original.Parent=workspace;owner.Character=original
     local record=assert(combat:bind(original,owner));record.attacks={};record.stunUntil=0
     local configuration=node('Folder','Configuration');configuration.Parent=workspace
     local enabled=node('BoolValue','AllowDummys');enabled.Value=true;enabled.Parent=configuration
-    local world=setmetatable({combat=combat,templates=templates,dummyCooldown={},weather={name='Sunny',revision=1}},modules.World);combat.world=world
-    return world,combat
+    local world=modules.World.new(combat,templates)
+    return world,combat,emitted
 end
 local failures,total={},0
 local function check(name,fn)
@@ -393,6 +400,94 @@ check('dummy API preserves an exact original rig-loading failure',function()
     modules.KohlAdmin.start(nativeLoader(),a,world,2);advance(0)
     local ok,why=native:FindFirstChild('FunCombatDummy'):Invoke(owner)
     assert(ok==false and why:find('Original DummyRig clone permission denied',1,true),'Native dummy failure was hidden')
+end)
+local function notice(emitted,player,needle)
+    for _,entry in ipairs(emitted) do
+        if entry.player==player and entry.id=='Event13' and tostring(entry.data.text):find(needle,1,true) then return entry.data end
+    end
+end
+check('startup restores missing Configuration from the original server-only settings before spawning',function()
+    fixture();local owner=player(1357);local world,combat=dummyWorld(owner)
+    workspace:FindFirstChild('Configuration'):Destroy()
+    world=modules.World.new(combat,world.templates)
+    local ok,why=world:dummy(owner)
+    assert(ok==true and next(combat.dummyOwners)~=nil,'Lost Configuration prevented original dummy creation: '..tostring(why))
+    assert(workspace:FindFirstChild('Configuration'):FindFirstChild('AllowDummys').Value==true,'Original true setting was not restored')
+end)
+check('startup restores only a missing flag while preserving existing live false',function()
+    fixture();local owner=player(1357);local world,combat=dummyWorld(owner)
+    local configuration=workspace:FindFirstChild('Configuration');configuration:FindFirstChild('AllowDummys'):Destroy()
+    modules.World.new(combat,world.templates)
+    local live=configuration:FindFirstChild('AllowDummys');assert(live and live.Value==true,'Missing source flag was not restored')
+    live.Value=false;world=modules.World.new(combat,world.templates)
+    local ok=world:dummy(owner)
+    assert(ok==false and configuration:FindFirstChild('AllowDummys')==live and live.Value==false,'Explicit live disable was overwritten')
+end)
+check('a disabled original backup stays disabled when the live container is missing',function()
+    fixture();local owner=player(1357);local world,combat=dummyWorld(owner)
+    world.templates:FindFirstChild('WorldSettings'):FindFirstChild('AllowDummys').Value=false
+    workspace:FindFirstChild('Configuration'):Destroy()
+    world=modules.World.new(combat,world.templates)
+    local ok=world:dummy(owner)
+    assert(ok==false and workspace:FindFirstChild('Configuration'):FindFirstChild('AllowDummys').Value==false,'Recovery invented an enabled default')
+end)
+check('missing recovery dependency is an explicit startup error rather than an invented setting',function()
+    fixture();local owner=player(1357);local world,combat=dummyWorld(owner)
+    workspace:FindFirstChild('Configuration'):Destroy();world.templates:FindFirstChild('WorldSettings'):Destroy()
+    local ok,why=pcall(modules.World.new,combat,world.templates)
+    assert(not ok and tostring(why):find('WorldSettings',1,true) and not workspace:FindFirstChild('Configuration'),'Missing original backup was silently replaced')
+end)
+check('ordinary dummy rejection displays the exact disabled reason to its requester',function()
+    fixture();local owner=player(1357);local world,combat,emitted=dummyWorld(owner)
+    workspace:FindFirstChild('Configuration'):FindFirstChild('AllowDummys').Value=false
+    combat:request(owner,'62cc1e80e42b')
+    assert(notice(emitted,owner,'disabled') and next(combat.dummyOwners)==nil,'Authoritative disabled rejection stayed silent or spawned')
+end)
+check('ordinary dummy policy rejection is visible without relaxing the free-state check',function()
+    fixture();local owner=player(1357);local _,combat,emitted=dummyWorld(owner);combat.players[owner].busy=true
+    combat:request(owner,'62cc1e80e42b')
+    assert(notice(emitted,owner,'alive and free') and next(combat.dummyOwners)==nil,'Policy state rejection stayed silent or was bypassed')
+end)
+check('dummy clone failure is visible and releases the original game request',function()
+    fixture();local owner=player(1357);local world,combat,emitted=dummyWorld(owner)
+    world.templates.DummyRig:SetAttribute('FixtureCloneError','Original DummyRig clone permission denied')
+    local ok,why=pcall(combat.request,combat,owner,'62cc1e80e42b')
+    assert(ok and notice(emitted,owner,'Original DummyRig clone permission denied') and next(combat.dummyOwners)==nil,
+        'Clone failure escaped the handler without visible feedback: '..tostring(why))
+end)
+check('successful feedback refers to a server-registered combat target',function()
+    fixture();local owner=player(1357);local _,combat,emitted=dummyWorld(owner)
+    combat:request(owner,'62cc1e80e42b')
+    local result=notice(emitted,owner,'spawned')
+    assert(result and result.status=='spawned' and result.target and combat.records[result.target] and combat.dummyOwners[result.target]==owner,
+        'Spawn feedback preceded real combat registration or had no target')
+end)
+check('failed R6 binding removes the pending dummy and reports the exact reason',function()
+    fixture();local owner=player(1357);local world,combat,emitted=dummyWorld(owner)
+    world.templates.DummyRig:FindFirstChildOfClass('Humanoid').Health=0
+    combat:request(owner,'62cc1e80e42b')
+    assert(next(combat.dummyOwners)==nil and notice(emitted,owner,'dead R6 character'),'Failed binding retained a dummy or hid the original failure')
+    assert(not workspace:FindFirstChild('Rig'),'Failed binding left its pending dummy in Workspace')
+    for character in pairs(combat.records) do assert(character==owner.Character,'Failed binding retained a combat record') end
+end)
+check('partial binding failure cleans the combat record and target model',function()
+    fixture();local owner=player(1357);local _,combat,emitted=dummyWorld(owner)
+    combat.protocol.config.prompts={'missing-original-prompt'}
+    combat:request(owner,'62cc1e80e42b')
+    assert(next(combat.dummyOwners)==nil and notice(emitted,owner,'Missing original combat prompt'),'Partial initialization retained an owner or lost its error')
+    assert(not workspace:FindFirstChild('Rig'),'Partial binding left its target model in Workspace')
+    for character in pairs(combat.records) do assert(character==owner.Character,'Partial bind kept an authoritative target') end
+end)
+check('respawn while preparing an avatar dummy cancels its pending registration',function()
+    fixture();local owner=player(1357);local _,combat,emitted=dummyWorld(owner)
+    local originalFetch=Players.GetHumanoidDescriptionFromUserIdAsync
+    Players.GetHumanoidDescriptionFromUserIdAsync=function(self,userId)
+        owner.Character=rig('RespawnedOwner');owner.Character.Parent=workspace
+        return originalFetch(self,userId)
+    end
+    combat:request(owner,'62cc1e80e42b',261)
+    assert(next(combat.dummyOwners)==nil and not notice(emitted,owner,'spawned'),'An avatar dummy initialized after its owner respawned')
+    assert(not workspace:FindFirstChild('Rig'),'Owner respawn left the cancelled dummy in Workspace')
 end)
 assert(#failures==0,table.concat(failures,'\n'))
 print('Admin regression scenarios passed: '..total)
