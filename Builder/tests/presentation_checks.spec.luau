@@ -103,7 +103,7 @@ check("stalled warm-up exits at its deadline and late fetches cannot leak assets
 end)
 check("remote observer preserves the already replicated owner gait without a duplicate",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum,tracks=walkingFigure(ctx,false)
-    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    c:SetAttribute('FunCombatMoodAnimation',0);c:SetAttribute('FunCombatMoodClipId',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
     local animation=node('Animation','OwnerWalk');animation.AnimationId='fixture-original-gait'
     local native=hum:LoadAnimation(animation);native:Play();native:AdjustSpeed(1.37);native.TimePosition=0.42
     local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
@@ -115,7 +115,7 @@ check("remote observer preserves the already replicated owner gait without a dup
 end)
 check("late replicated gait replaces only the observer fallback",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum,tracks=walkingFigure(ctx,false)
-    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    c:SetAttribute('FunCombatMoodAnimation',0);c:SetAttribute('FunCombatMoodClipId',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
     local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016);local fallback=assert(tracks[1])
     local animation=node('Animation','OwnerWalk');animation.AnimationId='fixture-original-gait'
     local native=hum:LoadAnimation(animation);native:Play();native.TimePosition=0.75
@@ -126,7 +126,7 @@ check("late replicated gait replaces only the observer fallback",function()
 end)
 check("remote native jump is not replaced by an observer walk estimate",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum,tracks=walkingFigure(ctx,false)
-    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    c:SetAttribute('FunCombatMoodAnimation',0);c:SetAttribute('FunCombatMoodClipId',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
     ctx.json('assets/animations/locomotion.json')['jump/JumpAnim']={Name='JumpAnim',AnimationId='rbxassetid://125750702'}
     local animation=node('Animation','OwnerJump');animation.AnimationId='http://www.roblox.com/asset/?id=125750702'
     local native=hum:LoadAnimation(animation);native:Play()
@@ -137,7 +137,7 @@ check("remote native jump is not replaced by an observer walk estimate",function
 end)
 check("remote lean uses visible horizontal movement while MoveDirection is zero",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum=walkingFigure(ctx,false)
-    c:SetAttribute('FunCombatMoodAnimation',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
+    c:SetAttribute('FunCombatMoodAnimation',0);c:SetAttribute('FunCombatMoodClipId',0);players.LocalPlayer.Character=nil;players.characters[c]={Name='OtherPlayer'}
     local root=c:FindFirstChild('HumanoidRootPart');local joint=node('Motor6D','RootJoint');joint.C0=frame();joint.Parent=root
     local characters=charactersFactory(ctx);run.Heartbeat:fire(1/7)
     assert(math.abs(joint.C0[6]-math.sin(-0.13))<0.00001,'Remote lean incorrectly used unreplicated MoveDirection')
@@ -146,7 +146,7 @@ check("remote lean uses visible horizontal movement while MoveDirection is zero"
 end)
 check("local lean retains original input direction rather than a remote velocity estimate",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum=walkingFigure(ctx,false)
-    c:SetAttribute('FunCombatMoodAnimation',0);hum.MoveDirection=Vector3.new(0,0,-1)
+    c:SetAttribute('FunCombatMoodAnimation',0);c:SetAttribute('FunCombatMoodClipId',0);hum.MoveDirection=Vector3.new(0,0,-1)
     local root=c:FindFirstChild('HumanoidRootPart');local joint=node('Motor6D','RootJoint');joint.C0=frame();joint.Parent=root
     local characters=charactersFactory(ctx);run.Heartbeat:fire(1/7)
     assert(math.abs(joint.C0[9]+math.sin(0.065))<0.00001,'Local authored lean changed to the root velocity direction')
@@ -157,7 +157,7 @@ check("original facial mood loads and continues under a full-body combat lock",f
     local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
     local mood,gait
     for _,track in ipairs(tracks) do
-        if track.Animation.AnimationId=="rbxassetid://88" then mood=track end
+        if track.Animation.AnimationId=="rbxassetid://89" then mood=track end
         if track.Animation.AnimationId=="fixture-original-gait" then gait=track end
     end
     assert(mood and mood.played and mood.Looped,"Original facial mood was never restored after disabling Animate")
@@ -170,10 +170,69 @@ end)
 check("an already playing original facial mood is preserved without a duplicate",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local _,_,tracks=walkingFigure(ctx,true)
     local original=tracks[1];local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
-    local count=0;for _,track in ipairs(tracks) do if track.Animation.AnimationId=="rbxassetid://88" then count+=1 end end
+    local count=0;for _,track in ipairs(tracks) do if track.Animation.AnimationId=="rbxassetid://89" then count+=1 end end
     assert(not original.stopped and count==1,"Native facial mood was stopped or duplicated")
     characters:destroy();assert(not original.stopped,"Runtime cleanup destroyed an engine-owned facial mood")
     ctx.cleanup:destroy()
+end)
+check("an unresolved mood package is never submitted as a playable animation",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,_,tracks=walkingFigure(ctx,false)
+    c:SetAttribute('FunCombatMoodClipId',0)
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    for _,track in ipairs(tracks) do assert(track.Animation.AnimationId~='rbxassetid://88','Mood package ID reached LoadAnimation') end
+    characters:destroy();ctx.cleanup:destroy()
+end)
+check("the native facial Animate marker stays enabled while external locomotion runs",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c=walkingFigure(ctx,false)
+    local animate=node('LocalScript','Animate');animate.Disabled=false;animate:SetAttribute('FunCombatFacialBridge',true);animate.Parent=c
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    assert(animate.Disabled==false,'The engine facial marker was disabled as if it were a body animation script')
+    characters:destroy();assert(animate.Disabled==false,'Facial marker cleanup changed its enabled state');ctx.cleanup:destroy()
+end)
+check("a valid empty default mood is not reported as a failed download",function()
+    local ctx,_,reports=context();ctx.animations=animationsFactory(ctx);local _,_,tracks=walkingFigure(ctx,false)
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    for _,track in ipairs(tracks) do if track.Animation.AnimationId=='rbxassetid://89' then track.Length=0 end end
+    now+=16;run.Heartbeat:fire(0.016)
+    for _,message in ipairs(reports) do assert(not message:find('facial mood did not load',1,true),'Empty default mood was misreported as an asset failure') end
+    characters:destroy();ctx.cleanup:destroy()
+end)
+check("a rejected facial clip is attempted once until the head or clip changes",function()
+    local ctx,_,reports=context();ctx.animations=animationsFactory(ctx);local c,_,tracks=walkingFigure(ctx,false)
+    local hum=c:FindFirstChildOfClass('Humanoid');local load=hum.LoadAnimation;local attempts=0
+    hum.LoadAnimation=function(self,animation)
+        if animation.AnimationId=='rbxassetid://89' then attempts+=1;error('asset access denied') end
+        return load(self,animation)
+    end
+    local characters=charactersFactory(ctx)
+    for _=1,30 do now+=1;run.Heartbeat:fire(1) end
+    assert(attempts==1,'A rejected original facial clip was retried forever')
+    c:SetAttribute('FunCombatMoodClipId',90);now+=1;run.Heartbeat:fire(1)
+    local changed=false
+    for _,track in ipairs(tracks) do if track.Animation.AnimationId=='rbxassetid://90' then changed=true end end
+    assert(changed,'A changed actual clip was incorrectly suppressed by the old failure')
+    characters:destroy();ctx.cleanup:destroy()
+end)
+check("a late engine facial track replaces only the owned fallback without a duplicate",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local _,hum,tracks=walkingFigure(ctx,false)
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    local fallback
+    for _,track in ipairs(tracks) do if track.Animation.AnimationId=='rbxassetid://89' then fallback=track end end
+    local animation=node('Animation','NativeMood');animation.AnimationId='rbxassetid://89'
+    local native=hum:LoadAnimation(animation);native:Play();now+=1;run.Heartbeat:fire(0.016)
+    assert(fallback and fallback.stopped and not native.stopped,'Late native facial playback remained duplicated with the owned fallback')
+    characters:destroy();assert(not native.stopped,'Cleanup stopped engine-owned facial playback');ctx.cleanup:destroy()
+end)
+check("a stopped native mood permits one owned fallback without destroying the native track",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local _,_,tracks=walkingFigure(ctx,true)
+    local native=tracks[1];local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    native:Stop();now+=1;run.Heartbeat:fire(0.016)
+    local count=0
+    for _,track in ipairs(tracks) do if track.Animation.AnimationId=='rbxassetid://89' and track.IsPlaying then count+=1 end end
+    assert(count==1 and not native.destroyed,'A cached stopped native mood suppressed fallback or was destroyed by the client')
+    now+=16;run.Heartbeat:fire(0.016)
+    assert(#tracks==3,'A stopped native mood caused repeated fallback creation')
+    characters:destroy();assert(not native.destroyed,'Cleanup destroyed a nonowned native track');ctx.cleanup:destroy()
 end)
 assert(#failures==0,table.concat(failures,"\n"))
 print("Presentation regression scenarios passed: "..total)

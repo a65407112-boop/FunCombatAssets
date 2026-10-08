@@ -1,6 +1,6 @@
 -- Keep the source R6 combat body, with the user's actual head/face/accessories.
--- A head-only R15 donor preserves genuine FaceControls/Bones on engines which
--- otherwise apply a static R6 version of a dynamic head. The live rig stays R6.
+-- Generate the actual head on a fresh native R6 avatar, then attach it without
+-- copying the classic template's mesh, decal or render state onto it.
 local Players=game:GetService("Players")
 local A={}
 local function optionalCopy(from,to,key)
@@ -14,11 +14,82 @@ end
 local function dynamic(head)
     return head and head:IsA("BasePart") and head:FindFirstChildOfClass("FaceControls")~=nil
 end
+local function animationId(value)
+    if type(value)~="string" then return 0 end
+    return tonumber(value:match("id=(%d+)") or value:match("(%d+)$")) or 0
+end
+local function animateMarker(character)
+    local animate=character:FindFirstChild("Animate")
+    if animate then
+        assert(animate:IsA("LocalScript"),"Character Animate is not a LocalScript")
+        local marker=animate:FindFirstChild("FunCombatFacialBridge")
+        if marker and marker:IsA("BoolValue") and marker.Value then animate:SetAttribute("FunCombatFacialBridge",true) end
+    else
+        animate=Instance.new("LocalScript");animate.Name="Animate"
+        animate:SetAttribute("FunCombatFacialBridge",true);animate.Parent=character
+    end
+    return animate
+end
+local function nativeMood(root)
+    local animate=root:FindFirstChild("Animate")
+    local mood=animate and animate:FindFirstChild("mood") or root:FindFirstChild("mood",true)
+    return mood and mood:IsA("StringValue") and mood or nil
+end
+local function copyMood(source)
+    assert(source and source:IsA("StringValue"),"The original mood package has no mood StringValue")
+    local mood=Instance.new("StringValue");mood.Name="mood";mood.Value=source.Value
+    local first=0
+    for _,child in ipairs(source:GetChildren()) do
+        if child:IsA("Animation") then
+            local id=animationId(child.AnimationId)
+            if id>0 then
+                local animation=child:Clone()
+                -- Avatar packages are data. Never copy executable descendants
+                -- from a hosted mood into a live character.
+                for _,nested in ipairs(animation:GetDescendants()) do
+                    if not nested:IsA("NumberValue") then nested:Destroy() end
+                end
+                animation.Parent=mood;if first==0 then first=id end
+            end
+        end
+    end
+    if first==0 then mood:Destroy();error("The original mood package has no playable Animation reference") end
+    return mood,first
+end
+local function loadMood(character,description,fromHead,valid)
+    if not dynamic(character:FindFirstChild("Head")) then return end
+    local animate=animateMarker(character)
+    local source=fromHead or animate:FindFirstChild("mood")
+    local mood,id
+    if source and source:IsA("StringValue") then
+        mood,id=copyMood(source)
+    else
+        local assetId=tonumber(description.MoodAnimation) or 0
+        if assetId==0 then return end
+        local ok,service=pcall(function() return game:GetService("AssetService") end)
+        local method
+        if ok then pcall(function() method=service.LoadAssetAsync end) end
+        if type(method)~="function" then
+            service=game:GetService("InsertService");method=service.LoadAsset
+        end
+        local loaded,asset=pcall(method,service,assetId)
+        if not loaded then error("Original mood package "..assetId.." could not load: "..tostring(asset)) end
+        if not valid() then asset:Destroy();return end
+        local copied,why=pcall(function() mood,id=copyMood(nativeMood(asset)) end)
+        asset:Destroy()
+        if not copied then error("Original mood package "..assetId..": "..tostring(why)) end
+    end
+    if not valid() then mood:Destroy();return end
+    local previous=animate:FindFirstChild("mood")
+    if previous then previous:Destroy() end
+    mood.Parent=animate
+    character:SetAttribute("FunCombatMoodClipId",id)
+end
 local function headAttachment(head,other)
     for _,attachment in ipairs(other:GetChildren()) do
-        if attachment:IsA("Attachment") then
+        if attachment:IsA("Attachment") and not attachment:IsA("Bone") then
             local target=head:FindFirstChild(attachment.Name)
-            if target and target:IsA("Attachment") then return target.CFrame end
+            if target and target:IsA("Attachment") and not target:IsA("Bone") then return target.CFrame end
         end
     end
 end
@@ -32,9 +103,9 @@ local function installHead(character,donorHead)
     for _,key in ipairs({"Anchored","CanCollide","CanTouch","CanQuery","Massless","CollisionGroup"}) do optionalCopy(old,head,key) end
     local joints,children,references,attachments,hasNeck={},{},{},{},false
     for _,attachment in ipairs(old:GetChildren()) do
-        if attachment:IsA("Attachment") then
+        if attachment:IsA("Attachment") and not attachment:IsA("Bone") then
             local target=head:FindFirstChild(attachment.Name)
-            if target and target:IsA("Attachment") then attachments[attachment]=target end
+            if target and target:IsA("Attachment") and not target:IsA("Bone") then attachments[attachment]=target end
         end
     end
     for _,joint in ipairs(character:GetDescendants()) do
@@ -69,13 +140,27 @@ local function installHead(character,donorHead)
         end
         -- Carry original gameplay objects across the swap. The classic decal
         -- and SpecialMesh do not cover the genuine animated head.
-        for _,child in ipairs(old:GetChildren()) do
-            local target=child:IsA("Attachment") and head:FindFirstChild(child.Name)
-            if target and target:IsA("Attachment") then
-                for _,nested in ipairs(child:GetChildren()) do
-                    children[#children+1]={object=nested,parent=child};nested.Parent=target
+        -- Bone inherits Attachment. Keep only gameplay attachment descendants;
+        -- detached old facial bones die with the old head, or return on rollback.
+        for _,attachment in ipairs(old:GetChildren()) do
+            if attachment:IsA("Attachment") and not attachment:IsA("Bone") then
+                for _,nested in ipairs(attachment:GetDescendants()) do
+                    if nested:IsA("Bone") then
+                        children[#children+1]={object=nested,parent=nested.Parent};nested.Parent=old
+                    end
                 end
-            elseif child:IsA("Attachment") or child:IsA("ProximityPrompt") or child:IsA("BillboardGui")
+            end
+        end
+        for _,child in ipairs(old:GetChildren()) do
+            local attachment=child:IsA("Attachment") and not child:IsA("Bone")
+            local target=attachment and head:FindFirstChild(child.Name)
+            if target and target:IsA("Attachment") and not target:IsA("Bone") then
+                for _,nested in ipairs(child:GetChildren()) do
+                    if not nested:IsA("Bone") then
+                        children[#children+1]={object=nested,parent=child};nested.Parent=target
+                    end
+                end
+            elseif attachment or child:IsA("ProximityPrompt") or child:IsA("BillboardGui")
                 or child:IsA("SurfaceGui") or child:IsA("Sound") or child:IsA("ParticleEmitter") or child:IsA("Trail") or child:IsA("Beam") then
                 children[#children+1]={object=child,parent=old};child.Parent=head
             end
@@ -98,28 +183,37 @@ local function installHead(character,donorHead)
 end
 local function loadHead(character,description,valid)
     local id=tonumber(description.Head) or 0
-    if id==0 or dynamic(character:FindFirstChild("Head")) then return end
-    local headDescription=Instance.new("HumanoidDescription")
-    for _,key in ipairs({"Head","Face","HeadColor","HeadScale","MoodAnimation","StaticFacialAnimation"}) do
-        optionalCopy(description,headDescription,key)
+    local headDescription=description:Clone()
+    for _,key in ipairs({"BackAccessory","FaceAccessory","FrontAccessory","HairAccessory","HatAccessory","NeckAccessory","ShouldersAccessory","WaistAccessory"}) do
+        pcall(function() headDescription[key]="" end)
+    end
+    for _,key in ipairs({"Shirt","Pants","GraphicTShirt"}) do pcall(function() headDescription[key]=0 end) end
+    for _,child in ipairs(headDescription:GetChildren()) do
+        -- Keep modern head-description metadata such as an owned HeadShape.
+        -- Unrelated accessory/body descriptions do not belong in a head donor.
+        if not (child:IsA("BodyPartDescription") and child.BodyPart==Enum.BodyPart.Head) then child:Destroy() end
     end
     pcall(function() headDescription.UseAvatarSettings=false end)
     local ok,donor=pcall(function()
         return preferredMethod(Players,"CreateHumanoidModelFromDescriptionAsync","CreateHumanoidModelFromDescription")(
-            Players,headDescription,Enum.HumanoidRigType.R15)
+            Players,headDescription,Enum.HumanoidRigType.R6)
     end)
     headDescription:Destroy()
-    if not ok then error("Dynamic head asset "..id.." could not load: "..tostring(donor)) end
+    if not ok then error("Native R6 head "..id.." could not load: "..tostring(donor)) end
     if not valid() then donor:Destroy();return end
     local head=donor:FindFirstChild("Head")
     if not head or not head:IsA("BasePart") then donor:Destroy();error("Head asset "..id.." returned no usable Head") end
-    -- Classic heads remain the native R6 asset. Only real facial rig data is
-    -- transplanted; no substitute mesh or invented animation is installed.
-    if dynamic(head) then
-        local installed,why=pcall(installHead,character,head)
-        donor:Destroy()
-        if not installed then error("Dynamic head asset "..id.." could not attach to R6: "..tostring(why)) end
-    else donor:Destroy() end
+    local mood=nativeMood(donor)
+    local moodCopy
+    if mood then pcall(function() moodCopy=copyMood(mood) end) end
+    local installed,why=pcall(installHead,character,head)
+    donor:Destroy()
+    if not installed then
+        if moodCopy then moodCopy:Destroy() end
+        error("Native R6 head "..id.." could not attach: "..tostring(why))
+    end
+    character:SetAttribute("FunCombatHeadSource","nativeR6")
+    return moodCopy
 end
 local function prepare(player,character,humanoid,userId,playerCharacter)
     local done,safeToBind,complete,cancelled=false,true,false,false
@@ -130,6 +224,7 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
         pcall(function() character:SetAttribute("FunCombatAvatarDiagnostic",message or "") end)
     end
     diagnostic(nil)
+    pcall(function() character:SetAttribute("FunCombatMoodClipId",0) end)
     local function valid()
         return not cancelled and player.Parent and character.Parent and humanoid.Health>0
             and (not playerCharacter or player.Character==character)
@@ -141,9 +236,13 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
         if not valid() then if ok then pcall(function() description:Destroy() end) end;done=true;return end
         if ok then
             for _,key in ipairs({"LeftArm","LeftLeg","RightArm","RightLeg","Torso"}) do description[key]=0 end
+            for _,child in ipairs(description:GetChildren()) do
+                if child:IsA("BodyPartDescription") and child.BodyPart~=Enum.BodyPart.Head then child:Destroy() end
+            end
             pcall(function() description.StaticFacialAnimation=false end)
             phase="Avatar appearance";safeToBind=false
             local applied,why=pcall(function()
+                animateMarker(character)
                 preferredMethod(humanoid,"ApplyDescriptionAsync","ApplyDescription")(humanoid,description)
             end)
             safeToBind=true
@@ -153,8 +252,14 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
                     character:SetAttribute("FunCombatMoodAnimation",description.MoodAnimation)
                 end)
                 phase="Dynamic head asset "..tostring(description.Head)
-                local loaded,headError=pcall(loadHead,character,description,valid)
-                if not loaded then failure=tostring(headError) end
+                local loaded,headMood=pcall(loadHead,character,description,valid)
+                if not loaded then failure=tostring(headMood);headMood=nil end
+                if valid() then
+                    phase="Original mood package "..tostring(description.MoodAnimation)
+                    local facial,why=pcall(loadMood,character,description,headMood,valid)
+                    if not facial then failure=(failure and failure.."; " or "")..tostring(why) end
+                end
+                if headMood then headMood:Destroy() end
             elseif not applied then failure="Original R6 avatar appearance failed: "..tostring(why) end
             pcall(function() description:Destroy() end)
         else failure="Original avatar description unavailable: "..tostring(description) end

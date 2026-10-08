@@ -93,6 +93,28 @@ def world_settings(tree):
     require(values[0]==values[1],'Recovery AllowDummys differs from exported original state')
     return {'passed':True,'sourceAllowDummys':values[0]=='true','originalServerOnlyBackup':True}
 
+def facial_markers(tree):
+    rigs=tree.xpath('./Item[@class="StarterPlayer"]/Item[Properties/string[@name="Name"]="StarterCharacter"]'
+                    ' | ./Item[@class="ServerStorage"]/Item[Properties/string[@name="Name"]="FunCombatData"]/Item[Properties/string[@name="Name"]="DummyRig"]')
+    require(len(rigs)==2,'Native facial rigs are missing or duplicate')
+    expected=[]
+    for rig in rigs:
+        markers=rig.xpath('./Item[@class="LocalScript"][Properties/string[@name="Name"]="Animate"]')
+        require(len(markers)==1,'Native facial Animate marker missing or duplicate')
+        animate=markers[0];expected.append(animate)
+        require(animate.findtext('Properties/bool[@name="Disabled"]')=='false','Native facial Animate must remain enabled')
+        source=animate.find('Properties/*[@name="Source"]')
+        require(source is not None and source.tag in {'ProtectedString','string'} and (source.text or '').strip()==
+                '-- Native facial mood hook. Body animation is provided by the external client.',
+                'Native facial marker contains unexpected executable client source')
+        children=animate.findall('Item')
+        require(len(children)==1 and children[0].get('class')=='BoolValue'
+                and children[0].findtext('Properties/string[@name="Name"]')=='FunCombatFacialBridge'
+                and children[0].findtext('Properties/bool[@name="Value"]')=='true','Native facial bridge marker flag invalid')
+    clients=[item for item in tree.iter('Item') if item.get('class')=='LocalScript']
+    require(len(clients)==2 and set(clients)==set(expected),'Server contains a client script outside the native facial markers')
+    return len(expected)
+
 def validate(output):
     output=Path(output);repo=output/'GitHub'
     protocol=json.loads((repo/'config/protocol.json').read_text())
@@ -131,7 +153,7 @@ def validate(output):
     require(byname[protocol['names']['BuildId']][0].findtext('Properties/string[@name="Value"]')==manifest['buildId'],'Wrong encoded build value')
     remotes=[e for e in items if e.get('class') in {'RemoteEvent','RemoteFunction'}]
     require(len(remotes)==3,'Unexpected server network instances')
-    require(not any(e.get('class')=='LocalScript' for e in items),'Server contains client scripts')
+    facial_count=facial_markers(xml)
     prompt_ids={e['name'] for e in identifiers['prompts'].values()}|set(identifiers['mapPrompts'])
     prompts=[e for e in items if e.get('class')=='ProximityPrompt']
     for p in prompts:
@@ -234,11 +256,12 @@ def validate(output):
     require(raw.startswith(b'<roblox!'),'Binary server place was not encoded as rbxl')
     binary_types=binary_property_types(output/'Source/FunCombat_Original.rbxl',output/'funcombat_server.rbxl')
     return {'passed':True,'checks':['input checksum','manifest SHA256/Adler32/bytes','dependency DAG',
-        'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates',
+        'XML referents/shared data','encoded protocol/build identity','network instance counts','native prompt templates','strict native facial Animate marker source and hierarchy',
         'asset hierarchy and public WeldConstraint refs','original costume native CSG dependencies and opaque payload fidelity','original native MeshPart load state and PBR property/host fidelity','native original Kohl hierarchy and dummy command bridge','same explicit numeric owner in server and native Kohl settings','actual avatar content observer dependency order','all 47 source animations','binary rbxl header','binary property type IDs match original','safe R6 template and active original spawns'],
         'binaryPropertyTypes':binary_types,
         'spawnInitialization':spawn_setup,
         'worldSettings':settings_setup,
+        'nativeFacialMarkers':facial_count,
         'nativeOriginalCSGDependencies':len(expected_native),'nativeOriginalMeshPartDependencies':len(expected_meshes),'nativeOriginalPBRDependencies':len(expected_surfaces),'originalKohlAssetId':1868400649,'configuredOwnerUserId':owner,
         'serverInstances':count,'prompts':len(prompts),'packages':len(catalog['packages']),'packageNodes':nodes,
         'embeddedCostumeCSG':csg,'animations':47,'keyframes':keyframes,'poses':poses,'hostedReferenceCount':len(asset_refs),

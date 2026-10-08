@@ -102,7 +102,16 @@ local playerCharacters={}
 function Players:GetPlayerFromCharacter(character) return playerCharacters[character] end
 function Players:GetPlayers() return {} end
 local fetch
-function Players:GetHumanoidDescriptionFromUserId(id) return fetch(id) end
+function Players:GetHumanoidDescriptionFromUserId(id)
+    local result=fetch(id)
+    -- Roblox returns an Instance, including when there are no description children.
+    if not result.GetChildren then
+        local description=node('HumanoidDescription','Description')
+        for key,value in pairs(result) do description[key]=value end
+        return description
+    end
+    return result
+end
 local game={GetService=function(_, name) if name=='Players' then return Players else return {} end end}
 local script={Parent={Policy='Policy',Ragdoll='Ragdoll',Avatar='Avatar',HitDetection='HitDetection',
     MoveData='MoveData',AnimationTiming='AnimationTiming',PairSystem='PairSystem',WorldData='WorldData'}}

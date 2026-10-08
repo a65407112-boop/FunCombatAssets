@@ -251,6 +251,17 @@ def strip_rig(item):
     return item
 
 def children_named(item,name):return [e for e in item.findall('Item') if Source.name(e)==name]
+def add_facial_marker(rig):
+    """Native engine facial hook only; external code owns body locomotion."""
+    if children_named(rig,'Animate'):raise ValueError('Unexpected original Animate remained after script export')
+    animate=instance('LocalScript','Animate')
+    set_property(animate,'Disabled','bool','false')
+    set_property(animate,'Source','ProtectedString','-- Native facial mood hook. Body animation is provided by the external client.\n')
+    marker=instance('BoolValue','FunCombatFacialBridge');set_property(marker,'Value','bool','true');animate.append(marker)
+    for item in animate.iter('Item'):
+        item.set('referent','RBXGEN'+code_id('facialBridge',rig.get('referent')+'/'+item.get('class')+'/'+Source.name(item)))
+    rig.append(animate)
+    return animate
 def empty(item):
     for child in item.findall('Item'):item.remove(child)
 
@@ -299,6 +310,7 @@ def build_place(source,repo,output,timing):
     strip_rig(by[6664])
     starter=tree.find('Item[@class="StarterPlayer"]')
     starting_rig=children_named(starter,'StarterCharacter')[0]
+    add_facial_marker(starting_rig)
     starting_humanoid=starting_rig.find('Item[@class="Humanoid"]')
     starting_root=children_named(starting_rig,'HumanoidRootPart')[0]
     # Our server applies the original R6 description once, after safe placement.
@@ -314,7 +326,7 @@ def build_place(source,repo,output,timing):
     add_world_settings(source,data)
     maps=copy.deepcopy(source.by[7796]);set_property(maps,'Name','string','Maps');strip_executables(maps)
     data.append(maps)
-    rig=strip_rig(copy.deepcopy(source.by[7319]));set_property(rig,'Name','string','DummyRig');data.append(rig)
+    rig=strip_rig(copy.deepcopy(source.by[7319]));set_property(rig,'Name','string','DummyRig');add_facial_marker(rig);data.append(rig)
     music=copy.deepcopy(source.by[source.child(2,'currentSound')]);set_property(music,'Name','string','MapMusic');data.append(music)
     carry_id=source.child(7407,'carryWeld')
     if carry_id is None:raise ValueError('Original carryWeld dependency is missing')

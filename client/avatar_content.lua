@@ -130,7 +130,7 @@ return function(ctx)
         end
     end
     local function mood(record)
-        local id=tonumber(record.character:GetAttribute("FunCombatMoodAnimation")) or 0
+        local id=tonumber(record.character:GetAttribute("FunCombatMoodClipId")) or 0
         local value=id>0 and id%1==0 and "rbxassetid://"..id or nil
         if record.mood==value then return end
         if record.mood then record.pending[record.mood]=nil end
@@ -155,6 +155,7 @@ return function(ctx)
         characters[character]=record
         record.scope:add(character.DescendantAdded:Connect(function(object) watch(record,object) end))
         record.scope:add(character:GetAttributeChangedSignal("FunCombatMoodAnimation"):Connect(function() mood(record) end))
+        record.scope:add(character:GetAttributeChangedSignal("FunCombatMoodClipId"):Connect(function() mood(record) end))
         record.scope:add(character:GetAttributeChangedSignal("FunCombatAvatarDiagnostic"):Connect(function() diagnostic(record) end))
         record.scope:add(character.AncestryChanged:Connect(function()
             if character.Parent then record.wasParented=true;scan(record)

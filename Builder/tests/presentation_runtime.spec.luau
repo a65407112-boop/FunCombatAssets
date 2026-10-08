@@ -65,6 +65,7 @@ local function node(class,name)
 end
 function methods:IsA(class)
     return self.ClassName==class or class=="Instance"
+        or (class=="Attachment" and self.ClassName=="Bone")
         or (class=="BasePart" and (self.ClassName=="Part" or self.ClassName=="MeshPart"))
         or (class=="JointInstance" and (self.ClassName=="Weld" or self.ClassName=="Motor6D"))
 end
@@ -131,16 +132,18 @@ local function walkingFigure(ctx,nativeMood)
     local root=node("Part","HumanoidRootPart");root.Velocity=Vector3.new(14.5,0,0);root.Parent=c
     local head=node("MeshPart","Head");head.Parent=c
     local face=node("FaceControls","FaceControls");face.Parent=head;c:SetAttribute("FunCombatMoodAnimation",88)
+    c:SetAttribute("FunCombatMoodClipId",89)
     local hum=node("Humanoid","Humanoid");hum.Parent=c;hum.MoveDirection=Vector3.new()
     for _,key in ipairs({"Running","Jumping","Climbing","FreeFalling","Seated","Swimming","Died"}) do hum[key]=signal() end
     local tracks={}
     local function track(animation)
         local value=node("AnimationTrack","Track");value.Animation=animation;value.KeyframeReached=signal();value.Stopped=signal()
+        value.Length=1
         function value:Play() self.played=true;self.IsPlaying=true end
         function value:AdjustSpeed(speed) self.speed=speed end
         tracks[#tracks+1]=value;return value
     end
-    if nativeMood then local a=node("Animation","OriginalMood");a.AnimationId="rbxassetid://88";track(a):Play() end
+    if nativeMood then local a=node("Animation","OriginalMood");a.AnimationId="rbxassetid://89";track(a):Play() end
     function hum:LoadAnimation(animation) return track(animation) end
     function hum:GetPlayingAnimationTracks() local all={};for _,t in ipairs(tracks) do if t.played and not t.stopped then all[#all+1]=t end end;return all end
     ctx.state.all=function() return {[c]={character=c}} end

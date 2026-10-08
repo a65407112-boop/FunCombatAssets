@@ -9,7 +9,7 @@ return function(ctx)
     local figures = {}
     local module = {}
     local function moodId(character)
-        local ok,value=pcall(function() return character:GetAttribute("FunCombatMoodAnimation") end)
+        local ok,value=pcall(function() return character:GetAttribute("FunCombatMoodClipId") end)
         return ok and type(value)=="number" and value>0 and value or 0
     end
     local function trackId(track)
@@ -28,37 +28,34 @@ return function(ctx)
         local head=record.character:FindFirstChild("Head")
         local id=moodId(record.character)
         if not head or not head:FindFirstChildOfClass("FaceControls") or id==0 then stopMood(record);return end
-        if record.moodTrack and record.moodHead==head and record.moodId==id then
-            if record.moodOwned and record.moodDeadline and tick()>=record.moodDeadline then
-                record.moodDeadline=nil
-                if record.moodTrack.Length<=0 then
-                    ctx.report("Original facial mood did not load: rbxassetid://"..id)
-                    stopMood(record);record.moodRetry=tick()+5
-                end
-            end
-            return
-        end
-        stopMood(record)
-        if record.moodRetry and tick()<record.moodRetry then return end
-        record.moodHead,record.moodId=head,id
         -- Reuse an engine-owned mood. The runtime must not stop or duplicate
         -- it merely because it owns the source R6 body animation controller.
         local existing
         pcall(function()
             for _,track in ipairs(record.humanoid:GetPlayingAnimationTracks()) do
-                if trackId(track)==id then existing=track;break end
+                if trackId(track)==id and not (record.moodOwned and track==record.moodTrack) then existing=track;break end
             end
         end)
-        if existing then record.moodTrack=existing;return end
+        if existing then
+            if record.moodTrack~=existing then stopMood(record) end
+            record.moodHead,record.moodId,record.moodTrack=head,id,existing
+            return
+        end
+        -- An engine track that has stopped no longer supplies the facial pose.
+        -- Release its reference without stopping/destroying the native track.
+        if record.moodTrack and not record.moodOwned then stopMood(record) end
+        if record.moodTrack and record.moodHead==head and record.moodId==id then return end
+        stopMood(record)
+        if record.failedMoodHead==head and record.failedMoodId==id then return end
+        record.moodHead,record.moodId=head,id
         local animation=Instance.new("Animation")
         animation.Name,animation.AnimationId="FunCombatOriginalMood","rbxassetid://"..id
         local ok,track=pcall(function() return record.humanoid:LoadAnimation(animation) end)
         if not ok then
-            animation:Destroy();record.moodRetry=tick()+5
+            animation:Destroy();record.failedMoodHead,record.failedMoodId=head,id
             ctx.report("Original facial mood unavailable: rbxassetid://"..id..": "..tostring(track));return
         end
         record.moodTrack,record.moodAnimation,record.moodOwned=track,animation,true
-        record.moodDeadline=tick()+15
         track.Priority,track.Looped=Enum.AnimationPriority.Core,true
         track:Play(0.1)
     end
@@ -160,6 +157,7 @@ return function(ctx)
         end
         local function disableDefault(child)
             if child:IsA("LocalScript") and child.Name == "Animate" and record.animate[child] == nil then
+                if child:GetAttribute("FunCombatFacialBridge")==true then return end
                 record.animate[child] = child.Disabled
                 child.Disabled = true
             end

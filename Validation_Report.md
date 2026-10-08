@@ -1,3 +1,19 @@
+# Проверка native R6 головы — 8 октября 2026
+
+Парная сборка: protocol **4**, build **5ff8518b983483f077022b2a**. Новый сервер необходимо опубликовать целиком; клиентский loader не обновляет запущенный сервер.
+
+По отдельному пользовательскому отчёту Head уже был MeshPart с FaceControls, настоящими mesh/texture IDs, белым HeadColor и успешным fetch status. Это не подтверждает правильный рендер или processed PBR pack. Причина чёрной головы остаётся неустановленной. По просьбе владельца изменён способ подготовки персонажа: свежая native R6 голова из реального avatar description вместо сохранения classic template head при наличии FaceControls. Сохраняются head metadata/HeadShape, исходные render descendants и references. Состояние физики берётся у исходного тела; Neck, hair welds, attachments, trails и игровые prompts переподключаются. Геометрия, размеры и визуальное сходство не исследуются.
+
+Подтверждён отдельный дефект facial playback. Сохранённый настоящий пакет Default Mood 14618207727 имеет asset type78 и Animation1 с ссылкой 14618196485, asset type24. Старый client подавал ID пакета в LoadAnimation, что соответствует переданной ошибке AnimationClip loaded is not valid. Новый код разрешает реальный Animation child без hardcoded сопоставления этих ID. Пустой EmptyDefaultMood не объявляется ошибкой только по Length=0. MoodAnimation остаётся ID источника; отдельный FunCombatMoodClipId используется клиентом и preload.
+
+Документированный [native hook Animate.mood](https://create.roblox.com/docs/art/characters/facial-animation/moods) восстановлен. Hosted package получает [AssetService.LoadAssetAsync](https://create.roblox.com/docs/reference/engine/classes/AssetService) либо доступный legacy InsertService.LoadAsset; сервер не включает AllowInsertFreeAssets и не обходит asset permissions. Два пустых Animate LocalScript в стартовом character и server-only DummyRig содержат только комментарий и BoolValue marker; валидатор отклоняет любой другой LocalScript или исполняемый код в этих маркерах. Hosted mood приносит только StringValue/Animation/NumberValue data, без executable descendants. Existing native facial tracks не останавливаются и не дублируются; поздний native track освобождает принадлежащий клиенту fallback. Ошибка playback не вызывает бесконечных повторов; новая голова или новый clip разрешают новую попытку.
+
+Офлайн проверки: Avatar **22** сценариев, presentation **23**, facial marker exporter/validator **4**, все прежние admin/combat/map/carry/pair/loader/diagnostics проверки. Проверены default classic head, structured HeadShape, неверный пакет, sanitization, отсутствие Neck, legacy API fallback, timeout и позднее завершение при respawn. До исправлений наблюдались конкретные RED: stale classic head, package ID вместо clip, metadata чужого тела, бесконечные retries, двойной track, graft старых facial Bones (Bone наследует Attachment) и удержание уже остановленного native track. Review-исправления также проверены RED→GREEN, включая nested Bones при сохранении gameplay prompts. Общие команды, компиляция, binary roundtrip, ссылки, состав файлов и воспроизводимость записаны в Release_Checks.json.
+
+Roblox Studio, настоящий движок и executor здесь недоступны. Native avatar API, hosted asset permissions, фактический head rendering, facial playback и multi-client replication требуют запуска новой поставки в Roblox. При отказе mood/head сохраняется доступное R6 appearance и конкретное сообщение, ожидание ограничено 8 секундами. Late engine ApplyDescription нельзя отменить: старый character должен быть заменён согласно прежнему spawn lifecycle. Исходный rbxl не изменён. Диагностика не встроена в loader.
+
+История предыдущей серверной поставки:
+
 # Проверка серверного исправления dummy — 8 октября 2026
 
 Новая парная сборка: protocol **4**, build **7ce1fcaf1c1d30532b0c5402**. Требуется целиком опубликовать новый серверный файл; старый build6a обновлением loader не заменяется.

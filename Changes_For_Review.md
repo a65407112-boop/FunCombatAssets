@@ -1,3 +1,11 @@
+# Native R6 head и настоящий facial clip — 8 октября 2026
+
+Пользователь просит приспособить classic R6 character игры для настоящего dynamic head. Старый FaceControls shortcut больше не сохраняет потенциально неверный template head. Avatar создаёт изолированный native R6 donor из реального description с head metadata, переносит настоящую head appearance и переподключает исходные Neck/hair/attachments/trails/prompts. R6 combat body и ресурсы игры сохранены; default classic faces используют настоящую native decal. Геометрия не исследуется.
+
+Исправлена проверенная путаница MoodAnimation package ID и contained AnimationClip: сервер разрешает настоящий mood child, клиент и preload используют отдельный FunCombatMoodClipId. Builder оставляет только два пустых Animate engine hook, validator строго ограничивает их Source/hierarchy. Клиент сохраняет native mood, убирает собственный fallback при позднем native track и не повторяет ошибочный clip бесконечно. Timeout/respawn удаляют поздние donor/package без изменения старого character; malformed data сохраняет конкретную ошибку. Avatar22, presentation23 и marker4 проверяют результат; все прежние проверки продолжают проходить. Actual Roblox head rendering не объявляется исправленным без live test; причины старого black head не доказаны. Новая парная server/client поставка обязательна.
+
+Предыдущая история:
+
 # Исправление dummy — 8 октября 2026
 
 Подтверждён клиентский missing AllowDummys при зарегистрированных командах и свободном персонаже; отсутствие флага на живом сервере не доказано. Исправлен воспроизведённый отсутствующий settings path: точная исходная Configuration/BoolValue копируется builder в server-only WorldSettings, потерянные экземпляры восстанавливаются при startup без изменения явного false. Добавлен адресный игровой Notice/Error для отказов; spawned посылается только после real combat bind. Clone/bind failure и респавн во время avatar dummy preparation очищают pending модель/record. Никаких обходов owner validation, cooldown, лимитов или серверного combat. Новая парная серверная поставка обязательна из-за точного build ID. Статические/исполняемые API-double проверки отделены от отсутствующих engine tests; геометрия не проверяется.

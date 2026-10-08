@@ -104,7 +104,7 @@ local function actor(name,empty)
         local face=node('FaceControls');face.Parent=head
         local accessory=node('Accessory','OriginalHair');accessory.Parent=c
         local handle=node('MeshPart','Handle');handle.TextureID='rbxassetid://7003';handle.Parent=accessory
-        c:SetAttribute('FunCombatHeadAssetId',12345);c:SetAttribute('FunCombatMoodAnimation',88)
+        c:SetAttribute('FunCombatHeadAssetId',12345);c:SetAttribute('FunCombatMoodAnimation',88);c:SetAttribute('FunCombatMoodClipId',89)
     end
     return c
 end
@@ -149,7 +149,7 @@ check('existing original head, accessory and genuine mood enter asynchronous pre
     advance(0.2)
     assert(submitted(calls,head),'The actual original head was never submitted')
     assert(submitted(calls,hair),'Original avatar accessories were never submitted')
-    assert(submitted(calls,'rbxassetid://88'),'The genuine original facial mood was never submitted')
+    assert(submitted(calls,'rbxassetid://89'),'The genuine original facial mood was never submitted')
     assert(head.TextureID=='rbxassetid://7001' and head.Color=='original-color','Preparation changed avatar appearance')
     module:destroy();ctx.cleanup:destroy()
 end)
@@ -157,8 +157,8 @@ check('late Head, hosted property changes and replicated mood are prepared once 
     local ctx,p,c,calls=fixture(true);local module=avatarContentFactory(ctx)
     advance(0.2);assert(#calls==0,'An absent head caused invented content requests')
     local head=node('MeshPart','Head');head.TextureID='rbxassetid://7010';head.Parent=c
-    c:SetAttribute('FunCombatMoodAnimation',89);advance(0.2)
-    assert(submitted(calls,head) and submitted(calls,'rbxassetid://89'),'Late head or mood was missed')
+    c:SetAttribute('FunCombatMoodAnimation',89);c:SetAttribute('FunCombatMoodClipId',90);advance(0.2)
+    assert(submitted(calls,head) and submitted(calls,'rbxassetid://90'),'Late head or resolved mood was missed')
     local count=#calls
     head.TextureID='rbxassetid://7011';advance(0.2)
     assert(#calls==count+1,'A changed original head texture was never prepared')
