@@ -46,7 +46,9 @@ local function children(object)
     local ok,result=pcall(function() return object:GetChildren() end)
     return ok and type(result)=="table" and result or {}
 end
+local objectAliases={["AllowDummys"]="aa7de37b6516",["Configuration"]="df288f6fc6ee"}
 local function find(object,name,class)
+    if not class then name=objectAliases[name] or name end
     if not object then return nil end
     local ok,result=pcall(function()
         if class then return object:FindFirstChildOfClass(name) end
@@ -58,14 +60,15 @@ local function isA(object,class)
     local ok,result=pcall(function() return object:IsA(class) end)
     return ok and result==true
 end
+local attributeAliases={["0bc3bbc6f0b3"]="FunCombatFacialBridge",["0e807e2b2887"]="FunCombatMoodClipId",["1e5b028e37f8"]="FunCombatAvatarDiagnostic",["254133e9e604"]="FunCombatCreatorUserId",["279071d51dd9"]="FunCombatHeadSource",["27ee6b9f9807"]="canGetUp",["2f1cdf6338d0"]="Started",["3a3d5dad5154"]="FunCombatAdminState",["494013a6711c"]="FunCombatAdminSource",["544273c2cf5a"]="FunCombatMoodAnimation",["568c6ead6b85"]="FunCombatAdminError",["5cb617ed6e78"]="wallBounce",["63d6344b9bdc"]="Gender",["6483ceba95fb"]="attacking",["64bc57bd1b72"]="FunCombatConfiguredOwnerUserId",["688506395d60"]="FunCombatAdminConfigError",["79e1c2bfcfaf"]="funMeter",["93ad1fa1586b"]="carriedBy",["982f860c0ba2"]="FunCombatKohlAssetId",["98fcc4e831a0"]="ragdolled",["b2b56a5aa268"]="FunCombatAdminAllowed",["b3071dd09b9e"]="downed",["bf96acb14356"]="FunCombatKohlError",["caa74ea58dea"]="awakened",["ce72e2f223ef"]="iframes",["da5d59743278"]="carrying",["dd4cdc49a212"]="FunCombatKohlState",["fb455e7838f3"]="doing",["ff2009f0514f"]="FunCombatHeadAssetId"}
 local function attributes(object)
     local ok,result=pcall(function() return object:GetAttributes() end)
     if not ok then return unavailable(result) end
     local copy,count={},0
     for key,item in pairs(result) do
-        if type(key)=="string" and key:sub(1,9)=="FunCombat" then
+        if attributeAliases[key] or (type(key)=="string" and key:sub(1,9)=="FunCombat") then
             count+=1;if count>40 then copy.truncated=true;break end
-            copy[key]=value(item)
+            copy[attributeAliases[key] or key]=value(item)
         end
     end
     return copy

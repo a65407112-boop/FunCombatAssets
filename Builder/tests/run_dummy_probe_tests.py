@@ -1,11 +1,16 @@
 """Exercise the manual dummy probe; engine APIs are doubled, no Roblox claim."""
 import argparse
 import ast
+import json
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT / 'Builder'))
+from build import lua
+bindings=json.loads((ROOT / 'config/identifiers.json').read_text())
 parser = argparse.ArgumentParser()
 parser.add_argument('--luau', required=True)
 args = parser.parse_args()
@@ -40,10 +45,12 @@ end
 local coroutine={wrap=function(fn) return function(...) launch(function() fn(...) end) end end}
 local requests,kaiQueries,presentation,kaiRemote,runtime
 local function probeFixture()
-    local player,character=uiFixture();clock=100;pending={};requests={};kaiQueries={}
+    local player,character=uiFixture()
+    local encoded={};for key,value in pairs(player.attributes) do encoded[fixtureAttributes[key] or key]=value end;player.attributes=encoded
+    clock=100;pending={};requests={};kaiQueries={}
     local world=node('Workspace');services.Workspace=world
-    local config=append(world,node('Configuration','Configuration'))
-    local flag=append(config,node('BoolValue','AllowDummys'));flag.Value=true;flag.props.readOnly=true
+    local config=append(world,node('Configuration',fixtureNames.Configuration or 'Configuration'))
+    local flag=append(config,node('BoolValue',fixtureNames.AllowDummys or 'AllowDummys'));flag.Value=true;flag.props.readOnly=true
     character:FindFirstChildOfClass('Humanoid').Health=100
     local state={character=character,userId=player.UserId,health=100,downed=false,busy=false,stunned=false,ragdolled=false,canAct=true,revision=1}
     local states={[character]=state}
@@ -76,12 +83,22 @@ end
 # Lua nested varargs need packing for the scheduler wrapper.
 extra = extra.replace("return function(...) launch(function() fn(...) end) end", "return function(...) local args=table.pack(...);launch(function() fn(table.unpack(args,1,args.n)) end) end")
 checks = r'''
+check('protocol-5 encoded admin attributes remain readable in the report',function()
+    local _,_,_,player=probeFixture()
+    local encoded={}
+    for key,value in pairs(player.attributes) do encoded[fixtureAttributes[key] or key]=value end
+    player.attributes=encoded
+    local report=probe()
+    assert(report.user.FunCombatAdminAllowed==true and report.user.FunCombatAdminSource=='configuredOwner',
+        'Encoded server admin grant was lost or read with a reversed alias')
+end)
+
 check('opening the probe sends no game actions or registry queries',function()
     probeFixture();local report=probe()
     assert(#requests==0 and #kaiQueries==0 and report.probe.status=='not_started','Merely opening diagnostics caused network work')
 end)
 check('an actual false admin grant is preserved rather than labelled unavailable',function()
-    local _,_,_,player=probeFixture();player.attributes.FunCombatAdminAllowed=false
+    local _,_,_,player=probeFixture();player.attributes[fixtureAttributes.FunCombatAdminAllowed or 'FunCombatAdminAllowed']=false
     local report=probe()
     assert(report.user.FunCombatAdminAllowed==false,'A real false admin grant was confused with a protected/missing value')
 end)
@@ -182,7 +199,7 @@ print('Manual dummy probe regression scenarios passed: '..total)
 '''
 source_path = ROOT / 'diagnose_dummy.lua'
 source = source_path.read_text() if source_path.exists() else 'return nil'
-script = 'local runDummyProbe\n' + header + extra + '\nrunDummyProbe=function()\n' + source + '\nend\n' + checks
+script = 'local fixtureNames='+lua(bindings.get('names',{}))+'\nlocal fixtureAttributes='+lua(bindings.get('attributes',{}))+'\nlocal runDummyProbe\n' + header + extra + '\nrunDummyProbe=function()\n' + source + '\nend\n' + checks
 with tempfile.TemporaryDirectory(dir=ROOT) as directory:
     path = Path(directory) / 'dummy_probe.luau'
     path.write_text(script)

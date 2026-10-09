@@ -4,11 +4,16 @@ These tests verify finite local reads, exact diagnostics and appearance
 preservation. They make no engine/CDN/rendering claim.
 """
 import argparse
+import json
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT / 'Builder'))
+from build import lua
+bindings=json.loads((ROOT / 'config/identifiers.json').read_text())
 parser = argparse.ArgumentParser()
 parser.add_argument('--luau', required=True)
 args = parser.parse_args()
@@ -221,8 +226,8 @@ end)
 check('replicated dummy toggle reports true and false without enabling either',function()
     for _,enabled in ipairs({true,false}) do
         fixture();local world=node('Workspace');services.Workspace=world
-        local config=append(world,node('Configuration','Configuration'))
-        local flag=append(config,node('BoolValue','AllowDummys'));flag.Value=enabled;flag.props.readOnly=true
+        local config=append(world,node('Configuration',fixtureNames.Configuration or 'Configuration'))
+        local flag=append(config,node('BoolValue',fixtureNames.AllowDummys or 'AllowDummys'));flag.Value=enabled;flag.props.readOnly=true
         local report=run()
         assert(report.dummy and report.dummy.allowDummys and report.dummy.allowDummys.Value==enabled,
             'Actual replicated AllowDummys is absent or misreported')
@@ -366,7 +371,7 @@ print('Standalone diagnostic regression scenarios passed: '..total)
 # RED means the old absent script returns no diagnostic, not a Python read error.
 path = ROOT / 'diagnose.lua'
 source = path.read_text() if path.exists() else 'return nil'
-script = 'local runDiagnostics\n' + header + '\nrunDiagnostics=function()\n' + source + '\nend\n' + checks
+script = 'local fixtureNames='+lua(bindings.get('names',{}))+'\nlocal runDiagnostics\n' + header + '\nrunDiagnostics=function()\n' + source + '\nend\n' + checks
 with tempfile.TemporaryDirectory(dir=ROOT) as temporary:
     test_path = Path(temporary) / 'diagnostics.luau'
     test_path.write_text(script)

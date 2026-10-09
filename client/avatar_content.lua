@@ -121,7 +121,7 @@ return function(ctx)
     end
     local function diagnostic(record)
         if not valid(record) then return end
-        local value=record.character:GetAttribute("FunCombatAvatarDiagnostic")
+        local value=record.character:GetAttribute("1e5b028e37f8")
         if type(value)=="string" and value~="" and not record.diagnostics[value] then
             record.diagnostics[value]=true
             local data={text=value,character=record.character,userId=record.owner and record.owner.UserId}
@@ -130,7 +130,7 @@ return function(ctx)
         end
     end
     local function mood(record)
-        local id=tonumber(record.character:GetAttribute("FunCombatMoodClipId")) or 0
+        local id=tonumber(record.character:GetAttribute("0e807e2b2887")) or 0
         local value=id>0 and id%1==0 and "rbxassetid://"..id or nil
         if record.mood==value then return end
         if record.mood then record.pending[record.mood]=nil end
@@ -154,9 +154,9 @@ return function(ctx)
             failures={},diagnostics={},wasParented=character.Parent~=nil}
         characters[character]=record
         record.scope:add(character.DescendantAdded:Connect(function(object) watch(record,object) end))
-        record.scope:add(character:GetAttributeChangedSignal("FunCombatMoodAnimation"):Connect(function() mood(record) end))
-        record.scope:add(character:GetAttributeChangedSignal("FunCombatMoodClipId"):Connect(function() mood(record) end))
-        record.scope:add(character:GetAttributeChangedSignal("FunCombatAvatarDiagnostic"):Connect(function() diagnostic(record) end))
+        record.scope:add(character:GetAttributeChangedSignal("544273c2cf5a"):Connect(function() mood(record) end))
+        record.scope:add(character:GetAttributeChangedSignal("0e807e2b2887"):Connect(function() mood(record) end))
+        record.scope:add(character:GetAttributeChangedSignal("1e5b028e37f8"):Connect(function() diagnostic(record) end))
         record.scope:add(character.AncestryChanged:Connect(function()
             if character.Parent then record.wasParented=true;scan(record)
             elseif record.wasParented then remove(character) end

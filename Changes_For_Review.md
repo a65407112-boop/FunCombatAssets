@@ -1,25 +1,14 @@
-# Native R6 head и настоящий facial clip — 8 октября 2026
+# Protocol 5 release changes
 
-Пользователь просит приспособить classic R6 character игры для настоящего dynamic head. Старый FaceControls shortcut больше не сохраняет потенциально неверный template head. Avatar создаёт изолированный native R6 donor из реального description с head metadata, переносит настоящую head appearance и переподключает исходные Neck/hair/attachments/trails/prompts. R6 combat body и ресурсы игры сохранены; default classic faces используют настоящую native decal. Геометрия не исследуется.
+This release replaces the protocol-4 stored-rig/native-constructor layout. Publish the whole new place and join a fresh server before loading the matching client.
 
-Исправлена проверенная путаница MoodAnimation package ID и contained AnimationClip: сервер разрешает настоящий mood child, клиент и preload используют отдельный FunCombatMoodClipId. Builder оставляет только два пустых Animate engine hook, validator строго ограничивает их Source/hierarchy. Клиент сохраняет native mood, убирает собственный fallback при позднем native track и не повторяет ошибочный clip бесконечно. Timeout/respawn удаляют поздние donor/package без изменения старого character; malformed data сохраняет конкретную ошибку. Avatar22, presentation23 и marker4 проверяют результат; все прежние проверки продолжают проходить. Actual Roblox head rendering не объявляется исправленным без live test; причины старого black head не доказаны. Новая парная server/client поставка обязательна.
+- One saved original StarterCharacter outside original map/environment; both distinct original NPC rigs reconstruct at runtime.
+- Original Crossroads is saved once and cloned into a pristine runtime voting template; the other source map remains.
+- All 129 presentation packages and 47 animations remain external. Six original native packages use local RBXMX import; no replicated constructor fallback remains.
+- Opaque saved names, prompt labels, stats, game attributes, presentation keys and packed server sources use public consistent bindings. Required engine/Kohl names remain.
+- Native dynamic head handling remains. R6 body normalization keeps individual torso/limb colors instead of destroying synchronized BodyPartDescription colors.
+- Protocol 5 codecs preserve authoritative state, late joins, respawns and local-readable labels. Manual diagnostics show readable fields; dummy diagnostics use forward server attribute aliases.
+- Existing carry, observer locomotion, voting and silent dummy-success behavior remain.
+- Builder archives are written atomically, file membership is deterministic, and the original source is retained unchanged.
 
-Предыдущая история:
-
-# Исправление dummy — 8 октября 2026
-
-Подтверждён клиентский missing AllowDummys при зарегистрированных командах и свободном персонаже; отсутствие флага на живом сервере не доказано. Исправлен воспроизведённый отсутствующий settings path: точная исходная Configuration/BoolValue копируется builder в server-only WorldSettings, потерянные экземпляры восстанавливаются при startup без изменения явного false. Добавлен адресный игровой Notice/Error для отказов; spawned посылается только после real combat bind. Clone/bind failure и респавн во время avatar dummy preparation очищают pending модель/record. Никаких обходов owner validation, cooldown, лимитов или серверного combat. Новая парная серверная поставка обязательна из-за точного build ID. Статические/исполняемые API-double проверки отделены от отсутствующих engine tests; геометрия не проверяется.
-
-Предыдущая история:
-
-# Изменения текущей сборки — 7 октября 2026
-
-Воспроизведён переданный PC fatal weapons/Maxwell: SurfaceAppearance can only be parented to MeshParts. Прежний Part/SpecialMesh fallback удалён. Builder переносит 11 оригинальных leaf MeshPart и один SurfaceAppearance как минимальные native dependencies под encoded именами. Все сериализованные свойства и opaque load/shared данные сохранены; PBR остаётся child настоящего MeshPart. Полные модели, joints и refs восстанавливаются извне. Factory не записывает защищённые MeshId/InitialSize/PBR maps/TexturePack, сохраняет writable исходные Size/CFrame/TextureID/RenderFidelity и не вводит size multiplier. PC readonly и phone writable API doubles проходят один native путь. Источник и исходные model exports не изменены; геометрия не инспектировалась.
-
-Pair теперь сохраняет авторские part frames при parenting костюма, затем создаёт torso-to-ref weld, как source NewChanger. Единственная преждевременная запись ref.CFrame удалена. Authored offset проверки обоих костюмов наблюдались RED→GREEN. Visibility/Size/SpecialMesh.Scale/Motor offsets проходили и до этого: причина удвоенного male torso и actual render female torso не подтверждены в движке.
-
-Пользовательский importer остаётся совместимым: custom MeshPart/PBR загружает собственный оригинальный .rbxmx через существующий bounded model backend, не переиспользуя native object по совпавшему ID. Требуются optional executor file/GetObjects APIs. Неполные исходные mesh mappings остаются точной ошибкой. Эта ветка наблюдалась RED→GREEN.
-
-Прежние public WeldConstraint refs, configured numeric owner11556197791 и actual creator grants сохранены. Native Kohl Owners5 и :dummy bridge проверяют тот же owner ID; диагностический diagnose.lua остаётся отдельным ручным скриптом, loader его не вызывает.
-
-Свежие офлайн проверки: builder15, outfit14, native14, pair9, admin35, original Kohl settings3, diagnostics8, avatar9/content10, loader4, presentation12, carry5, spawn16; server/client/policy. Compilation, codec roundtrip, reproducibility, raw deployment и независимая review записаны в Release_Checks.json. Это статические/CLI/mock результаты, а не Roblox playtest. Новый server rbxl необходимо опубликовать целиком и войти в новую сессию. Giant Sword/Maxwell, invisible female и enlarged male torso после этой реконструкции ещё требуют проверки в настоящем клиенте.
+21 offline suites, 44 generated/client script compiles, 23 embedded source compiles and full archive reproduction passed. No Roblox engine, executor rendering, hosted permissions, PC/phone or legacy-client test ran. Geometry was not inspected. Obfuscation is reversible and is not a moderation or secrecy guarantee.

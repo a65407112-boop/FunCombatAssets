@@ -20,7 +20,7 @@ return function(ctx)
     local snapshot=find(folder,protocol.names.Snapshot,"RemoteFunction")
     local version=find(folder,protocol.names.Version,"IntValue")
     local build=find(folder,protocol.names.BuildId,"StringValue")
-    assert(version.Value==protocol.version and version.Value==4,"Protocol mismatch: use this build's funcombat_server.rbxl")
+    assert(version.Value==protocol.version and (version.Value==4 or version.Value==5),"Protocol mismatch: use this build's funcombat_server.rbxl")
     assert(build.Value==ctx.manifest.buildId and build.Value==protocol.buildId,"Server and GitHub build IDs differ: install the matching server file")
     local events={};for name,id in pairs(protocol.eventIds) do events[id]=name end
     local module={}
@@ -58,6 +58,7 @@ return function(ctx)
         end
     end
     scope:add(event.OnClientEvent:Connect(function(id,data)
+        if ctx.wire then data=ctx.wire:decode(data) end
         local kind=events[id]
         if kind and type(data)=="table" then
             -- A snapshot replaces state, but cannot replace a loading error.
@@ -78,14 +79,14 @@ return function(ctx)
     end
     function module:send(name,payload)
         local id=assert(protocol.actionIds[name],"Unknown action: "..tostring(name))
-        if not ctx.cleanup.dead then action:FireServer(id,payload) end
+        if not ctx.cleanup.dead then action:FireServer(id,ctx.wire and ctx.wire:encode(payload) or payload) end
     end
     function module:snapshot()
         local sentAt=tick()
         local done,result,failure=false,nil,nil
         coroutine.wrap(function()
             local ok,data=pcall(function() return snapshot:InvokeServer() end)
-            if ok then result=data else failure=data end;done=true
+            if ok then result=ctx.wire and ctx.wire:decode(data) or data else failure=data end;done=true
         end)()
         local untilTime=tick()+15
         repeat wait(0.05) until done or tick()>=untilTime or ctx.cleanup.dead

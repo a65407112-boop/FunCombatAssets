@@ -148,10 +148,41 @@ return function(ctx)
         if not ok then for _, object in ipairs(made) do pcall(function() object:Destroy() end) end; error(err) end
         return assert(byId[data.root], "Missing root in asset " .. key)
     end
-    function module:deserialize(entry,key)
+    function module:applyImported(data,key,root)
+        local marker=assert(ctx.catalog.nativeNodeAttribute,"Original model node marker is missing from the external catalog")
+        local all=root:GetDescendants();all[#all+1]=root
+        local byId={}
+        for _,object in ipairs(all) do
+            local id=object:GetAttribute(marker)
+            assert(type(id)=="number" and not byId[id],"Original import node ID missing/duplicated: "..key)
+            byId[id]=object
+        end
+        for _,node in ipairs(data.nodes) do
+            local object=assert(byId[node.id],"Original import node is missing: "..key.."/"..node.name)
+            assert(object.ClassName==node.class and object.Name==node.name,"Original import node class/name differs: "..key.."/"..node.name)
+            assert(not node.parent or object.Parent==byId[node.parent],"Original import hierarchy differs: "..key.."/"..node.name)
+            for name,prop in pairs(node.properties) do
+                local immutable=(node.class=="SurfaceAppearance" and nativeSurfaceProperties[name]) or (node.class=="MeshPart" and (name=="MeshId" or name=="MeshContent" or name=="InitialSize"))
+                if not skip[name] and not immutable then
+                    local applied,why=pcall(function()
+                        if prop.type=="Ref" then
+                            local publicName=referenceAliases[node.class] and referenceAliases[node.class][name] or name
+                            object[publicName]=prop.value and assert(byId[prop.value],"Original import reference missing") or nil
+                        else object[name]=decode(prop,object,name) end
+                    end)
+                    if not applied then
+                        if critical[name] or (prop.type=="Ref" and prop.value) then error(key..": imported "..node.class.."."..name..": "..tostring(why)) end
+                        warnOnce(node.class.."."..name,"Skipped unsupported/read-only property "..node.class.."."..name)
+                    end
+                end
+            end
+            object:SetAttribute(marker,nil)
+        end
+    end
+    function module:deserialize(entry,key,data)
         local assetFunction=getcustomasset or getsynasset
         assert(type(writefile)=="function" and type(assetFunction)=="function",
-            "Original embedded CSG in "..key.." requires writefile and getcustomasset/getsynasset on this executor")
+            "Original native model in "..key.." requires writefile and getcustomasset/getsynasset on this executor")
         local path="funcombat_"..ctx.manifest.buildId.."_"..key:gsub("[^%w_]","_")..".rbxmx"
         writefile(path,ctx.http(entry.modelPath))
         local done,result,failure=false,nil,nil
@@ -187,7 +218,17 @@ return function(ctx)
             end
         end
         if #objects~=entry.count then root:Destroy();error("Original model node count differs: "..key) end
+        if data and ctx.catalog.nativeNodeAttribute then
+            local valid,why=pcall(self.applyImported,self,data,key,root)
+            if not valid then root:Destroy();error(why) end
+        end
         return root
+    end
+    function module:checkCapabilities()
+        if ctx.catalog.nativeMode ~= "external" then return true end
+        assert(type(writefile)=="function" and (type(getcustomasset)=="function" or type(getsynasset)=="function"),
+            "This external-resource build requires writefile and getcustomasset/getsynasset plus local model support in GetObjects; no native presentation copy is stored on the server")
+        return true
     end
     function module:clone(key)
         if self.pending[key] then
@@ -202,6 +243,10 @@ return function(ctx)
                 local data=ctx.json(entry.path)
                 assert(not ctx.cleanup.dead,"Asset load cancelled: "..key)
                 assert(data.version==1 and #data.nodes==entry.count,"Invalid asset package: "..key)
+                if ctx.catalog.nativeMode=="external" and entry.backend=="model" then
+                    self:checkCapabilities()
+                    return self:deserialize(entry,key,data)
+                end
                 if entry.backend=="model" then
                     local dependencies=ctx.catalog.nativeCSG and ctx.catalog.nativeCSG.nodes
                     local native=dependencies~=nil

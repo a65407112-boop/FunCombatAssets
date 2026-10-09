@@ -6,6 +6,7 @@ return function(ctx)
     scope:add(function() alive = false end)
     local jobs, failures = {}, {}
     local module = {ready = false}
+    if type(ctx.assets.checkCapabilities)=="function" then ctx.assets:checkCapabilities() end
     for key in pairs(ctx.catalog.packages) do jobs[#jobs + 1] = {kind = "asset", key = key} end
     for key in pairs(ctx.catalog.animations) do jobs[#jobs + 1] = {kind = "animation", key = key} end
     table.sort(jobs, function(a, b) return a.kind .. "/" .. a.key < b.kind .. "/" .. b.key end)

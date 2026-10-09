@@ -1,0 +1,308 @@
+{
+  "buildId": "71832b91f51f8b011f05eeb2",
+  "protocolVersion": 5,
+  "sourceSha256": "a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0",
+  "offlineRegression": {
+    "suitesPassed": 21,
+    "suitesFailed": 0,
+    "results": [
+      {
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "Builder/tests",
+          "-p",
+          "test_*.py"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "................................\n----------------------------------------------------------------------\nRan 32 tests in 0.086s\n\nOK\n"
+      },
+      {
+        "command": [
+          "python3",
+          "-m",
+          "unittest",
+          "discover",
+          "-s",
+          "tools/outfits/tests",
+          "-p",
+          "test_*.py"
+        ],
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": "..............\n----------------------------------------------------------------------\nRan 14 tests in 0.030s\n\nOK\n"
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_admin_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Admin: published user creator is authorized before any asynchronous work\nAdmin: legacy usernames, private hosts and first joiners receive no grant\nAdmin: unpublished or invalid creator identity fails closed with diagnostics\nAdmin: group owner grant refreshes players who joined before the query completed\nAdmin: group service error preserves its exact failure and denies everyone\nAdmin: malformed group ownership response fails closed\nAdmin: bounded group timeout and late result never grant admin\nAdmin: native access excludes departed players and spoofed tables\nAdmin: configured numeric owner above 32 bits and the actual creator both receive distinct grants\nAdmin: matching configured owner preserves actual published creator authority\nAdmin: absent or invalid configured IDs never grant strangers or disable the real creator\nAdmin: configured owner is immediate during a group query while a genuine group owner still resolves\nAdmin: group lookup failure retains only the configured grant and exact creator failure\nAdmin: group timeout and late result retain only the configured owner grant\nAdmin: an unpublished CreatorId zero retains only the explicitly configured owner\nAdmin: configured access rejects departed spoofed and destroyed identities\nAdmin: actual native snapshot and admin action authorize the exact configured owner\nAdmin: actual native snapshot and admin action grant the injected published user creator\nAdmin: actual native snapshot and admin action deny legacy names despite their previous allowlist\nAdmin: actual native snapshot and admin action fail closed when access was not injected\nAdmin: actual native group-owner snapshot and admin action deny ordinary group members\nAdmin: trusted loader uses the original dependency and native legacy hierarchy\nAdmin: loader errors include the exact hosted permission failure\nAdmin: loader reserves the legacy selector before another startup can race it\nAdmin: missing native settings fail before any external code is required\nAdmin: hosted require has a deadline without blocking game initialization\nAdmin: unrelated group member cannot invoke the server dummy API\nAdmin: owner dummy API binds the original rig to real combat state\nAdmin: avatar dummy API uses the original appearance preparation\nAdmin: dummy API rejects nonpositive fractional nonfinite or oversized user IDs\nAdmin: dummy API retains game cooldown and per-owner limit with exact feedback\nAdmin: admin dummy still honors the original configuration and free combat state\nAdmin: real classic custom command forwards an optional avatar ID and exact creator rejection\nAdmin: configured native Owner rank five invokes the real custom dummy command\nAdmin: dummy API preserves an exact original rig-loading failure\nAdmin: startup restores missing Configuration from the original server-only settings before spawning\nAdmin: startup restores only a missing flag while preserving existing live false\nAdmin: a disabled original backup stays disabled when the live container is missing\nAdmin: missing recovery dependency is an explicit startup error rather than an invented setting\nAdmin: ordinary dummy rejection displays the exact disabled reason to its requester\nAdmin: ordinary dummy policy rejection is visible without relaxing the free-state check\nAdmin: dummy clone failure is visible and releases the original game request\nAdmin: successful feedback refers to a server-registered combat target\nAdmin: failed R6 binding removes the pending dummy and reports the exact reason\nAdmin: partial binding failure cleans the combat record and target model\nAdmin: respawn while preparing an avatar dummy cancels its pending registration\nAdmin regression scenarios passed: 46\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_avatar_content_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Avatar content: existing original head, accessory and genuine mood enter asynchronous preparation\nAvatar content: late Head, hosted property changes and replicated mood are prepared once per change\nAvatar content: head replacement, new accessory and respawn each prepare their actual references\nAvatar content: hosted failure reports its exact original asset ID and fetch status\nAvatar content: native content stall reports exact pending refs within its bounded deadline\nAvatar content: a timed-out native call does not multiply workers when current content changes\nAvatar content: cancelled old-character callbacks cannot report after respawn or player removal\nAvatar content: late clients recover retained avatar warnings and keep unsupported PBR packs intact\nAvatar content: state-fed user-ID dummies prepare their real heads and retire on Remove\nAvatar content: runtime cancellation suppresses pending content and retained warning work\nAvatar content regression scenarios passed: 10\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_avatar_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Avatar: R6 normalization retains the actual head, face and mood IDs\nAvatar: existing FaceControls do not retain the stale classic-template head\nAvatar: R6 head adapter keeps original facial data and rewires neck, hair and prompt\nAvatar: fresh native head retains its texture and PBR without classic visual overlays\nAvatar: mood package resolves to its contained animation and native Animate hook\nAvatar: an unavailable head asset retains a playable R6 character with a specific error\nAvatar: appearance warnings persist for a client arriving after the original server Error\nAvatar: retained head trails keep valid references when a donor attachment replaces the old attachment\nAvatar: late head loading after respawn disposes the donor without replacing the old head\nAvatar: a slow isolated head request times out without locking gameplay\nAvatar: user-ID dummies share the head adapter without requiring owner.Character to match\nAvatar: modern head metadata survives while unrelated body metadata cannot replace the R6 body\nAvatar: R6 preparation preserves distinct torso and limb colors when description children synchronize properties\nAvatar: user-ID dummies preserve their own body palette rather than copying the owner or one uniform color\nAvatar: a classic default head is generated natively and retains its actual face decal\nAvatar: an engine-provided mood hook is reused without another hosted package request\nAvatar: old servers use InsertService when the modern asset method is absent\nAvatar: invalid hosted mood keeps the genuine head and exposes its exact package error\nAvatar: hosted mood data cannot bring executable descendants into the live character\nAvatar: a late hosted mood after respawn cannot update the old head and releases the asset\nAvatar: a slow mood request releases gameplay and rejects its late completion\nAvatar: a missing original Neck prevents a destructive head swap\nAvatar: old facial Bones are not grafted into the native head as gameplay attachments\nAvatar: gameplay attachments retain their prompts without bringing nested old facial Bones\nAvatar regression scenarios passed: 24\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_carry_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Carry: carrier owns the welded assembly and retains walking controls\nCarry: carried victim cannot apply standing forces to the shared assembly\nCarry: drop restores victim state machine, collisions and separate ownership\nCarry: carrier removal releases victim controller and welded state\nCarry: server rejects distant carry before changing physics\nCarry regression scenarios passed: 5\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_client_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Client runtime: buffer, snapshot ordering, build mismatch, encoding and respawn/removal checks passed\nClient diagnostics: early errors, deduplication, cutoff, respawn/removal and main listener ordering passed\nClient notices: dummy success is silent; errors/weather remain visible without the full-screen loading GUI\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_combat_input_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Combat input: legacy ordinary spawn reaches the encoded authoritative action exactly once\nCombat input: modern chat reaches the same action with the real numeric avatar ID\nCombat input: duplicate modern and legacy callbacks cannot send a second same-frame request\nCombat input: blocked character and malformed IDs are rejected before transport\nCombat input: native Kohl aliases are not also executed by external chat input\nCombat input: teardown disconnects chat owners and stops action delivery\nCombat input characterization scenarios passed: 6\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_compact_runtime_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Compact runtime: original rig construction, failed-joint cleanup and wire snapshot/Instance roundtrip passed\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_diagnostics_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Diagnostics: all original body colors and applied colors remain distinct in the report\nDiagnostics: black body parts and local visibility are recorded without appearance edits or geometry reads\nDiagnostics: structured applied body metadata preserves color and explicit asset IDs in a bounded snapshot\nDiagnostics: current lighting and color correction are reported without changing them\nDiagnostics: replicated dummy toggle reports true and false without enabling either\nDiagnostics: missing dummy configuration remains explicitly missing\nDiagnostics: an unanchored dummy requester is reported as false rather than missing\nDiagnostics: native Kohl custom command failures are retained even when printed as output\nDiagnostics: dummy local character conditions are copied without calling server or inspecting geometry\nDiagnostics: actual user, creator and owner attrs use the native numeric KAI entry\nDiagnostics: fatal cleanup does not hide the exact failure window and native load messages\nDiagnostics: both PBR APIs are read safely and preserve raw Content source provenance\nDiagnostics: actual white and black appearance values survive unchanged\nDiagnostics: an absent character or absent Head returns immediately without substitutes\nDiagnostics: denied services, legacy fields and applied descriptions remain diagnostic\nDiagnostics: available cancelled runtime reports are read without invoking its modules\nDiagnostics: classic decals are captured and head tree/log reads have finite caps\nDiagnostics: report opens without console and Copy sends the exact snapshot to clipboard\nDiagnostics: unsupported clipboard keeps Copy and selects the complete report for manual copying\nDiagnostics: clipboard rejection is visible and preserves manual copying\nDiagnostics: rerun replaces only its previous window and Close releases the diagnostic GUI\nDiagnostics: absent PlayerGui uses an available executor GUI container\nStandalone diagnostic regression scenarios passed: 22\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_dummy_probe_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Diagnostics: protocol-5 encoded admin attributes remain readable in the report\nDiagnostics: opening the probe sends no game actions or registry queries\nDiagnostics: an actual false admin grant is preserved rather than labelled unavailable\nDiagnostics: one button click reads actual native command registration and requests one normal dummy\nDiagnostics: missing native custom commands are distinct from a registry timeout\nDiagnostics: local request rejection keeps actual blocking state without sending a raw action\nDiagnostics: actual protocol mismatch blocks spawning\nDiagnostics: raw server errors remain visible even when the runtime deduplicates them\nDiagnostics: server NPC observations do not claim an uncorrelated request ownership\nDiagnostics: close and rerun cancel observers and stale report updates\nDiagnostics: a delayed scheduler cannot accept observations after the deadline\nDiagnostics: rerunning an active probe cancels old observers without needing Close\nDiagnostics: normal expiry stops future event capture\nDiagnostics: no runtime and clipboard denial still produce a selectable report\nManual dummy probe regression scenarios passed: 14\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_head_texture_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "PASS opening the separate window preserves appearance and does not fetch\nPASS test uses exact original RGBA, native Overlay and unchanged head color\nPASS changed avatar cannot receive a different original face\nPASS preexisting SurfaceAppearance is retained\nPASS malformed pixel counts are rejected before native allocation\nPASS HTTP error is visible and bounded\nPASS unsupported client reports a capability error without changing the head\nPASS native processing failure releases original image copy\nPASS texture changes during native processing cannot receive the old original face\nPASS native timeout rejects late surface instead of changing a stale head\nPASS Restore between accepted native completion and return releases the unattached surface\nPASS rerun restores the previous test before replacing its window\nPASS head removal restores resources and expires this comparison\nPASS removing the whole character releases the overlay without detaching Head first\nPASS changing Player.Character releases the overlay before old Head ancestry changes\nHead texture test boundaries passed: 15. No Roblox rendering claim.\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_kohl_settings_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Kohl settings: original settings and other role lists preserved\nKohl settings: existing numeric owner is not duplicated\nKohl settings: other existing owners remain present\nKohl settings scenarios passed: 3\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_labels_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Labels: late stats, late players, unchanged values, cleanup and reexecution passed\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_loader_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Loader: full bootstrap resource error is visible and copyable\nLoader: reexecution replaces the old failure window\nLoader: pre-manifest HTTP errors remain readable without downloads\n[Fun Combat] External combat runtime initialized. Engine asset warnings, if any, are above.\nLoader: successful rerun clears previous diagnostics; 4 scenarios passed\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_native_asset_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Native assets: strict external package imports the original model without querying replicated constructors\nNative assets: strict external startup rejects unsupported file/model capabilities with a specific error\nNative assets: strict external import destroys a model that arrives after the resource deadline\nNative assets: original costume restores without local GetObjects and preserves real CSG payload\nNative assets: model package uses native reconstruction before unsupported executor deserialization\nNative assets: missing native dependency times out and names its exact path\nNative assets: wrong native class is rejected before constructing a substitute\nNative assets: serialized original WeldConstraint endpoints restore through public Part0 and Part1\nNative assets: PC readonly MeshId preserves original native load metadata and Maxwell PBR without invalid parenting\nNative assets: external native MeshPart/PBR applies original properties without protected writes or a replicated copy\nNative assets: phone writable MeshId still uses original native initialization instead of a hacked new MeshPart\nNative assets: missing native mesh fails by encoded dependency path within the deadline\nNative assets: user-created mesh and PBR import selects the original model backend without a server copy\nNative assets: incomplete original mesh metadata stays a concrete failure instead of a silent import fallback\nNative assets: complete original costumes/LowerRig restores every Instance and real joint endpoints\nNative assets: complete original costumes/TorsoRig restores every Instance and real joint endpoints\nNative assets: complete original weapons/Sword restores every Instance and real joint endpoints\nNative assets: complete original weapons/Maxwell restores every Instance and real joint endpoints\nNative asset scenarios passed: 18\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_pair_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Morph/effect: TorsoRig enters the character with every authored ref-relative CFrame intact\nMorph/effect: LowerRig enters the character with every authored ref-relative CFrame intact\nMorph/effect: source visibility, dimensions, mesh scales and movable Motor offsets are preserved\nMorph/effect: female TorsoRig mounts from server role even if the partner Instance has not replicated\nMorph/effect: a server burst arriving before streamed torso waits for the original morph\nMorph/effect: female particles resolve by server role when the actor reference in the burst is temporarily nil\nMorph/effect: a late burst cannot enter a new interaction between the same players\nMorph/effect: Clear removes a replicated female morph even if its actor reference is missing\nMorph/effect: stopping an interaction removes its morph and pending bursts\nOriginal morph/effect regression scenarios passed: 9\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_presentation_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Presentation: upper-body attacks, equip and carry preserve gait\nPresentation: authored third swing and carried victim retain full-body poses\nPresentation: combat pose wins after Animator without touching a walking hip\nPresentation: legacy clients use the bounded Stepped fallback\nPresentation: R6 attachment grip retains the native quarter-turn and original Tool.Grip\nPresentation: warm resources serve a first action without another fetch\nPresentation: cancelled warm-up cannot make the runtime ready\nPresentation: missing original model backend fails before gameplay becomes ready\nPresentation: hosted content timeout names the actual resource and status\nPresentation: stalled warm-up exits at its deadline and late fetches cannot leak assets\nPresentation: remote observer preserves the already replicated owner gait without a duplicate\nPresentation: late replicated gait replaces only the observer fallback\nPresentation: remote native jump is not replaced by an observer walk estimate\nPresentation: remote lean uses visible horizontal movement while MoveDirection is zero\nPresentation: local lean retains original input direction rather than a remote velocity estimate\nPresentation: original facial mood loads and continues under a full-body combat lock\nPresentation: an already playing original facial mood is preserved without a duplicate\nPresentation: an unresolved mood package is never submitted as a playable animation\nPresentation: the native facial Animate marker stays enabled while external locomotion runs\nPresentation: a valid empty default mood is not reported as a failed download\nPresentation: a rejected facial clip is attempted once until the head or clip changes\nPresentation: a late engine facial track replaces only the owned fallback without a duplicate\nPresentation: a stopped native mood permits one owned fallback without destroying the native track\nPresentation regression scenarios passed: 23\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_server_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Server lifecycle: dash cancellation, ragdoll ownership, release cleanup and cached clock checks passed\nAvatar lifecycle: departed player continuation is cancelled\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_spawn_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "FunCombat character ready: TestPlayer; Anchored=false\nSpawn regression: a newly added unparented character waits for Workspace and becomes playable\nSpawn regression: a replaced unparented character cannot finish delayed mounting\nSpawn regression: a character that never mounts fails within ten seconds\nFunCombat character ready: TestPlayer; Anchored=false\nSpawn regression: original spawn and safe R6 settings precede yielding appearance fetch\nFunCombat character ready: TestPlayer; Anchored=false\nAvatar regression: original head, face and mood survive R6 body normalization\nSpawn regression: respawn during appearance fetch cancels the old character\nSpawn regression: a dead character cannot finish initialization\nFunCombat character ready: TestPlayer; Anchored=false\nSpawn regression: an unavailable avatar service retains the original R6 body\nSpawn regression: disabled spawn locations are not selected\nMap regression: source name resolves a loaded map with a missing IsMap marker\nMap regression: empty Workspace mounts the original map template once\nMap regression: map restoration preserves a same-name humanoid character\nMap regression: duplicate names do not hide a valid existing source map\nMap regression: original template recovery preserves unrelated same-name models\nMap regression: voting replaces only identified source maps and preserves characters\nMap regression: unavailable source dependencies fail within five seconds\n",
+        "stderr": ""
+      },
+      {
+        "command": [
+          "python3",
+          "Builder/tests/run_voting_gui_tests.py",
+          "--luau",
+          "/workspace/scratch/1d30fcb59f14/tools/luau/luau"
+        ],
+        "exitCode": 0,
+        "stdout": "Voting GUI: real server candidates create visible original cards\nVoting GUI: clicking a card requests its own server candidate\nVoting GUI: real server counts update existing cards without duplicate controls\nVoting GUI: late join snapshot renders current counts and countdown\nVoting GUI: stale revision cannot erase the current cards\nVoting GUI: ending a vote hides the original window\nVoting GUI: changed candidates clean up the previous card and its button\nVoting GUI: client cleanup removes mounted map UI\nVoting GUI regression scenarios passed: 8\n",
+        "stderr": ""
+      }
+    ]
+  },
+  "artifactVerification": {
+    "buildId": "71832b91f51f8b011f05eeb2",
+    "readableAndClientScriptsCompiled": 44,
+    "embeddedBinaryScriptsCompiled": 23,
+    "compileErrors": 0,
+    "binaryPackingRoundtrip": true,
+    "savedHumanoidModels": 1,
+    "replicatedPresentationConstructors": 0,
+    "nativeModelMarkerMembership": 6,
+    "sourceUnchanged": true,
+    "geometryInspected": false,
+    "robloxEngineTested": false
+  },
+  "reproduction": {
+    "builderRunFromUnpackedExecutorArchive": true,
+    "checks": {
+      "funcombat_server.rbxl": {
+        "sha256": "436789bc31c35e9e881280cec85d2106587e1998e19437f894e460ef1790defe",
+        "reproducedSha256": "436789bc31c35e9e881280cec85d2106587e1998e19437f894e460ef1790defe",
+        "identical": true
+      },
+      "Game_Server.rbxlx": {
+        "sha256": "fc2443a4095c9e6820ec14da4c9d3774d5ee6d9ae49ea9978da0e823a8d2d003",
+        "reproducedSha256": "fc2443a4095c9e6820ec14da4c9d3774d5ee6d9ae49ea9978da0e823a8d2d003",
+        "identical": true
+      },
+      "loader.lua": {
+        "sha256": "071f33e6d24e3ee9d8024c1341fb2dda3b70bc8db79838e5a0a3503c30b1968b",
+        "reproducedSha256": "071f33e6d24e3ee9d8024c1341fb2dda3b70bc8db79838e5a0a3503c30b1968b",
+        "identical": true
+      },
+      "diagnose.lua": {
+        "sha256": "eb359d5807fda1091ddf2858649ec7cf7be228d63043102880447ba6aa193497",
+        "reproducedSha256": "eb359d5807fda1091ddf2858649ec7cf7be228d63043102880447ba6aa193497",
+        "identical": true
+      },
+      "Game_GitHub.zip": {
+        "sha256": "2d3eadd883016af94c4e1c897461b454d743d727ca655d57fde24eddabf65303",
+        "reproducedSha256": "2d3eadd883016af94c4e1c897461b454d743d727ca655d57fde24eddabf65303",
+        "identical": true
+      },
+      "Game_ExecutorSide.zip": {
+        "sha256": "9649fd6ca9a105b64c9bd147603da25033d9dfeb62db0356b9bc26c1b7871e92",
+        "reproducedSha256": "9649fd6ca9a105b64c9bd147603da25033d9dfeb62db0356b9bc26c1b7871e92",
+        "identical": true
+      }
+    },
+    "passed": true,
+    "stage": "before adding this verification receipt"
+  },
+  "zipCRCVerified": true,
+  "robloxEngineTested": false,
+  "geometryInspected": false,
+  "pcExecutorTested": false,
+  "phoneExecutorTested": false,
+  "legacyClientTested": false,
+  "hostedPermissionsTested": false,
+  "publicationVerification": "Recorded separately after guarded GitHub publication; this report is included before publication."
+}

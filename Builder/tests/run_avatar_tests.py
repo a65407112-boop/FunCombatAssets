@@ -11,7 +11,7 @@ args = parser.parse_args()
 code = (ROOT / 'Builder/tests/presentation_runtime.spec.luau').read_text()
 code += r'''
 Enum.HumanoidRigType={R6=0,R15=1}
-Enum.BodyPart={Head=0,Torso=1}
+Enum.BodyPart={Head=0,Torso=1,LeftArm=2,RightArm=3,LeftLeg=4,RightLeg=5}
 local Players={}
 local AssetService={}
 local InsertService={}
@@ -182,11 +182,14 @@ end)
 check('modern head metadata survives while unrelated body metadata cannot replace the R6 body',function()
     local p,c,h,_,_,_,_,desc=fixture(true)
     local head=node('BodyPartDescription','NativeHead');head.BodyPart=Enum.BodyPart.Head;head.HeadShape='owned-head-shape';head.Parent=desc
-    local torso=node('BodyPartDescription','ForeignBody');torso.BodyPart=Enum.BodyPart.Torso;torso.AssetId=777;torso.Parent=desc
+    local torso=node('BodyPartDescription','ForeignBody');torso.BodyPart=Enum.BodyPart.Torso;torso.AssetId=777
+    torso.Color='original-torso-color';torso.Instance=node('Model','BodyOverride');torso.Parent=desc
     local apply=h.ApplyDescription
     h.ApplyDescription=function(self,value)
         assert(value:FindFirstChild('NativeHead').HeadShape=='owned-head-shape','Native head metadata was lost during appearance application')
-        assert(not value:FindFirstChild('ForeignBody'),'Structured body metadata replaced the original R6 body')
+        local body=value:FindFirstChild('ForeignBody')
+        assert(body and body.Color=='original-torso-color','R6 normalization discarded the body color metadata')
+        assert(body.AssetId==0 and body.Instance==nil,'Structured body metadata replaced the original R6 body')
         return apply(self,value)
     end
     local create=Players.CreateHumanoidModelFromDescription
@@ -195,6 +198,59 @@ check('modern head metadata survives while unrelated body metadata cannot replac
         return create(self,value,rig)
     end
     local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+end)
+local function bodyColorFixture()
+    local p,c,h,old,neck,hair,prompt,desc=fixture(true)
+    local palette={
+        {part='Torso',field='TorsoColor',color='original-torso-color'},
+        {part='Left Arm',field='LeftArmColor',enum='LeftArm',color='original-left-arm-color'},
+        {part='Right Arm',field='RightArmColor',enum='RightArm',color='original-right-arm-color'},
+        {part='Left Leg',field='LeftLegColor',enum='LeftLeg',color='original-left-leg-color'},
+        {part='Right Leg',field='RightLegColor',enum='RightLeg',color='black'},
+    }
+    for _,entry in ipairs(palette) do
+        desc[entry.field]=entry.color
+        local part=c:FindFirstChild(entry.part)
+        if not part then part=node('Part',entry.part);part.Parent=c end
+        part.Color='template-color'
+        local body=node('BodyPartDescription',entry.part..'Description')
+        body.BodyPart=Enum.BodyPart[entry.enum or entry.part];body.AssetId=777;body.Color=entry.color
+        body.Instance=node('Model','ForeignBodyOverride');body.syncColor=entry.field;body.Parent=desc
+    end
+    -- Roblox documents that removing a BodyPartDescription also updates the
+    -- corresponding HumanoidDescription properties. The ordinary node double
+    -- cannot model that engine side effect, so this fixture supplies it here.
+    local destroy=methods.Destroy
+    methods.Destroy=function(self)
+        if self:IsA('BodyPartDescription') and self.Parent and self.syncColor then
+            self.Parent[self.syncColor]='black'
+        end
+        return destroy(self)
+    end
+    local apply=h.ApplyDescription
+    h.ApplyDescription=function(self,value)
+        apply(self,value)
+        for _,entry in ipairs(palette) do c:FindFirstChild(entry.part).Color=value[entry.field] end
+    end
+    return p,c,h,desc,palette,function() methods.Destroy=destroy end
+end
+check('R6 preparation preserves distinct torso and limb colors when description children synchronize properties',function()
+    local p,c,h,desc,palette,restore=bodyColorFixture()
+    local ready,why=Avatar.prepare(p,c,h);restore();assert(ready and not why,why)
+    for _,entry in ipairs(palette) do
+        assert(c:FindFirstChild(entry.part).Color==entry.color,'Original '..entry.part..' color was reset during R6 normalization')
+    end
+    local head=c:FindFirstChild('Head')
+    assert(head.TextureID=='native-head-texture' and head:FindFirstChildOfClass('FaceControls'),
+        'Body color correction changed the already working genuine dynamic head')
+end)
+check('user-ID dummies preserve their own body palette rather than copying the owner or one uniform color',function()
+    local p,c,h,desc,palette,restore=bodyColorFixture()
+    p.Character=node('Model','OwnerCharacter');p.Character.Parent=true
+    local ready,why=Avatar.prepareDummy(p,c,h,123);restore();assert(ready and not why,why)
+    for _,entry in ipairs(palette) do
+        assert(c:FindFirstChild(entry.part).Color==entry.color,'Dummy lost its original '..entry.part..' color')
+    end
 end)
 check('a classic default head is generated natively and retains its actual face decal',function()
     local p,c,h,old,neck,_,prompt,desc=fixture(false);desc.Head=0;desc.Face=4567

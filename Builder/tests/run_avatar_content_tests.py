@@ -4,11 +4,16 @@ The checks establish request coverage and lifecycle, never CDN availability or
 engine rendering. No avatar appearance properties are changed by the factory.
 """
 import argparse
+import json
+import sys
 from pathlib import Path
 import subprocess
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0,str(ROOT / 'Builder'))
+from build import lua
+bindings=json.loads((ROOT / 'config/identifiers.json').read_text())
 parser = argparse.ArgumentParser()
 parser.add_argument('--luau', required=True)
 args = parser.parse_args()
@@ -81,6 +86,7 @@ function methods:FindFirstChildOfClass(class) for _,child in ipairs(self:GetChil
 function methods:GetPropertyChangedSignal(key) self.signals[key]=self.signals[key] or signal();return self.signals[key] end
 function methods:GetAttributeChangedSignal(key) self.attributeSignals[key]=self.attributeSignals[key] or signal();return self.attributeSignals[key] end
 function methods:SetAttribute(key,value)
+    key=fixtureAttributes[key] or key
     local old=self.attributes[key];self.attributes[key]=value
     if old~=value and self.attributeSignals[key] then self.attributeSignals[key]:fire() end
 end
@@ -261,7 +267,7 @@ path = ROOT / 'client/avatar_content.lua'
 # An absent factory has the existing no-preparation behavior. This keeps RED
 # assertions about missing requests rather than a Python file-read exception.
 factory = path.read_text() if path.exists() else 'return function() return {destroy=function() end} end'
-script = 'local cleanupFactory, avatarContentFactory\n' + header
+script = 'local fixtureAttributes='+lua(bindings.get('attributes',{}))+'\nlocal cleanupFactory, avatarContentFactory\n' + header
 script += '\ncleanupFactory=(function()\n' + (ROOT / 'client/cleanup.lua').read_text() + '\nend)()\n'
 script += '\navatarContentFactory=(function()\n' + factory + '\nend)()\n' + checks
 with tempfile.TemporaryDirectory(dir=ROOT) as temporary:

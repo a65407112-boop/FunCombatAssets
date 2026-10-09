@@ -16,13 +16,14 @@ def lua(value):
     if isinstance(value,dict):return '{'+','.join('['+lua(k)+']='+lua(v) for k,v in value.items())+'}'
     raise TypeError(type(value))
 
+protocol_version=json.loads((ROOT/'config/protocol.json').read_text())['version']
 reason='Original resource warm-up failed: asset costumes/TorsoRig: '+'original-resource-detail-'*30+'END-OF-EXACT-ERROR'
 files={'config/assets.json':'assets','config/identifiers.json':'identifiers','config/protocol.json':'protocol',
        'client/failure.lua':'return function(ctx) error('+lua(reason)+') end'}
-manifest={'project':'FunCombat_ExecutorSide_Combat','protocolVersion':4,'buildId':'fixture','sourceSha256':'fixture',
+manifest={'project':'FunCombat_ExecutorSide_Combat','protocolVersion':protocol_version,'buildId':'fixture','sourceSha256':'fixture',
           'modules':['failure'],'dependencies':{'failure':[]},
           'files':{k:{'bytes':len(v.encode()),'adler32':zlib.adler32(v.encode())&0xffffffff} for k,v in files.items()}}
-fixtures={'manifest':manifest,'assets':{'sourceSha256':'fixture'},'identifiers':{},'protocol':{'version':4,'buildId':'fixture'}}
+fixtures={'manifest':manifest,'assets':{'sourceSha256':'fixture'},'identifiers':{},'protocol':{'version':protocol_version,'buildId':'fixture'}}
 code=r'''
 local now=100
 local function tick() return now end

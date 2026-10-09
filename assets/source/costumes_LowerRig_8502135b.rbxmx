@@ -1,6 +1,5 @@
 <roblox version="4"><External>null</External><External>nil</External><Item class="Model" referent="RBXSRC007652">
 				<Properties>
-					<BinaryString name="AttributesSerialize"/>
 					<bool name="DefinesCapabilities">false</bool>
 					<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 					<token name="LevelOfDetail">0</token>
@@ -48,11 +47,10 @@
 							<R22>-4.37113883e-008</R22>
 						</CFrame>
 					</OptionalCoordinateFrame>
-				</Properties>
+				<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADkvUA=</BinaryString></Properties>
 				<Item class="Part" referent="RBXSRC007653">
 					<Properties>
 						<bool name="Anchored">false</bool>
-						<BinaryString name="AttributesSerialize"/>
 						<bool name="AudioCanCollide">true</bool>
 						<float name="BackParamA">-0.5</float>
 						<float name="BackParamB">0.5</float>
@@ -100,7 +98,7 @@
 						<bool name="Locked">false</bool>
 						<bool name="Massless">false</bool>
 						<token name="Material">256</token>
-						<string name="MaterialVariantSerialized"></string>
+						<string name="MaterialVariantSerialized"/>
 						<string name="Name">ref</string>
 						<CoordinateFrame name="PivotOffset">
 							<X>0</X>
@@ -147,11 +145,10 @@
 							<Y>2.01516294</Y>
 							<Z>1.00758147</Z>
 						</Vector3>
-					</Properties>
+					<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADlvUA=</BinaryString></Properties>
 					<Item class="Part" referent="RBXSRC007654">
 						<Properties>
 							<bool name="Anchored">false</bool>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="AudioCanCollide">true</bool>
 							<float name="BackParamA">-0.5</float>
 							<float name="BackParamB">0.5</float>
@@ -199,7 +196,7 @@
 							<bool name="Locked">false</bool>
 							<bool name="Massless">false</bool>
 							<token name="Material">272</token>
-							<string name="MaterialVariantSerialized"></string>
+							<string name="MaterialVariantSerialized"/>
 							<string name="Name">skin2</string>
 							<CoordinateFrame name="PivotOffset">
 								<X>0</X>
@@ -246,13 +243,12 @@
 								<Y>0.340340078</Y>
 								<Z>0.340340197</Z>
 							</Vector3>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADmvUA=</BinaryString></Properties>
 						<Item class="SpecialMesh" referent="RBXSRC007655">
 							<Properties>
-								<BinaryString name="AttributesSerialize"/>
 								<bool name="DefinesCapabilities">false</bool>
 								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-								<string name="MeshId"></string>
+								<string name="MeshId"/>
 								<token name="MeshType">3</token>
 								<string name="Name">Mesh</string>
 								<Vector3 name="Offset">
@@ -267,18 +263,17 @@
 								</Vector3>
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"/>
-								<string name="TextureId"></string>
+								<string name="TextureId"/>
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003ddf</UniqueId>
 								<Vector3 name="VertexColor">
 									<X>1</X>
 									<Y>1</Y>
 									<Z>1</Z>
 								</Vector3>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADnvUA=</BinaryString></Properties>
 						</Item>
 						<Item class="Weld" referent="RBXSRC007656">
 							<Properties>
-								<BinaryString name="AttributesSerialize"/>
 								<CoordinateFrame name="C0">
 									<X>0.0344467163</X>
 									<Y>-0.0694732666</Y>
@@ -316,13 +311,12 @@
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"/>
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003de0</UniqueId>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADovUA=</BinaryString></Properties>
 						</Item>
 					</Item>
 					<Item class="Part" referent="RBXSRC007657">
 						<Properties>
 							<bool name="Anchored">false</bool>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="AudioCanCollide">true</bool>
 							<float name="BackParamA">-0.5</float>
 							<float name="BackParamB">0.5</float>
@@ -370,7 +364,7 @@
 							<bool name="Locked">false</bool>
 							<bool name="Massless">false</bool>
 							<token name="Material">272</token>
-							<string name="MaterialVariantSerialized"></string>
+							<string name="MaterialVariantSerialized"/>
 							<string name="Name">skin2</string>
 							<CoordinateFrame name="PivotOffset">
 								<X>0</X>
@@ -417,13 +411,12 @@
 								<Y>0.87213105</Y>
 								<Z>0.682718754</Z>
 							</Vector3>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADpvUA=</BinaryString></Properties>
 						<Item class="SpecialMesh" referent="RBXSRC007658">
 							<Properties>
-								<BinaryString name="AttributesSerialize"/>
 								<bool name="DefinesCapabilities">false</bool>
 								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-								<string name="MeshId"></string>
+								<string name="MeshId"/>
 								<token name="MeshType">3</token>
 								<string name="Name">Mesh</string>
 								<Vector3 name="Offset">
@@ -438,20 +431,19 @@
 								</Vector3>
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"/>
-								<string name="TextureId"></string>
+								<string name="TextureId"/>
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003de2</UniqueId>
 								<Vector3 name="VertexColor">
 									<X>1</X>
 									<Y>1</Y>
 									<Z>1</Z>
 								</Vector3>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADqvUA=</BinaryString></Properties>
 						</Item>
 					</Item>
 					<Item class="Part" referent="RBXSRC007659">
 						<Properties>
 							<bool name="Anchored">false</bool>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="AudioCanCollide">true</bool>
 							<float name="BackParamA">-0.5</float>
 							<float name="BackParamB">0.5</float>
@@ -499,7 +491,7 @@
 							<bool name="Locked">false</bool>
 							<bool name="Massless">false</bool>
 							<token name="Material">272</token>
-							<string name="MaterialVariantSerialized"></string>
+							<string name="MaterialVariantSerialized"/>
 							<string name="Name">skin2</string>
 							<CoordinateFrame name="PivotOffset">
 								<X>0</X>
@@ -546,13 +538,12 @@
 								<Y>1.15668821</Y>
 								<Z>1.226987</Z>
 							</Vector3>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADrvUA=</BinaryString></Properties>
 						<Item class="SpecialMesh" referent="RBXSRC007660">
 							<Properties>
-								<BinaryString name="AttributesSerialize"/>
 								<bool name="DefinesCapabilities">false</bool>
 								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-								<string name="MeshId"></string>
+								<string name="MeshId"/>
 								<token name="MeshType">3</token>
 								<string name="Name">Mesh</string>
 								<Vector3 name="Offset">
@@ -567,20 +558,19 @@
 								</Vector3>
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"/>
-								<string name="TextureId"></string>
+								<string name="TextureId"/>
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003de4</UniqueId>
 								<Vector3 name="VertexColor">
 									<X>1</X>
 									<Y>1</Y>
 									<Z>1</Z>
 								</Vector3>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADsvUA=</BinaryString></Properties>
 						</Item>
 					</Item>
 					<Item class="Part" referent="RBXSRC007661">
 						<Properties>
 							<bool name="Anchored">false</bool>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="AudioCanCollide">true</bool>
 							<float name="BackParamA">-0.5</float>
 							<float name="BackParamB">0.5</float>
@@ -628,7 +618,7 @@
 							<bool name="Locked">false</bool>
 							<bool name="Massless">false</bool>
 							<token name="Material">272</token>
-							<string name="MaterialVariantSerialized"></string>
+							<string name="MaterialVariantSerialized"/>
 							<string name="Name">skin2</string>
 							<CoordinateFrame name="PivotOffset">
 								<X>0</X>
@@ -675,13 +665,12 @@
 								<Y>1.15668821</Y>
 								<Z>1.226987</Z>
 							</Vector3>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADtvUA=</BinaryString></Properties>
 						<Item class="SpecialMesh" referent="RBXSRC007662">
 							<Properties>
-								<BinaryString name="AttributesSerialize"/>
 								<bool name="DefinesCapabilities">false</bool>
 								<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-								<string name="MeshId"></string>
+								<string name="MeshId"/>
 								<token name="MeshType">3</token>
 								<string name="Name">Mesh</string>
 								<Vector3 name="Offset">
@@ -696,14 +685,14 @@
 								</Vector3>
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"/>
-								<string name="TextureId"></string>
+								<string name="TextureId"/>
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003de6</UniqueId>
 								<Vector3 name="VertexColor">
 									<X>1</X>
 									<Y>1</Y>
 									<Z>1</Z>
 								</Vector3>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADuvUA=</BinaryString></Properties>
 						</Item>
 					</Item>
 					<Item class="UnionOperation" referent="RBXSRC007663">
@@ -711,7 +700,6 @@
 							<SharedString name="AeroMeshData">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 							<bool name="Anchored">false</bool>
 							<string name="AssetId">https://www.roblox.com//asset/?id=2983683241</string>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="AudioCanCollide">true</bool>
 							<float name="BackParamA">-0.5</float>
 							<float name="BackParamB">0.5</float>
@@ -769,7 +757,7 @@
 							<bool name="Locked">false</bool>
 							<bool name="Massless">false</bool>
 							<token name="Material">272</token>
-							<string name="MaterialVariantSerialized"></string>
+							<string name="MaterialVariantSerialized"/>
 							<BinaryString name="MeshData"/>
 							<SharedString name="MeshData2">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 							<string name="Name">skin2</string>
@@ -838,11 +826,10 @@
 								<Y>0.142243415</Y>
 								<Z>0.136323556</Z>
 							</Vector3>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADvvUA=</BinaryString></Properties>
 					</Item>
 					<Item class="Weld" referent="RBXSRC007664">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<CoordinateFrame name="C0">
 								<X>0.00405883789</X>
 								<Y>-1.06050158</Y>
@@ -880,11 +867,10 @@
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003de8</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADwvUA=</BinaryString></Properties>
 					</Item>
 					<Item class="Weld" referent="RBXSRC007665">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<CoordinateFrame name="C0">
 								<X>-0.517150879</X>
 								<Y>-1.07544565</Y>
@@ -922,11 +908,10 @@
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003de9</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADxvUA=</BinaryString></Properties>
 					</Item>
 					<Item class="Weld" referent="RBXSRC007666">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<CoordinateFrame name="C0">
 								<X>0.00329589844</X>
 								<Y>-1.02390981</Y>
@@ -964,11 +949,10 @@
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003dea</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADyvUA=</BinaryString></Properties>
 					</Item>
 					<Item class="Weld" referent="RBXSRC007667">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<CoordinateFrame name="C0">
 								<X>0.0012512207</X>
 								<Y>-1.05373728</Y>
@@ -1006,11 +990,10 @@
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003deb</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAADzvUA=</BinaryString></Properties>
 					</Item>
 					<Item class="Weld" referent="RBXSRC007668">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<CoordinateFrame name="C0">
 								<X>0.517211914</X>
 								<Y>-1.07449555</Y>
@@ -1048,22 +1031,20 @@
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003dec</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD0vUA=</BinaryString></Properties>
 					</Item>
 					<Item class="Folder" referent="RBXSRC007669">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="DefinesCapabilities">false</bool>
 							<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
 							<string name="Name">Movables</string>
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003ded</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD1vUA=</BinaryString></Properties>
 						<Item class="Part" referent="RBXSRC007670">
 							<Properties>
 								<bool name="Anchored">false</bool>
-								<BinaryString name="AttributesSerialize"/>
 								<bool name="AudioCanCollide">true</bool>
 								<float name="BackParamA">-0.5</float>
 								<float name="BackParamB">0.5</float>
@@ -1116,7 +1097,7 @@
 								<bool name="Locked">false</bool>
 								<bool name="Massless">false</bool>
 								<token name="Material">272</token>
-								<string name="MaterialVariantSerialized"></string>
+								<string name="MaterialVariantSerialized"/>
 								<string name="Name">LowerRig</string>
 								<CoordinateFrame name="PivotOffset">
 									<X>0</X>
@@ -1163,13 +1144,12 @@
 									<Y>0.457502216</Y>
 									<Z>0.746214628</Z>
 								</Vector3>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD2vUA=</BinaryString></Properties>
 							<Item class="SpecialMesh" referent="RBXSRC007671">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="DefinesCapabilities">false</bool>
 									<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-									<string name="MeshId"></string>
+									<string name="MeshId"/>
 									<token name="MeshType">3</token>
 									<string name="Name">Mesh</string>
 									<Vector3 name="Offset">
@@ -1184,21 +1164,20 @@
 									</Vector3>
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
-									<string name="TextureId"></string>
+									<string name="TextureId"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003def</UniqueId>
 									<Vector3 name="VertexColor">
 										<X>1</X>
 										<Y>1</Y>
 										<Z>1</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD3vUA=</BinaryString></Properties>
 							</Item>
 							<Item class="UnionOperation" referent="RBXSRC007672">
 								<Properties>
 									<SharedString name="AeroMeshData">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 									<bool name="Anchored">false</bool>
 									<string name="AssetId">https://www.roblox.com//asset/?id=687440699</string>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -1256,7 +1235,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<BinaryString name="MeshData"/>
 									<SharedString name="MeshData2">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 									<string name="Name">tip</string>
@@ -1325,12 +1304,11 @@
 										<Y>0.296030104</Y>
 										<Z>0.28383714</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD4vUA=</BinaryString></Properties>
 							</Item>
 							<Item class="Part" referent="RBXSRC007673">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -1378,7 +1356,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">skin</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -1425,13 +1403,12 @@
 										<Y>0.333263338</Y>
 										<Z>0.300454944</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD5vUA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007674">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">4</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -1446,20 +1423,19 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003df2</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD6vUA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Part" referent="RBXSRC007675">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -1507,7 +1483,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">skin</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -1554,13 +1530,12 @@
 										<Y>0.333263338</Y>
 										<Z>0.300454944</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD7vUA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007676">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">4</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -1575,20 +1550,19 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003df4</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD8vUA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Part" referent="RBXSRC007677">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -1636,7 +1610,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">skin</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -1683,13 +1657,12 @@
 										<Y>0.365312994</Y>
 										<Z>0.354356408</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD9vUA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007678">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">3</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -1704,20 +1677,19 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003df6</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD+vUA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Part" referent="RBXSRC007679">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -1765,7 +1737,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">skin</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -1812,13 +1784,12 @@
 										<Y>0.333263338</Y>
 										<Z>0.300454944</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAD/vUA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007680">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">4</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -1833,20 +1804,19 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003df8</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAAvkA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Part" referent="RBXSRC007681">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -1894,7 +1864,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">tip</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -1941,13 +1911,12 @@
 										<Y>0.365312994</Y>
 										<Z>0.354356408</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAABvkA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007682">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">3</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -1962,20 +1931,19 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003dfa</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAACvkA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Part" referent="RBXSRC007683">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -2023,7 +1991,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">tip</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -2070,13 +2038,12 @@
 										<Y>0.351441354</Y>
 										<Z>0.312010914</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAADvkA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007684">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">3</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -2091,20 +2058,19 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003dfc</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAEvkA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Part" referent="RBXSRC007685">
 								<Properties>
 									<bool name="Anchored">false</bool>
-									<BinaryString name="AttributesSerialize"/>
 									<bool name="AudioCanCollide">true</bool>
 									<float name="BackParamA">-0.5</float>
 									<float name="BackParamB">0.5</float>
@@ -2157,7 +2123,7 @@
 									<bool name="Locked">false</bool>
 									<bool name="Massless">false</bool>
 									<token name="Material">272</token>
-									<string name="MaterialVariantSerialized"></string>
+									<string name="MaterialVariantSerialized"/>
 									<string name="Name">SecondaryJoint</string>
 									<CoordinateFrame name="PivotOffset">
 										<X>0</X>
@@ -2204,13 +2170,12 @@
 										<Y>0.457502216</Y>
 										<Z>0.746214628</Z>
 									</Vector3>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAFvkA=</BinaryString></Properties>
 								<Item class="SpecialMesh" referent="RBXSRC007686">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="DefinesCapabilities">false</bool>
 										<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-										<string name="MeshId"></string>
+										<string name="MeshId"/>
 										<token name="MeshType">3</token>
 										<string name="Name">Mesh</string>
 										<Vector3 name="Offset">
@@ -2225,19 +2190,18 @@
 										</Vector3>
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
-										<string name="TextureId"></string>
+										<string name="TextureId"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003dfe</UniqueId>
 										<Vector3 name="VertexColor">
 											<X>1</X>
 											<Y>1</Y>
 											<Z>1</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAGvkA=</BinaryString></Properties>
 								</Item>
 								<Item class="Part" referent="RBXSRC007687">
 									<Properties>
 										<bool name="Anchored">false</bool>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="AudioCanCollide">true</bool>
 										<float name="BackParamA">-0.5</float>
 										<float name="BackParamB">0.5</float>
@@ -2285,7 +2249,7 @@
 										<bool name="Locked">false</bool>
 										<bool name="Massless">false</bool>
 										<token name="Material">272</token>
-										<string name="MaterialVariantSerialized"></string>
+										<string name="MaterialVariantSerialized"/>
 										<string name="Name">skin</string>
 										<CoordinateFrame name="PivotOffset">
 											<X>0</X>
@@ -2332,13 +2296,12 @@
 											<Y>0.47994414</Y>
 											<Z>0.398002386</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAHvkA=</BinaryString></Properties>
 									<Item class="SpecialMesh" referent="RBXSRC007688">
 										<Properties>
-											<BinaryString name="AttributesSerialize"/>
 											<bool name="DefinesCapabilities">false</bool>
 											<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-											<string name="MeshId"></string>
+											<string name="MeshId"/>
 											<token name="MeshType">3</token>
 											<string name="Name">Mesh</string>
 											<Vector3 name="Offset">
@@ -2353,20 +2316,19 @@
 											</Vector3>
 											<int64 name="SourceAssetId">-1</int64>
 											<BinaryString name="Tags"/>
-											<string name="TextureId"></string>
+											<string name="TextureId"/>
 											<UniqueId name="UniqueId">494ce16765689aa004b947d500003e00</UniqueId>
 											<Vector3 name="VertexColor">
 												<X>1</X>
 												<Y>1</Y>
 												<Z>1</Z>
 											</Vector3>
-										</Properties>
+										<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAIvkA=</BinaryString></Properties>
 									</Item>
 								</Item>
 								<Item class="Part" referent="RBXSRC007689">
 									<Properties>
 										<bool name="Anchored">false</bool>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="AudioCanCollide">true</bool>
 										<float name="BackParamA">-0.5</float>
 										<float name="BackParamB">0.5</float>
@@ -2419,7 +2381,7 @@
 										<bool name="Locked">false</bool>
 										<bool name="Massless">false</bool>
 										<token name="Material">272</token>
-										<string name="MaterialVariantSerialized"></string>
+										<string name="MaterialVariantSerialized"/>
 										<string name="Name">skin</string>
 										<CoordinateFrame name="PivotOffset">
 											<X>0</X>
@@ -2466,13 +2428,12 @@
 											<Y>0.457502216</Y>
 											<Z>0.746214628</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAJvkA=</BinaryString></Properties>
 									<Item class="SpecialMesh" referent="RBXSRC007690">
 										<Properties>
-											<BinaryString name="AttributesSerialize"/>
 											<bool name="DefinesCapabilities">false</bool>
 											<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-											<string name="MeshId"></string>
+											<string name="MeshId"/>
 											<token name="MeshType">3</token>
 											<string name="Name">Mesh</string>
 											<Vector3 name="Offset">
@@ -2487,20 +2448,19 @@
 											</Vector3>
 											<int64 name="SourceAssetId">-1</int64>
 											<BinaryString name="Tags"/>
-											<string name="TextureId"></string>
+											<string name="TextureId"/>
 											<UniqueId name="UniqueId">494ce16765689aa004b947d500003e02</UniqueId>
 											<Vector3 name="VertexColor">
 												<X>1</X>
 												<Y>1</Y>
 												<Z>1</Z>
 											</Vector3>
-										</Properties>
+										<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAKvkA=</BinaryString></Properties>
 									</Item>
 								</Item>
 								<Item class="Part" referent="RBXSRC007691">
 									<Properties>
 										<bool name="Anchored">false</bool>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="AudioCanCollide">true</bool>
 										<float name="BackParamA">-0.5</float>
 										<float name="BackParamB">0.5</float>
@@ -2548,7 +2508,7 @@
 										<bool name="Locked">false</bool>
 										<bool name="Massless">false</bool>
 										<token name="Material">272</token>
-										<string name="MaterialVariantSerialized"></string>
+										<string name="MaterialVariantSerialized"/>
 										<string name="Name">skin</string>
 										<CoordinateFrame name="PivotOffset">
 											<X>0</X>
@@ -2595,13 +2555,12 @@
 											<Y>0.47994414</Y>
 											<Z>0.398002386</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAALvkA=</BinaryString></Properties>
 									<Item class="SpecialMesh" referent="RBXSRC007692">
 										<Properties>
-											<BinaryString name="AttributesSerialize"/>
 											<bool name="DefinesCapabilities">false</bool>
 											<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-											<string name="MeshId"></string>
+											<string name="MeshId"/>
 											<token name="MeshType">3</token>
 											<string name="Name">Mesh</string>
 											<Vector3 name="Offset">
@@ -2616,20 +2575,19 @@
 											</Vector3>
 											<int64 name="SourceAssetId">-1</int64>
 											<BinaryString name="Tags"/>
-											<string name="TextureId"></string>
+											<string name="TextureId"/>
 											<UniqueId name="UniqueId">494ce16765689aa004b947d500003e04</UniqueId>
 											<Vector3 name="VertexColor">
 												<X>1</X>
 												<Y>1</Y>
 												<Z>1</Z>
 											</Vector3>
-										</Properties>
+										<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAMvkA=</BinaryString></Properties>
 									</Item>
 								</Item>
 								<Item class="Part" referent="RBXSRC007693">
 									<Properties>
 										<bool name="Anchored">false</bool>
-										<BinaryString name="AttributesSerialize"/>
 										<bool name="AudioCanCollide">true</bool>
 										<float name="BackParamA">-0.5</float>
 										<float name="BackParamB">0.5</float>
@@ -2682,7 +2640,7 @@
 										<bool name="Locked">false</bool>
 										<bool name="Massless">false</bool>
 										<token name="Material">272</token>
-										<string name="MaterialVariantSerialized"></string>
+										<string name="MaterialVariantSerialized"/>
 										<string name="Name">skin</string>
 										<CoordinateFrame name="PivotOffset">
 											<X>0</X>
@@ -2729,13 +2687,12 @@
 											<Y>0.112122685</Y>
 											<Z>0.712012291</Z>
 										</Vector3>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAANvkA=</BinaryString></Properties>
 									<Item class="SpecialMesh" referent="RBXSRC007694">
 										<Properties>
-											<BinaryString name="AttributesSerialize"/>
 											<bool name="DefinesCapabilities">false</bool>
 											<UniqueId name="HistoryId">00000000000000000000000000000000</UniqueId>
-											<string name="MeshId"></string>
+											<string name="MeshId"/>
 											<token name="MeshType">3</token>
 											<string name="Name">Mesh</string>
 											<Vector3 name="Offset">
@@ -2750,19 +2707,18 @@
 											</Vector3>
 											<int64 name="SourceAssetId">-1</int64>
 											<BinaryString name="Tags"/>
-											<string name="TextureId"></string>
+											<string name="TextureId"/>
 											<UniqueId name="UniqueId">494ce16765689aa004b947d500003e06</UniqueId>
 											<Vector3 name="VertexColor">
 												<X>1</X>
 												<Y>1</Y>
 												<Z>1</Z>
 											</Vector3>
-										</Properties>
+										<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAOvkA=</BinaryString></Properties>
 									</Item>
 								</Item>
 								<Item class="Weld" referent="RBXSRC007695">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<CoordinateFrame name="C0">
 											<X>-0.0111999512</X>
 											<Y>0.137817383</Y>
@@ -2800,11 +2756,10 @@
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003e07</UniqueId>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAPvkA=</BinaryString></Properties>
 								</Item>
 								<Item class="Weld" referent="RBXSRC007696">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<CoordinateFrame name="C0">
 											<X>0</X>
 											<Y>0</Y>
@@ -2842,11 +2797,10 @@
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003e08</UniqueId>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAQvkA=</BinaryString></Properties>
 								</Item>
 								<Item class="Weld" referent="RBXSRC007697">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<CoordinateFrame name="C0">
 											<X>-0.00631713867</X>
 											<Y>-0.160339355</Y>
@@ -2884,11 +2838,10 @@
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003e09</UniqueId>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAARvkA=</BinaryString></Properties>
 								</Item>
 								<Item class="Weld" referent="RBXSRC007698">
 									<Properties>
-										<BinaryString name="AttributesSerialize"/>
 										<CoordinateFrame name="C0">
 											<X>-0.0260925293</X>
 											<Y>0.00100708008</Y>
@@ -2926,12 +2879,11 @@
 										<int64 name="SourceAssetId">-1</int64>
 										<BinaryString name="Tags"/>
 										<UniqueId name="UniqueId">494ce16765689aa004b947d500003e0a</UniqueId>
-									</Properties>
+									<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAASvkA=</BinaryString></Properties>
 								</Item>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007699">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>1.2973938</X>
 										<Y>-0.00360107422</Y>
@@ -2969,11 +2921,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e0b</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAATvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007700">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>0.915222168</X>
 										<Y>-0.012512207</Y>
@@ -3011,11 +2962,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e0c</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAUvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007701">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>1.1078186</X>
 										<Y>-0.00793457031</Y>
@@ -3053,11 +3003,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e0d</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAVvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007702">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>1.19503784</X>
 										<Y>-0.0009765625</Y>
@@ -3095,11 +3044,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e0e</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAWvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007703">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>0.397827148</X>
 										<Y>-0.0114746094</Y>
@@ -3137,11 +3085,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e0f</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAXvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007704">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>1.23425293</X>
 										<Y>0.000885009766</Y>
@@ -3179,11 +3126,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e10</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAYvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Weld" referent="RBXSRC007705">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>1.23120117</X>
 										<Y>-0.000213623047</Y>
@@ -3221,11 +3167,10 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e11</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAZvkA=</BinaryString></Properties>
 							</Item>
 							<Item class="Motor6D" referent="RBXSRC007706">
 								<Properties>
-									<BinaryString name="AttributesSerialize"/>
 									<CoordinateFrame name="C0">
 										<X>0</X>
 										<Y>0</Y>
@@ -3265,12 +3210,11 @@
 									<int64 name="SourceAssetId">-1</int64>
 									<BinaryString name="Tags"/>
 									<UniqueId name="UniqueId">494ce16765689aa004b947d500003e12</UniqueId>
-								</Properties>
+								<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAavkA=</BinaryString></Properties>
 							</Item>
 						</Item>
 						<Item class="Motor6D" referent="RBXSRC007707">
 							<Properties>
-								<BinaryString name="AttributesSerialize"/>
 								<CoordinateFrame name="C0">
 									<X>0.00729370117</X>
 									<Y>-1.1415298</Y>
@@ -3310,14 +3254,13 @@
 								<int64 name="SourceAssetId">-1</int64>
 								<BinaryString name="Tags"/>
 								<UniqueId name="UniqueId">494ce16765689aa004b947d500003e13</UniqueId>
-							</Properties>
+							<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAbvkA=</BinaryString></Properties>
 						</Item>
 					</Item>
 					<Item class="MeshPart" referent="RBXSRC007708">
 						<Properties>
 							<SharedString name="AeroMeshData">DldRwCblQ7Loqy6wYJnaoQ==</SharedString>
 							<bool name="Anchored">false</bool>
-							<BinaryString name="AttributesSerialize"/>
 							<bool name="AudioCanCollide">true</bool>
 							<float name="BackParamA">-0.5</float>
 							<float name="BackParamB">0.5</float>
@@ -3379,7 +3322,7 @@
 							<bool name="Locked">false</bool>
 							<bool name="Massless">true</bool>
 							<token name="Material">272</token>
-							<string name="MaterialVariantSerialized"></string>
+							<string name="MaterialVariantSerialized"/>
 							<string name="MeshId">rbxassetid://6198280881</string>
 							<string name="Name">skin</string>
 							<SharedString name="PhysicalConfigData">BN/mXGTZb8Qt3qeDbCyfGw==</SharedString>
@@ -3412,7 +3355,7 @@
 							</Vector3>
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
-							<string name="TextureID"></string>
+							<string name="TextureID"/>
 							<float name="TopParamA">-0.5</float>
 							<float name="TopParamB">0.5</float>
 							<token name="TopSurface">0</token>
@@ -3446,11 +3389,10 @@
 								<Y>2</Y>
 								<Z>1</Z>
 							</Vector3>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAcvkA=</BinaryString></Properties>
 					</Item>
 					<Item class="Weld" referent="RBXSRC007709">
 						<Properties>
-							<BinaryString name="AttributesSerialize"/>
 							<CoordinateFrame name="C0">
 								<X>0.000305175781</X>
 								<Y>-7.96318054e-005</Y>
@@ -3488,7 +3430,7 @@
 							<int64 name="SourceAssetId">-1</int64>
 							<BinaryString name="Tags"/>
 							<UniqueId name="UniqueId">494ce16765689aa004b947d500003e15</UniqueId>
-						</Properties>
+						<BinaryString name="AttributesSerialize">AQAAAAwAAAAzYTZjMGI1YWE5YmUGAAAAAAAdvkA=</BinaryString></Properties>
 					</Item>
 				</Item>
 			</Item>

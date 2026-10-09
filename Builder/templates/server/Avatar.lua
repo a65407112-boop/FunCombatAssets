@@ -237,7 +237,11 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
         if ok then
             for _,key in ipairs({"LeftArm","LeftLeg","RightArm","RightLeg","Torso"}) do description[key]=0 end
             for _,child in ipairs(description:GetChildren()) do
-                if child:IsA("BodyPartDescription") and child.BodyPart~=Enum.BodyPart.Head then child:Destroy() end
+                if child:IsA("BodyPartDescription") and child.BodyPart~=Enum.BodyPart.Head then
+                    -- Removing these entries also resets their skin colors.
+                    -- Keep the user's palette while excluding custom bodies.
+                    child.AssetId=0;child.Instance=nil
+                end
             end
             pcall(function() description.StaticFacialAnimation=false end)
             phase="Avatar appearance";safeToBind=false

@@ -157,7 +157,7 @@ def canonical_referents(source):
 
 def copy_repository(destination):
     if destination.exists():shutil.rmtree(destination)
-    shutil.copytree(ROOT,destination,ignore=shutil.ignore_patterns('.git','__pycache__','*.pyc','dist','.cache','.superpowers'))
+    shutil.copytree(ROOT,destination,ignore=shutil.ignore_patterns('.git','__pycache__','*.pyc','dist','.cache','.superpowers','tmp????????'))
 
 def export(source,repo):
     catalog=json.loads((repo/'config/assets.json').read_text())
@@ -231,6 +231,8 @@ def export(source,repo):
         path=repo/'source/external'/(label+'.rbxmx');path.parent.mkdir(parents=True,exist_ok=True)
         path.write_bytes(xml_document(source,source.by[i]))
     catalog['costumes']=['LowerRig','TorsoRig']
+    catalog['nativeMode']='replicated'
+    catalog.pop('nativeNodeAttribute',None)
     catalog['nativeCSG']={'folder':code_id('native-dependency','original-csg'),'nodes':native_nodes}
     catalog['nativeMeshes']={'folder':code_id('native-dependency','original-meshes'),'nodes':native_meshes,'surfaces':native_surfaces}
     catalog['sourceSha256']=source.sha;dump(repo/'config/assets.json',catalog)
@@ -464,11 +466,18 @@ def seal_manifest(repo,protocol):
 
 def archive(path,base,selection=None):
     files=selection if selection is not None else [p for p in sorted(base.rglob('*')) if p.is_file()]
-    with zipfile.ZipFile(path,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
-        for p in sorted(files):
-            if not p.is_file() or {'.git','__pycache__','.cache'}.intersection(p.relative_to(base).parts):continue
-            info=zipfile.ZipInfo(p.relative_to(base).as_posix(),(2026,10,4,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o644<<16
-            z.writestr(info,p.read_bytes())
+    temporary=path.with_name(path.name+'.tmp')
+    try:
+        with temporary.open('wb') as stream:
+            with zipfile.ZipFile(stream,'w',compression=zipfile.ZIP_DEFLATED,compresslevel=9) as z:
+                for p in sorted(files):
+                    if not p.is_file() or {'.git','__pycache__','.cache'}.intersection(p.relative_to(base).parts):continue
+                    info=zipfile.ZipInfo(p.relative_to(base).as_posix(),(2026,10,4,0,0,0));info.compress_type=zipfile.ZIP_DEFLATED;info.external_attr=0o644<<16
+                    z.writestr(info,p.read_bytes())
+            stream.flush();os.fsync(stream.fileno())
+        os.replace(temporary,path)
+    finally:
+        if temporary.exists():temporary.unlink()
 
 def build(source_path,rbxmk,output):
     original=Path(source_path).resolve();output=safe_output(original,output)
@@ -518,5 +527,10 @@ def build(source_path,rbxmk,output):
 if __name__=='__main__':
     args=argparse.ArgumentParser(description=__doc__)
     args.add_argument('--source',required=True);args.add_argument('--rbxmk',default='rbxmk');args.add_argument('--output',default=str(ROOT/'dist'))
+    args.add_argument('--classic-layout',action='store_true',help='Build the previous protocol-4 stored-rig layout for comparison only')
     opt=args.parse_args()
-    print(json.dumps(build(opt.source,opt.rbxmk,opt.output),ensure_ascii=False,indent=2))
+    if opt.classic_layout:result=build(opt.source,opt.rbxmk,opt.output)
+    else:
+        import compact
+        result=compact.build(opt.source,opt.rbxmk,opt.output)
+    print(json.dumps(result,ensure_ascii=False,indent=2))

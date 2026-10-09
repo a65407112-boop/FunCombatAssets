@@ -106,11 +106,50 @@ local function prepare(native)
     end
     ctx.assets=assetsFactory(ctx);return ctx
 end
+local function importedFixture()
+    local root=node('Model','TorsoRig')
+    local ref=node('Part','ref');ref.Parent=root
+    local union=node('UnionOperation','skin');union.nativePayload='original-client-import-payload';union.Parent=ref
+    local joint=node('Weld','OriginalJoint');joint.Part0=ref;joint.Part1=union;joint.Parent=ref
+    for id,object in ipairs({root,ref,union,joint}) do object:SetAttribute('fixture_node_id',id) end
+    return root
+end
 local failed,total={},0
 local function check(name,fn)
     total+=1;local ok,why=pcall(fn);readOnlyMesh=false
     if ok then print('Native assets: '..name) else failed[#failed+1]=name..': '..tostring(why);print('FAIL '..failed[#failed]) end
 end
+check('strict external package imports the original model without querying replicated constructors',function()
+    local ctx=prepare(false);ctx.catalog.nativeMode='external'
+    ctx.catalog.nativeNodeAttribute='fixture_node_id'
+    writefile=function(path,bytes) assert(bytes=='original-rbxmx','Wrong source model was imported') end
+    getcustomasset=function(path) return path end
+    getobjects=function(path) return {importedFixture()} end
+    ctx.http=function(path) assert(path=='original-model-xml');return 'original-rbxmx' end
+    local model=ctx.assets:clone('costumes/TorsoRig')
+    assert(model:FindFirstChild('ref'):FindFirstChild('skin').nativePayload=='original-client-import-payload','Native source import was replaced')
+    assert(model:FindFirstChild('ref'):FindFirstChild('skin').Transparency==0.25,'Imported original writable properties were not reapplied')
+    assert(model:GetAttribute('fixture_node_id')==nil,'Temporary import node marker remained in the presentation')
+    assert(#replicated:GetChildren()==0,'Strict external import retained a server dependency')
+    model:Destroy();ctx.cleanup:destroy();writefile=nil;getcustomasset=nil;getobjects=nil
+end)
+check('strict external startup rejects unsupported file/model capabilities with a specific error',function()
+    local ctx=prepare(false);ctx.catalog.nativeMode='external'
+    writefile=nil;getcustomasset=nil;getobjects=nil
+    local ok,why=pcall(ctx.assets.checkCapabilities,ctx.assets)
+    assert(not ok and tostring(why):find('writefile') and tostring(why):find('getcustomasset'),'Missing import capability did not explain the requirement')
+    ctx.cleanup:destroy()
+end)
+check('strict external import destroys a model that arrives after the resource deadline',function()
+    local ctx=prepare(false);ctx.catalog.nativeMode='external';local pending,late
+    writefile=function() end;getcustomasset=function(path) return path end
+    getobjects=function() pending=coroutine.running();coroutine.yield();late=importedFixture();return {late} end
+    ctx.http=function() return 'original-rbxmx' end
+    local ok,why=pcall(ctx.assets.clone,ctx.assets,'costumes/TorsoRig')
+    assert(not ok and pending and tostring(why):find('timeout'),'A stuck import had no bounded failure')
+    assert(coroutine.resume(pending) and late.destroyed,'Late imported model leaked after a timeout')
+    ctx.cleanup:destroy();writefile=nil;getcustomasset=nil;getobjects=nil
+end)
 check('original costume restores without local GetObjects and preserves real CSG payload',function()
     local ctx=prepare(true)
     local model=ctx.assets:construct(fixture,'costumes/TorsoRig')
@@ -183,6 +222,21 @@ check('PC readonly MeshId preserves original native load metadata and Maxwell PB
     assert(appearance.props.ColorMap=='original-color-map' and appearance.props.TexturePack=='original-processed-pack','Original protected PBR resources were lost')
     assert(#mesh:GetChildren()==1,'PBR was duplicated or a fallback mesh was invented')
     assert(surface.Parent==template and template.Name=='EncodedMesh','Native dependency was mutated')
+    model:Destroy();ctx.cleanup:destroy();readOnlyMesh=false
+end)
+check('external native MeshPart/PBR applies original properties without protected writes or a replicated copy',function()
+    readOnlyMesh=true
+    local ctx=context();ctx.catalog.nativeMode='external';ctx.catalog.nativeNodeAttribute='fixture_node_id'
+    local model=node('Model','Maxwell');model:SetAttribute('fixture_node_id',1)
+    local mesh=strict(node('MeshPart','maxwell'));mesh.props.MeshId='original-mesh-id';mesh.props.InitialSize='opaque-original-load-metadata'
+    mesh:SetAttribute('fixture_node_id',2);mesh.Parent=model
+    local surface=strict(node('SurfaceAppearance','SurfaceAppearance'));surface.props.ColorMap='original-color-map';surface.props.TexturePack='original-processed-pack'
+    surface:SetAttribute('fixture_node_id',3);surface.Parent=mesh
+    local data={version=1,root=meshFixture.root,nodes=meshFixture.nodes}
+    ctx.assets=assetsFactory(ctx);ctx.assets:applyImported(data,'weapons/Maxwell',model)
+    assert(mesh.MeshId=='original-mesh-id' and mesh.InitialSize=='opaque-original-load-metadata','External importer overwrote immutable mesh initialization')
+    assert(surface.props.ColorMap=='original-color-map' and surface.props.TexturePack=='original-processed-pack','External importer overwrote original PBR')
+    assert(surface.Parent==mesh and mesh:GetAttribute('fixture_node_id')==nil,'External import changed PBR host or retained its marker')
     model:Destroy();ctx.cleanup:destroy();readOnlyMesh=false
 end)
 check('phone writable MeshId still uses original native initialization instead of a hacked new MeshPart',function()

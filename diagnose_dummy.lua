@@ -23,7 +23,10 @@ end
 local function fields(object,keys)
     local result={};for _,key in ipairs(keys) do result[key]=read(object,key) end;return result
 end
+local objectAliases={["AllowDummys"]="aa7de37b6516",["Configuration"]="df288f6fc6ee"}
+local attributeAliases={["FunCombatAdminAllowed"]="b2b56a5aa268",["FunCombatAdminConfigError"]="688506395d60",["FunCombatAdminError"]="568c6ead6b85",["FunCombatAdminSource"]="494013a6711c",["FunCombatAdminState"]="3a3d5dad5154",["FunCombatAvatarDiagnostic"]="1e5b028e37f8",["FunCombatConfiguredOwnerUserId"]="64bc57bd1b72",["FunCombatCreatorUserId"]="254133e9e604",["FunCombatFacialBridge"]="0bc3bbc6f0b3",["FunCombatHeadAssetId"]="ff2009f0514f",["FunCombatHeadSource"]="279071d51dd9",["FunCombatKohlAssetId"]="982f860c0ba2",["FunCombatKohlError"]="bf96acb14356",["FunCombatKohlState"]="dd4cdc49a212",["FunCombatMoodAnimation"]="544273c2cf5a",["FunCombatMoodClipId"]="0e807e2b2887",["Gender"]="63d6344b9bdc",["Started"]="2f1cdf6338d0",["attacking"]="6483ceba95fb",["awakened"]="caa74ea58dea",["canGetUp"]="27ee6b9f9807",["carriedBy"]="93ad1fa1586b",["carrying"]="da5d59743278",["doing"]="fb455e7838f3",["downed"]="b3071dd09b9e",["funMeter"]="79e1c2bfcfaf",["iframes"]="ce72e2f223ef",["ragdolled"]="98fcc4e831a0",["wallBounce"]="5cb617ed6e78"}
 local function find(parent,name,class)
+    if not class then name=objectAliases[name] or name end
     if not parent then return nil end
     local ok,result=pcall(function()
         if class then return parent:FindFirstChildOfClass(name) end
@@ -72,7 +75,7 @@ local report={kind="manual_dummy_probe",durationSeconds=DURATION,
     note="No request ID/owner acknowledgement exists in this protocol. A new NPC broadcast may belong to another player. No observed result is not a confirmed rejection. No Roblox engine test was run by the builder."}
 pcall(function() report.atUtc=DateTime.now():ToIsoDate() end)
 for _,key in ipairs({"FunCombatAdminAllowed","FunCombatAdminState","FunCombatAdminError","FunCombatAdminConfigError","FunCombatAdminSource"}) do
-    local ok,result=pcall(function() return player:GetAttribute(key) end)
+    local ok,result=pcall(function() return player:GetAttribute(attributeAliases[key] or key) end)
     if not ok then report.user[key]={unavailable=tostring(result)}
     elseif result==nil then report.user[key]="(nil)"
     else report.user[key]=result end

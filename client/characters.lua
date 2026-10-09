@@ -9,7 +9,7 @@ return function(ctx)
     local figures = {}
     local module = {}
     local function moodId(character)
-        local ok,value=pcall(function() return character:GetAttribute("FunCombatMoodClipId") end)
+        local ok,value=pcall(function() return character:GetAttribute("0e807e2b2887") end)
         return ok and type(value)=="number" and value>0 and value or 0
     end
     local function trackId(track)
@@ -157,7 +157,7 @@ return function(ctx)
         end
         local function disableDefault(child)
             if child:IsA("LocalScript") and child.Name == "Animate" and record.animate[child] == nil then
-                if child:GetAttribute("FunCombatFacialBridge")==true then return end
+                if child:GetAttribute("0bc3bbc6f0b3")==true then return end
                 record.animate[child] = child.Disabled
                 child.Disabled = true
             end
