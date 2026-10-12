@@ -42,7 +42,8 @@ local environment=type(getgenv)=="function" and getgenv() or _G
 local KEY="__FunCombatPortable_v1"
 local previous=environment[KEY]
 if type(previous)=="table" and type(previous.destroy)=="function" then pcall(previous.destroy)end
-local ctx={cancelled=false,reports={},config={Timeout=15}}
+local ctx={cancelled=false,reports={},config={Timeout=15},gender=type(previous)=="table" and previous.gender or nil,
+    weaponChoice=type(previous)=="table" and previous.weaponChoice or nil}
 environment[KEY]=ctx
 function ctx.guiParent()
     if type(gethui)=="function"then local ok,p=pcall(gethui);if ok and typeof(p)=="Instance"then return p end end
@@ -96,7 +97,7 @@ local ok,failure=pcall(function()
     assert(players.LocalPlayer,"LocalPlayer did not become available within 15s")
     local manifestPath="portable/manifest.json"
     local portable=json(fetch:get(prefix..REPOSITORY.Branch.."/"..manifestPath),manifestPath)
-    assert(portable.version==1 and portable.mode=="local-only" and portable.executeButton==false,"Unsupported portable manifest")
+    assert(portable.version==2 and portable.mode=="local-only" and portable.executeButton==false,"Unsupported portable manifest; fetch a fresh portable loader")
     assert(type(portable.sharedCommit)=="string" and #portable.sharedCommit==40,"Missing immutable original-resource commit")
     ctx.portableManifest=portable
     local base=prefix..REPOSITORY.Branch.."/"
@@ -130,7 +131,9 @@ local ok,failure=pcall(function()
     local function view(r)
         if not r or not r.character then return nil end
         return {character=r.character,weapon=r.weapon,downed=r.downed,ragdolled=r.ragdolled,
-            carrying=r.carrying and r.carrying.character,carriedBy=r.carriedBy and r.carriedBy.character}
+            carrying=r.carrying and r.carrying.character,carriedBy=r.carriedBy and r.carriedBy.character,
+            gender=r.gender,displayName=r.displayName,userId=r.userId,health=r.health,maxHealth=100,
+            kills=r.kills,busy=r.busy,ownerTag=r.userId==ctx.config.CreatorUserId}
     end
     ctx.state={}
     function ctx.state:get(character)return view(ctx.avatars and ctx.avatars.byModel[character])end
@@ -142,10 +145,11 @@ local ok,failure=pcall(function()
     for _,key in ipairs(portable.preloadAnimations)do ctx.animations:preload(key)end
     for _,key in ipairs({"audio/Default","audio/Heavy","audio/Carry","audio/Uncarry"})do local s=ctx.assets:clone(key);s:Destroy()end
     ctx.avatars=ctx.modules.avatars(ctx)
-    ctx.weapons=shared.weapons(ctx);ctx.audio=shared.audio(ctx)
+    ctx.weapons=ctx.modules.weapons(ctx);ctx.audio=shared.audio(ctx)
+    ctx.locomotion=ctx.modules.locomotion.new(ctx)
     ctx.controller=ctx.modules.controller(ctx);ctx.ui=ctx.modules.ui(ctx)
     assert(not ctx.cancelled and environment[KEY]==ctx,"Portable startup cancelled by a newer execution")
-    ctx.initialized=true;ctx.status("Ready · local-only · Glory / Carry")
+    ctx.initialized=true;ctx.status(ctx.gender and "Ready" or "Choose your gender")
     print("[Fun Combat Portable] Ready; "..portable.buildId..". No server protocol is used.")
 end)
 if not ok then

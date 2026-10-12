@@ -30,10 +30,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCom
 
 ## Portable — локальная версия
 
-[portable/README.md](portable/README.md): отдельный loader с шестью оригинальными оружиями, локальными blocky-персонажами, ragdoll и двумя ProximityPrompt — **Glory (E)** и **Carry (T)**. Отдельной кнопки Execute нет. Урон, перенос и эффекты относятся к локальным копиям; другие клиенты их не видят. Серверный плейс для этой версии не требуется.
+[portable/README.md](portable/README.md): отдельный loader с исходными меню оружия и выбора пола, оригинальными nametag/health/gender GUI, шестью оружиями, blocky-персонажами и двумя промптами Glory/Carry. Визуальные копии закреплены и не сталкиваются с настоящими персонажами; ragdoll отрисовывается по raycast карты.
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/portable/loader.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/portable/loader.lua?t=" .. tostring(os.time())))()
 ```
 
-Выполнены офлайн-проверки; запуск portable-версии в Roblox ещё не проверен. [Отчёт portable](portable/Validation_Report.md).
+Эффекты, урон и перенос — локальные; серверный плейс не требуется. Офлайн-проверки не подтверждают рендер в Roblox. [Проверка и ограничения portable](portable/Validation_Report.md).

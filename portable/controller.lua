@@ -1,7 +1,9 @@
 return function(ctx)
     local Run=game:GetService("RunService")
     local scope=ctx.cleanup:scope()
-    local module={selected=ctx.config.DefaultWeapon,equipTicket=0,active=nil}
+    local module={selected=ctx.weaponChoice or ctx.config.DefaultWeapon,equipTicket=0,active=nil}
+    local genders={Female=true,Male=true,Fembxy=true}
+    local emotes={['1']='Emotes/Boston Breakdance',['2']='Emotes/Flex',['3']='Emotes/Rat',['4']='Emotes/Akiyama',['5']='Emotes/idk'}
     local function state(r)return ctx.state:get(r.character)end
     local function sound(r,key)
         if r and r.character and r.character.Parent then ctx.network:emit("Sound",{character=r.character,key=key})end
@@ -19,6 +21,7 @@ return function(ctx)
     function module:equip(name)
         if not ctx.catalog.packages["weapons/"..tostring(name)] then return false,"Unknown original weapon"end
         local r=ctx.avatars:getLocal()
+        if not r or not genders[r.gender]then return false,"Choose your gender first"end
         if not ctx.core:free(r)then return false,"Your local avatar must be ready and free"end
         self.equipTicket=self.equipTicket+1;local ticket=self.equipTicket
         self.loading=true;ctx.status("Loading "..name.."...")
@@ -30,10 +33,25 @@ return function(ctx)
             if not ctx.core:valid(r) or ctx.avatars:getLocal()~=r then return end
             if not ok then ctx.report("Weapon "..name.." failed: "..tostring(result));return end
             if not ctx.core:free(r) then ctx.status("Weapon change cancelled: your character started an interaction");return end
-            module.selected=name;r.weapon=name;ctx.core:changed(r,"equip")
+            module.emoteRecord=nil
+            module.selected=name;ctx.weaponChoice=name;r.weapon=name;ctx.core:changed(r,"equip")
             animation(r,"bat/flourish",false);sound(r,"weapons/"..name.."/audio/Equip")
             ctx.status("Equipped "..name)
         end)()
+        return true
+    end
+    function module:selectGender(name)
+        if not genders[name]then return false,"Unknown original gender choice"end
+        local r=ctx.avatars:getLocal()
+        if not ctx.core:free(r)then return false,"Your local avatar must be ready and free"end
+        ctx.gender=name;r.gender=name;ctx.core:changed(r,"gender")
+        return self:equip(self.selected)
+    end
+    function module:emote(value)
+        local r=ctx.avatars:getLocal();local key=emotes[value]
+        if not key or not r or not genders[r.gender]or not ctx.core:free(r)then return false,"Your local avatar must be ready and free"end
+        self.active=nil;animation(r,key,true);self.emoteRecord=r
+        local cf=ctx.avatars:frame(r);self.emoteOrigin=cf and cf.Position
         return true
     end
     function module:swing()
@@ -41,6 +59,7 @@ return function(ctx)
         if self.loading or not a or a.weapon=="" or not ctx.weapons:get(a.character)then return false,"Weapon is not ready"end
         local attack,why=ctx.core:swing(a,tick());if not attack then return false,why end
         self.active=attack
+        self.emoteRecord=nil
         animation(a,"bat/swing_"..attack.combo,false)
         sound(a,"weapons/"..a.weapon.."/audio/Swing")
         ctx.weapons:setTrails(a.character,true);self.trailUntil=attack.ends
@@ -49,6 +68,7 @@ return function(ctx)
     function module:carry(target)
         local a=ctx.avatars:getLocal();target=target or ctx.avatars:nearest(true)
         if not target then return false,"No nearby local downed target"end
+        if ctx.core:canCarry(a,target,ctx.avatars:distance(a,target))then self.emoteRecord=nil end
         local ok,why=ctx.core:carry(a,target,tick(),ctx.avatars:distance(a,target))
         if ok then self.active=nil;ctx.status("Carrying "..target.displayName.." locally")end
         return ok,why
@@ -66,7 +86,7 @@ return function(ctx)
         local second=carried and "bat/finishHoldVictim" or "bat/gripVictim"
         local actor=ctx.animations:preload(first);local victim=ctx.animations:preload(second)
         local ok,why=ctx.core:glory(a,target,tick(),ctx.avatars:distance(a,target),math.max(actor.duration,victim.duration))
-        if ok then self.active=nil;animation(a,first,false);animation(target,second,false);ctx.status("Glory · local combat finisher")end
+        if ok then self.active=nil;self.emoteRecord=nil;animation(a,first,false);animation(target,second,false);ctx.status("Glory · local combat finisher")end
         return ok,why
     end
     function module:dummy()
@@ -94,7 +114,9 @@ return function(ctx)
     end
     scope:add(ctx.core:onChanged(function(r,reason)
         if not r.character then return end
-        if reason=="ready" and r==ctx.avatars:getLocal() then module:equip(module.selected)
+        if reason=="ready" and r==ctx.avatars:getLocal() then
+            r.gender=ctx.gender
+            if genders[r.gender]then ctx.core:changed(r,"gender");module:equip(module.selected)end
         elseif reason=="carry" then
             stop(r);animation(r,"other/carryGrabber",true)
         elseif reason=="carried" then
@@ -106,6 +128,12 @@ return function(ctx)
     scope:add(Run.Heartbeat:Connect(function()
         local now=tick();ctx.core:tick(now)
         local a=ctx.avatars:getLocal()
+        if module.emoteRecord then
+            local r=module.emoteRecord;local cf=ctx.avatars:frame(r)
+            if not ctx.core:free(r)or r~=a or not cf or (module.emoteOrigin and (cf.Position-module.emoteOrigin).Magnitude>0.2)then
+                module.emoteRecord=nil;stop(r)
+            end
+        end
         if module.trailUntil and now>=module.trailUntil then module.trailUntil=nil;if a and a.character then ctx.weapons:setTrails(a.character,false)end end
         local attack=module.active
         if not attack then return end
@@ -122,6 +150,7 @@ return function(ctx)
                     if ctx.core:hit(a,v,attack,now)then
                         v.impulse=actorFrame.LookVector*(attack.combo==3 and 24 or 10)+Vector3.new(0,5,0)
                         sound(v,attack.combo==3 and "audio/Heavy" or "audio/Default")
+                        ctx.network:emit("Damage",{attacker=a.character,character=v.character,amount=attack.damage})
                         ctx.status("Local hit: "..v.displayName..(v.downed and " · downed" or ""))
                     end
                 end
@@ -129,6 +158,10 @@ return function(ctx)
         end
     end))
     scope:add(function()module.equipTicket=module.equipTicket+1;module.active=nil end)
+    local initial=ctx.avatars:getLocal()
+    if initial and ctx.core:valid(initial) and genders[ctx.gender]then
+        initial.gender=ctx.gender;ctx.core:changed(initial,"gender");module:equip(module.selected)
+    end
     function module:destroy()scope:destroy()end
     return module
 end

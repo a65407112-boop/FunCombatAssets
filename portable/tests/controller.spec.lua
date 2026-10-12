@@ -7,6 +7,7 @@ local cleanup={scope=function()return scope end,dead=false}
 local Core=dofile('portable/core.lua')
 local core=Core.new({Damage={17,17,35},SwingCooldown={0.4,0.4,1},Startup={0.1,0.1,0.2},ActiveWindow=0.2,DownDuration=12,InteractDistance=6})
 local a,v=core:register('a'),core:register('v');a.character={Parent=true};v.character={Parent=true};a.weapon='Bat';v.downed=true
+a.gender='Male'
 local loadingCoroutine
 local ctx={cleanup=cleanup,core=core,config={DefaultWeapon='Bat'},catalog={packages={['weapons/Sword']={},['weapons/Bat']={}}},
     avatars={getLocal=function()return a end},assets={clone=function()loadingCoroutine=coroutine.running();coroutine.yield();return {Destroy=function()end}end},

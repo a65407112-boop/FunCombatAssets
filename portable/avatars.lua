@@ -9,9 +9,7 @@ return function(ctx)
     module.folder=folder;module.building={};module.dummies={};module.watchers={};module.refresh={}
     local Appearance,Visibility=ctx.modules.appearance,ctx.modules.visibility
     local identity=CFrame.new()
-    local collisions=ctx.modules.collision.new(function(p,q)
-        local c=Instance.new("NoCollisionConstraint");c.Part0=p;c.Part1=q;c.Parent=p;return c
-    end)
+    local Ragdoll=ctx.modules.ragdoll
     local function clone(object)
         local old=object.Archivable;object.Archivable=true
         local ok,result=pcall(function()return object:Clone()end);object.Archivable=old
@@ -64,19 +62,15 @@ return function(ctx)
         if self.entries[source] or self.pending[source] or source:IsDescendantOf(folder) then return end
         if not self.watchers[source]then
             local watcher=scope:scope();self.watchers[source]=watcher
-            local tracked={}
             local function arriving(object)
-                if object:IsA("BasePart")then tracked[object]=true;collisions:track(object)end
                 if module.entries[source] and Appearance.affects(object,source)then module.refresh[source]={at=tick()+0.25,player=player}end
             end
             for _,object in ipairs(source:GetDescendants())do arriving(object)end
             watcher:add(source.DescendantAdded:Connect(arriving))
             watcher:add(source.DescendantRemoving:Connect(function(object)
-                if tracked[object]then tracked[object]=nil;collisions:untrack(object)end
                 if module.entries[source] and Appearance.affects(object,source)then module.refresh[source]={at=tick()+0.25,player=player}end
             end))
             watcher:add(source.AncestryChanged:Connect(function(_,parent)if not parent then module:remove(source)end end))
-            watcher:add(function()for object in pairs(tracked)do collisions:untrack(object)end end)
         end
         self.pending[source]={player=player,deadline=tick()+ctx.config.Timeout}
     end
@@ -95,6 +89,7 @@ return function(ctx)
         e.parts.Torso=part("Torso",Vector3.new(2,2,1),Appearance.color(source,"Torso",gray),model)
         for _,name in ipairs({"Left Arm","Right Arm","Left Leg","Right Leg"}) do e.parts[name]=part(name,Vector3.new(1,2,1),Appearance.color(source,name,gray),model) end
         local head=clone(sourceHead);clean(head);head.Name="Head";head.Color=Appearance.color(source,"Head",head.Color);cosmetic(head);head.Parent=model;e.parts.Head=head
+        for _,object in ipairs(head:GetDescendants())do cosmetic(object)end
         local boneSources={}
         for _,b in ipairs(sourceHead:GetDescendants())do if b:IsA("Bone")then boneSources[b.Name]=b end end
         for _,b in ipairs(head:GetDescendants())do if b:IsA("Bone") and boneSources[b.Name] then e.bones[#e.bones+1]={b,boneSources[b.Name]}end end
@@ -130,6 +125,9 @@ return function(ctx)
         end
         model.PrimaryPart=e.parts.HumanoidRootPart;model.Parent=folder
         local r=ctx.core:register(source);e.record=r;r.character=model;r.displayName=player and player.DisplayName or source.Name;r.avatar=e
+        r.userId=player and player.UserId or 0
+        local ok,gender=pcall(function()return source:GetAttribute("Gender")or source:GetAttribute("63d6344b9bdc")end)
+        if player==localPlayer then r.gender=ctx.gender else r.gender=ok and gender or nil end
         module.entries[source]=e;module.byModel[model]=r
         if player==localPlayer then module.localRecord=r end
         for _,object in ipairs(source:GetDescendants())do ignoreSource(e,object)end
@@ -158,7 +156,7 @@ return function(ctx)
     function module:frame(r)
         local e=r and r.avatar
         if not e or not e.model.Parent then return nil end
-        if e.ragdoll then return e.parts.Torso.CFrame end
+        if e.ragdoll then return e.ragFrame or e.parts.Torso.CFrame end
         if r.link and r.link.v==r then
             local a=r.link.a.avatar;if a and a.root.Parent then return a.root.CFrame end
         end
@@ -181,61 +179,71 @@ return function(ctx)
     function module:setRagdoll(e,value)
         if (e.ragdoll~=nil)==value then return end
         if not value then
-            collisions:stop(e)
-            e.ragdoll:destroy();e.ragdoll=nil
+            e.ragdoll=nil;e.ragFrame=nil
             for _,m in ipairs(e.motors)do m.Enabled=true;m.Transform=identity end
-            for _,p in pairs(e.parts)do if p.Parent then p.Anchored=true;p.CanCollide=false end end
-            for _,a in ipairs(e.accessories)do if a[1].Parent then a[1].Anchored=true end end
             return
         end
         if ctx.animations then ctx.animations:stop(e.model)end
-        local rag=e.scope:scope();e.ragdoll=rag
+        local cf=e.parts.HumanoidRootPart.CFrame;local position=cf.Position
+        local velocity=e.record.impulse or Vector3.new(0,2,0)
+        local _,yaw=cf:ToOrientation()
+        e.ragdoll=Ragdoll.new({x=position.X,y=position.Y,z=position.Z},{x=velocity.X,y=velocity.Y,z=velocity.Z})
+        e.ragdoll.yaw=yaw;e.ragFrame=cf
+        e.record.impulse=nil
+    end
+    local warnedProbe=false
+    local function mapRay(origin,direction)
+        local ignored={folder};for source in pairs(module.watchers)do ignored[#ignored+1]=source end
+        local ok,hit,normal
+        if RaycastParams then
+            ok,hit=pcall(function()
+                local p=RaycastParams.new();p.FilterType=Enum.RaycastFilterType.Exclude;p.FilterDescendantsInstances=ignored;p.IgnoreWater=true
+                return workspace:Raycast(origin,direction,p)
+            end)
+            if ok then return hit and hit.Position,hit and hit.Normal,true end
+        end
+        ok,hit,origin,normal=pcall(function()return workspace:FindPartOnRayWithIgnoreList(Ray.new(origin,direction),ignored)end)
+        if ok then return hit and origin,hit and normal,true end
+        if not warnedProbe then warnedProbe=true;ctx.report("Map raycast API unavailable; ragdoll stays at its last safe visual position")end
+        return nil,nil,false
+    end
+    local function ragPose(e,dt)
+        local rag=e.ragdoll
+        Ragdoll.step(rag,dt,workspace.Gravity,function(old,nextPosition)
+            return Ragdoll.contact(old,nextPosition,function(origin,direction)
+                local hit,normal,supported=mapRay(Vector3.new(origin.x,origin.y,origin.z),Vector3.new(direction.x,direction.y,direction.z))
+                return hit and {x=hit.X,y=hit.Y,z=hit.Z},normal and {x=normal.X,y=normal.Y,z=normal.Z},supported
+            end)
+        end)
+        local p=rag.position;local blend=math.min(1,rag.age*5)
+        e.ragFrame=CFrame.new(p.x,p.y,p.z)*CFrame.Angles(-math.pi/2*blend,rag.yaw,0)
+        local loose=math.sin(rag.age*6)*math.exp(-rag.age*2)*0.35
         for _,m in ipairs(e.motors)do
-            if m.Name~="RootJoint" then
-                local x,y=Instance.new("Attachment"),Instance.new("Attachment")
-                x.CFrame=m.C0*m.Transform;y.CFrame=m.C1;x.Parent=m.Part0;y.Parent=m.Part1;rag:add(x);rag:add(y)
-                local socket=Instance.new("BallSocketConstraint");socket.Attachment0=x;socket.Attachment1=y
-                socket.LimitsEnabled=true;socket.UpperAngle=m.Name=="Neck" and 35 or 65;socket.Parent=m.Part0;rag:add(socket);m.Enabled=false
+            if m.Name=="Right Shoulder"then m.Transform=CFrame.Angles(0,0,0.6+loose)
+            elseif m.Name=="Left Shoulder"then m.Transform=CFrame.Angles(0,0,-0.6-loose)
+            elseif m.Name=="Right Hip"then m.Transform=CFrame.Angles(loose,0,0.15)
+            elseif m.Name=="Left Hip"then m.Transform=CFrame.Angles(-loose,0,-0.15)
+            else m.Transform=identity end
+        end
+    end
+    function module:showHitboxes(value)
+        self.hitboxes=value==true
+        for _,e in pairs(self.entries)do
+            if e.hitbox then e.hitbox:Destroy();e.hitbox=nil end
+            if self.hitboxes then
+                local box=Instance.new("SelectionBox");box.Name="FC_LocalHitbox";box.Adornee=e.parts.Torso
+                box.Color3=Color3.fromRGB(50,255,140);box.LineThickness=0.04;box.Parent=e.model;e.hitbox=box
             end
         end
-        local bodies={}
-        for name,p in pairs(e.parts)do
-            p.Anchored=false;p.CanCollide=name~="HumanoidRootPart"
-            if p.CanCollide then bodies[#bodies+1]=p end
-        end
-        for _,a in ipairs(e.accessories)do a[1].Anchored=false end
-        local function noContact(p,q)
-            local c=Instance.new("NoCollisionConstraint");c.Part0=p;c.Part1=q;c.Parent=p;rag:add(c)
-        end
-        for i,p in ipairs(bodies)do
-            for j=i+1,#bodies do noContact(p,bodies[j])end
-            local velocity=e.record.impulse or Vector3.new(0,2,0)
-            pcall(function()p.AssemblyLinearVelocity=velocity end)
-        end
-        collisions:start(e,bodies,rag);rag:add(function()collisions:stop(e)end)
-        e.record.impulse=nil
     end
     local function pose(e,dt)
         local r=e.record
+        if e.ragdoll then ragPose(e,dt)end
         local cf=module:frame(r);if not cf then return end
-        local moving=not r.carriedBy and not r.downed
-        local got,velocity=pcall(function()return e.root.AssemblyLinearVelocity end)
-        if not got then velocity=e.root.Velocity end
-        local speed=moving and Vector3.new(velocity.X,0,velocity.Z).Magnitude or 0
-        e.phase=e.phase+dt*math.min(18,speed*0.8)
-        local gait=math.sin(e.phase)*math.min(0.7,speed/24)
-        local hipsOwned=ctx.animations and ctx.animations:blocksLocomotion(e.model)
-        if not hipsOwned then
-            e.joints["Right Hip"].Transform=CFrame.Angles(0,0,gait)
-            e.joints["Left Hip"].Transform=CFrame.Angles(0,0,gait)
-        end
-        if not ctx.animations or not ctx.animations:isPlaying(e.model)then
-            e.joints["Right Shoulder"].Transform=CFrame.Angles(0,0,-gait)
-            e.joints["Left Shoulder"].Transform=CFrame.Angles(0,0,-gait)
-        end
         e.parts.HumanoidRootPart.CFrame=cf
         for _,m in ipairs(e.motors)do if m.Enabled and m.Part0.Parent and m.Part1.Parent then m.Part1.CFrame=m.Part0.CFrame*m.C0*m.Transform*m.C1:Inverse()end end
         for _,a in ipairs(e.accessories)do if a[1].Parent then a[1].CFrame=e.parts.Head.CFrame*a[2]end end
+        if ctx.weapons then ctx.weapons:draw(e.model)end
         for _,b in ipairs(e.bones)do if b[1].Parent and b[2].Parent then b[1].Transform=b[2].Transform end end
         if e.player==localPlayer then
             local camera=workspace.CurrentCamera
@@ -292,7 +300,7 @@ return function(ctx)
         for _,source in ipairs(remove)do module:remove(source)end
     end))
     scope:add(Run.RenderStepped:Connect(function(dt)
-        for _,e in pairs(module.entries)do if not e.ragdoll and e.root.Parent then pose(e,dt)end end
+        for _,e in pairs(module.entries)do if e.root.Parent then pose(e,dt)end end
     end))
     function module:createDummy()
         if not localPlayer.Character then return false,"Your character is not ready"end
