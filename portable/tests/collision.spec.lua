@@ -1,0 +1,11 @@
+local ok,C=pcall(dofile,'portable/collision.lua');assert(ok,'Dynamic local collision registry must exist')
+local calls={};local scope={add=function(_,x)return x end}
+local reg=C.new(function(a,b)calls[#calls+1]={a,b};return {Destroy=function()end}end)
+local old={Parent=true};reg:track(old)
+local root={Parent=true};local group=reg:start('rag',{root},scope)
+assert(#calls==1 and calls[1][2]==old)
+local spawned={Parent=true};reg:track(spawned)
+assert(#calls==2 and calls[2][2]==spawned,'A late character part must be excluded from an already active ragdoll')
+reg:track(spawned);assert(#calls==2,'Repeated registration must not duplicate constraints')
+reg:stop('rag');reg:track({Parent=true});assert(#calls==2)
+print('COLLISION ARRIVAL TESTS 3')

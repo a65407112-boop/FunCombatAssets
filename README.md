@@ -27,3 +27,13 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCom
 Источник — FunCombat_Renamed2.rbxl, SHA256 a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0. Builder сохраняет исходник нетронутым. Геометрия не исследовалась по просьбе владельца. Полный архив содержит исходник, builder, серверные binary/XML-файлы, внешний репозиторий и документацию.
 
 [Установка и пересборка](docs/installation.md), [состав механик](docs/restoration.md), [устройство](docs/architecture.md), [отчёт проверки](Validation_Report.md). Roblox Studio/engine, реальная игра с несколькими клиентами, рендер, hosted permissions и старые клиенты/Bloxstrap остаются непроверенными. Результаты офлайн-проверок записаны в Static_Checks.json и Release_Checks.json поставки. История старой компоновки находится в docs/history.
+
+## Portable — локальная версия
+
+[portable/README.md](portable/README.md): отдельный loader с шестью оригинальными оружиями, локальными blocky-персонажами, ragdoll и двумя ProximityPrompt — **Glory (E)** и **Carry (T)**. Отдельной кнопки Execute нет. Урон, перенос и эффекты относятся к локальным копиям; другие клиенты их не видят. Серверный плейс для этой версии не требуется.
+
+```lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/portable/loader.lua"))()
+```
+
+Выполнены офлайн-проверки; запуск portable-версии в Roblox ещё не проверен. [Отчёт portable](portable/Validation_Report.md).
