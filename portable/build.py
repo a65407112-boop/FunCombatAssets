@@ -10,7 +10,10 @@ def main():
     template=(DIR/'loader.template.lua').read_text()
     assert template.count('--@FETCH_MODULE@')==1
     (DIR/'loader.lua').write_text(template.replace('--@FETCH_MODULE@',fetch))
-    modules=['core','bus','visibility','appearance','ragdoll','avatars','weapons','locomotion','controller','ui']
+    diagnostic=(DIR/'diagnose_flight.template.lua').read_text()
+    assert diagnostic.count('--@FLIGHT_PROBE_MODULE@')==1
+    (DIR/'diagnose_flight.lua').write_text(diagnostic.replace('--@FLIGHT_PROBE_MODULE@',(DIR/'flight_probe.lua').read_text()))
+    modules=['core','bus','visibility','appearance','passive','ragdoll','avatars','weapons','locomotion','dash_effects','dash','controller','ui']
     paths=sorted(p for p in DIR.rglob('*') if p.is_file() and p.name not in ('manifest.json',) and '__pycache__' not in p.parts)
     files={p.relative_to(ROOT).as_posix():metadata(p.read_bytes()) for p in paths}
     code_bytes=b''.join((DIR/(m+'.lua')).read_bytes() for m in modules)+(DIR/'loader.lua').read_bytes()+(DIR/'config.json').read_bytes()

@@ -28,6 +28,11 @@ return function(ctx)
         coroutine.wrap(function()
             local ok,result=pcall(function()return ctx.assets:clone("weapons/"..name)end)
             if ok then result:Destroy()end
+            if ok and ctx.dash then
+                ok,result=pcall(function()
+                    for _,soundName in ipairs({"DashSound","normal"})do local s=ctx.assets:clone("weapons/"..name.."/audio/"..soundName);s:Destroy()end
+                end)
+            end
             if ticket~=module.equipTicket or ctx.cleanup.dead then return end
             module.loading=false
             if not ctx.core:valid(r) or ctx.avatars:getLocal()~=r then return end
@@ -91,6 +96,13 @@ return function(ctx)
     end
     function module:dummy()
         local ok,why=ctx.avatars:createDummy();if ok then ctx.status("Local practice dummy created")end;return ok,why
+    end
+    function module:dash()
+        if self.loading then return false,"Weapon is loading"end
+        local r=ctx.avatars:getLocal()
+        if not r or not genders[r.gender]then return false,"Choose your gender first"end
+        if self.emoteRecord then self.emoteRecord=nil;stop(r)end
+        return ctx.dash:start(r,tick())
     end
     local function ignoreList()
         local list={ctx.avatars.folder}

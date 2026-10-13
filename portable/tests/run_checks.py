@@ -29,7 +29,7 @@ def main():
     os.chdir(ROOT)
     paths=sorted((ROOT/'portable').glob('*.lua'))
     for p in paths:check(p,False)
-    for name in ('core.spec.lua','bus.spec.lua','runtime.spec.lua','fetch.spec.lua','controller.spec.lua','weapons.spec.lua','ui.spec.lua','gender.spec.lua','ragdoll.spec.lua','presentation.spec.lua','locomotion.spec.lua','emote_interaction.spec.lua'):
+    for name in ('core.spec.lua','bus.spec.lua','runtime.spec.lua','fetch.spec.lua','controller.spec.lua','weapons.spec.lua','ui.spec.lua','gender.spec.lua','ragdoll.spec.lua','presentation.spec.lua','locomotion.spec.lua','emote_interaction.spec.lua','passive.spec.lua','dash.spec.lua','flight_probe.spec.lua','dash_effects.spec.lua'):
         p=ROOT/'portable/tests'/name
         check(p,True)
     print(json.dumps({'syntaxFiles':len(paths),'runtime':'liblua5.4; Lua-subset checks only','robloxTested':False}))

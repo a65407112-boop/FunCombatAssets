@@ -33,6 +33,10 @@ assert(not ui.roots.Gender.Enabled,'Gender must close after the local choice is 
 ui.roots.weaponGui:FindFirstChildWhichIsA('GuiButton',true).Activated:fire();assert(ui.roots.weapon.Enabled)
 ui.roots.weapon:FindFirstChild('Sword2',true).Activated:fire();assert(selectedWeapon==':3','Original Sword2 button must select :3')
 localRecord.weapon=':3';onChanged(localRecord);assert(not ui.roots.weapon.Enabled,'Weapon menu must close after an applied equip')
+local dashes=0;ctx.controller.dash=function()dashes=dashes+1;return true end
+ui.roots.mobileButtons:FindFirstChild('Dash',true).Activated:fire();assert(dashes==1,'Original mobile Dash button must dispatch dash')
+services.UserInputService.InputBegan:fire({KeyCode=Enum.KeyCode.Q},false);assert(dashes==2,'Q must dispatch the same dash')
+services.UserInputService.InputBegan:fire({KeyCode=Enum.KeyCode.Q},true);assert(dashes==2,'Consumed keyboard input must not dash')
 ctx.controller.equip=function(_,value)selectedWeapon=value;localRecord.weapon=value;onChanged(localRecord);return true end
 ui.roots.weapon.Enabled=true;ui.roots.weapon:FindFirstChild('Sword',true).Activated:fire()
 assert(not ui.roots.weapon.Enabled,'A cached synchronous equip must also close the original menu')
@@ -41,4 +45,6 @@ for _,c in ipairs(parent:GetChildren())do local n=c:FindFirstChild('NameText',tr
 assert(nameLabel and nameLabel.Text=='TodUntitled','Nametag must use source display name rather than the proxy model ID')
 assert(nameLabel:FindFirstChild('Background').Text=='TodUntitled')
 for _,gui in pairs(ui.roots)do assert(gui.OriginalStyle,'Original visual properties must remain intact')end
-print('ORIGINAL GUI TESTS 9')
+localRecord=nil;onChanged(nil)
+assert(not ui.roots.mobileButtons:FindFirstChild('Dash',true).Visible,'Local removal must immediately hide mobile Dash')
+print('ORIGINAL GUI TESTS 13')

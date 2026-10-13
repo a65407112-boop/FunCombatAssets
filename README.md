@@ -36,4 +36,4 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCom
 loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/portable/loader.lua?t=" .. tostring(os.time())))()
 ```
 
-Эффекты, урон и перенос — локальные; серверный плейс не требуется. Офлайн-проверки не подтверждают рендер в Roblox. [Проверка и ограничения portable](portable/Validation_Report.md).
+Эффекты, урон и перенос — локальные; серверный плейс не требуется. **Q** и исходная мобильная кнопка **Dash** дают горизонтальный рывок собственного персонажа. Для повторного полёта добавлена [отдельная диагностика с Copy report](portable/README.md#separate-flight-diagnostic); основной loader её не запускает. Точная причина полёта и работа в Roblox остаются неподтверждёнными. [Проверка и ограничения portable](portable/Validation_Report.md).

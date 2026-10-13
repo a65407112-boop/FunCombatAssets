@@ -48,6 +48,7 @@ return function(ctx)
     for _,name in ipairs({"stats","Info","society","completionLeader","BillboardGui"})do roots[name]=clone(name)end
     if roots.mobileButtons then roots.mobileButtons.Enabled=Input.TouchEnabled end
     local dash=find(roots.mobileButtons,"Dash");if dash then dash.Visible=false end
+    bind(dash,function()return ctx.controller:dash()end)
     local unused=find(roots.mobileButtons,"R");if unused then unused.Visible=false end
     local getUp=find(roots.mobileButtons,"GetUp");if getUp then getUp.Visible=false end
     local getUpFrame=find(roots.getUp,"Frame");if getUpFrame then getUpFrame.Visible=false end
@@ -101,6 +102,7 @@ return function(ctx)
     end
     local function remove(character)local e=billboards[character];billboards[character]=nil;if e then e.scope:destroy()end end
     function module:update(state)
+        if dash and not ctx.avatars:getLocal()then dash.Visible=false end
         if scope.dead or not state or not state.character or not state.character.Parent then return end
         local character=state.character;local head=character:FindFirstChild("Head");if not head then return end
         local e=billboards[character]
@@ -132,6 +134,7 @@ return function(ctx)
         local actor=ctx.avatars:getLocal()
         if not actor or state.character~=actor.character then return end
         if roots.Gender then roots.Gender.Enabled=colors==nil end
+        if dash then dash.Visible=colors~=nil and state.weapon~=nil and state.weapon~="" and not state.busy and not state.downed and not state.ragdolled and not state.carrying and not state.carriedBy end
         if selectedWeapon and state.weapon==selectedWeapon and roots.weapon then roots.weapon.Enabled=false;selectedWeapon=nil end
     end
     local hitFrame=find(roots.HitIndicator,"Frame");local hits,damage,hitAt=0,0,0
@@ -146,6 +149,7 @@ return function(ctx)
     scope:add(Input.InputBegan:Connect(function(input,processed)
         if processed or Input:GetFocusedTextBox()then return end
         if input.UserInputType==Enum.UserInputType.MouseButton1 then ctx.controller:swing()
+        elseif input.KeyCode==Enum.KeyCode.Q then ctx.controller:dash()
         elseif input.KeyCode==Enum.KeyCode.Backspace or input.KeyCode==Enum.KeyCode.T then
             local actor=ctx.avatars:getLocal();if actor and actor.carrying then ctx.controller:drop()end
         elseif input.KeyCode==Enum.KeyCode.End then ctx.destroy()

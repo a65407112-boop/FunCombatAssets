@@ -144,9 +144,12 @@ local ok,failure=pcall(function()
     local original=ctx.assets:clone("weapons/"..ctx.config.DefaultWeapon);original:Destroy()
     for _,key in ipairs(portable.preloadAnimations)do ctx.animations:preload(key)end
     for _,key in ipairs({"audio/Default","audio/Heavy","audio/Carry","audio/Uncarry"})do local s=ctx.assets:clone(key);s:Destroy()end
+    for _,key in ipairs({"effects/dash_limbs","effects/dash_smoke"})do local s=ctx.assets:clone(key);s:Destroy()end
     ctx.avatars=ctx.modules.avatars(ctx)
     ctx.weapons=ctx.modules.weapons(ctx);ctx.audio=shared.audio(ctx)
     ctx.locomotion=ctx.modules.locomotion.new(ctx)
+    ctx.dashEffects=ctx.modules.dash_effects(ctx)
+    ctx.dash=ctx.modules.dash(ctx)
     ctx.controller=ctx.modules.controller(ctx);ctx.ui=ctx.modules.ui(ctx)
     assert(not ctx.cancelled and environment[KEY]==ctx,"Portable startup cancelled by a newer execution")
     ctx.initialized=true;ctx.status(ctx.gender and "Ready" or "Choose your gender")

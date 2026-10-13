@@ -95,7 +95,7 @@ return function(ctx)
         for _,b in ipairs(head:GetDescendants())do if b:IsA("Bone") and boneSources[b.Name] then e.bones[#e.bones+1]={b,boneSources[b.Name]}end end
         local h=Instance.new("Humanoid");h.Name="Humanoid";h.RequiresNeck=false;h.BreakJointsOnDeath=false;h.PlatformStand=true
         h.DisplayDistanceType=Enum.HumanoidDisplayDistanceType.None;h.HealthDisplayType=Enum.HumanoidHealthDisplayType.AlwaysOff
-        pcall(function()h.EvaluateStateMachine=false end);h.Parent=model
+        h.Parent=model
         local flip=CFrame.Angles(-math.pi/2,0,math.pi)
         motor(e,"RootJoint","HumanoidRootPart","Torso",flip,flip)
         motor(e,"Neck","Torso","Head",CFrame.new(0,1,0)*flip,CFrame.new(0,-head.Size.Y/2,0)*flip)
@@ -123,7 +123,11 @@ return function(ctx)
                 end
             end
         end
-        model.PrimaryPart=e.parts.HumanoidRootPart;model.Parent=folder
+        model.PrimaryPart=e.parts.HumanoidRootPart
+        e.passive=ctx.modules.passive.install(model,h,childScope,function(message)
+            module:remove(source);ctx.report(message..'; unsafe visual copy removed')
+        end)
+        model.Parent=folder
         local r=ctx.core:register(source);e.record=r;r.character=model;r.displayName=player and player.DisplayName or source.Name;r.avatar=e
         r.userId=player and player.UserId or 0
         local ok,gender=pcall(function()return source:GetAttribute("Gender")or source:GetAttribute("63d6344b9bdc")end)
@@ -302,6 +306,11 @@ return function(ctx)
     scope:add(Run.RenderStepped:Connect(function(dt)
         for _,e in pairs(module.entries)do if e.root.Parent then pose(e,dt)end end
     end))
+    local supported,simulationStep=pcall(function()return Run.PreSimulation end)
+    if not supported or not simulationStep then simulationStep=Run.Stepped or Run.Heartbeat end
+    scope:add(simulationStep:Connect(function()
+        for _,e in pairs(module.entries)do if e.passive then e.passive:check()end end
+    end))
     function module:createDummy()
         if not localPlayer.Character then return false,"Your character is not ready"end
         local r=self.localRecord;if not r then return false,"Your local avatar is not ready"end
@@ -309,7 +318,11 @@ return function(ctx)
         if count>=3 then return false,"Three local practice dummies already exist"end
         local source=clone(localPlayer.Character);source.Name="Local practice dummy";clean(source);scope:add(source)
         local h=source:FindFirstChildOfClass("Humanoid")
-        if h then h.RequiresNeck=false;h.BreakJointsOnDeath=false;h.PlatformStand=true;pcall(function()h.EvaluateStateMachine=false end)end
+        if h then
+            h.RequiresNeck=false;h.BreakJointsOnDeath=false;h.PlatformStand=true
+            local disabled,why=ctx.modules.passive.prepareHumanoid(h)
+            if not disabled then source:Destroy();return false,why end
+        end
         local origin=self:frame(r)*CFrame.new(0,0,-5)
         local root=source:FindFirstChild("HumanoidRootPart");if not root then source:Destroy();return false,"Source character has no root"end
         local delta=origin*root.CFrame:Inverse()

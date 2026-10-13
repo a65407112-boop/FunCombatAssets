@@ -13,6 +13,7 @@ Choose **Female**, **Male** or **Fembxy** in the original Gender panel, then ope
 - Click, or an unconsumed world tap on touch: original three-swing combo.
 - Original weapon icon: open/close the weapon menu.
 - Original emote panel: five original emote Pose sequences; moving cancels the emote.
+- **Q**, or the original mobile **Dash** button: horizontal dash after selecting a gender and equipping a weapon.
 - Hitbox toggle: show local target torso bounds.
 - A ragdolled/downed copy presents **Glory (E)** and **Carry (T)**. Hold 0.3 seconds within 6 studs.
 - While carrying: Drop prompt, T or Backspace.
@@ -23,11 +24,25 @@ There is no separate Execute button or custom combat HUD. Errors use the origina
 
 ## Local presentation
 
-Everything is local. Other players become blocky R6 copies on your screen. Damage, ragdoll, Glory, Carry and scores apply to those copies; real health, roots, movement and game state are untouched, and other clients do not see the effects. Glory uses the original combat grip/finishing-hold clips, without paired morphs, paired clips or paired audio.
+Other players become blocky R6 copies on your screen. Damage, ragdoll, Glory, Carry and scores apply to those copies; other clients do not see these effects. Those actions do not change real health, roots or game state. Glory uses the original combat grip/finishing-hold clips, without paired morphs, paired clips or paired audio.
+
+Dash deliberately moves your own actual character horizontally. It uses the original 0.15-second startup, 0.3-second duration, 60-stud/second velocity (nominal distance 18 studs) and 1.35-second cooldown. MaxForce is (30000, 0, 30000); the script never teleports or anchors your actual root. It uses the original weapon DashSound/normal audio, limb trails, ground smoke and white flash. A short forward map ray stops it at obstacles; interactions, character replacement and unload remove its force. The host game's server can override local movement. Roblox/PC/mobile execution is unverified.
 
 Original heads, mesh/texture references, classic clothing, colors and head accessories are copied from the actual character. Late appearance arrivals refresh the copy. Layered body clothing is skipped. The native head data and FaceControls are retained; facial rendering still requires an engine test.
 
-Bodies, accessories and weapons stay anchored and noncolliding throughout. The weapon renderer applies the original Tool.Grip, RightGripAttachment and current animated RightGrip in the same pass as the body. Visual ragdoll uses gravity plus map ray probes; it does not create collidable assemblies, BallSocketConstraints or forces. Its map contact is an approximate visual solver, not the original engine ragdoll physics. Walking uses the original R6 animation IDs and lean constants.
+Bodies, accessories and weapons are anchored and noncolliding. A guard checks those flags and disables/reads back the proxy Humanoid's EvaluateStateMachine before it enters Workspace. If the client refuses these settings, the unsafe copy is removed and the original character's visibility restored, with a concrete error. The weapon renderer applies the original Tool.Grip, RightGripAttachment and current animated RightGrip in the same pass as the body. Visual ragdoll uses gravity plus map ray probes; it does not create collidable assemblies, BallSocketConstraints or forces. Its map contact is an approximate visual solver, not the original engine ragdoll physics. Walking uses the original R6 animation IDs and lean constants.
+
+## Separate flight diagnostic
+
+The screenshot of a character above the map does not establish whether the real root moved, the visual body drifted or the camera changed. The precise cause remains unconfirmed. The simulation-setting error was previously hidden; it is now checked. This is not an engine-confirmed fix of the reported flight.
+
+Run this manual diagnostic only when needed; the normal loader never runs it:
+
+~~~lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/portable/diagnose_flight.lua?t=" .. tostring(os.time())))()
+~~~
+
+Press **Record 10s**, reproduce the flight, then **Copy report**. It reads source/proxy root and torso positions, velocities, collision/anchor flags, connected proxy parts, existing forces and the camera subject. It does not move or stop either character, inspect meshes or issue combat commands. Close removes its panel. The report distinguishes observations from a diagnosis.
 
 ## Dependencies and limits
 
@@ -35,7 +50,7 @@ Required: loadstring and HTTP access. Bat and Orange Cat use structured Instance
 
 Repository settings are at the top of loader.lua, generated from loader.template.lua. Original resources remain pinned to commit 72d4e7ffd5cde727b8b6f0180186e8a891278bed. Portable manifest version 2 verifies file lengths/checksums and optional SHA-256 when crypt.hash is compatible.
 
-This is a portable presentation adapter, not a full copy of the original place. The original map, server map voting, admin authority, real damage, dash displacement, paired interactions, paired morphs and extra costumes are not installed in another game. The original mobile Dash/GetUp controls are hidden here because those server mechanics are not supplied by this adapter. Others' gender labels appear only when their source character exposes an original gender attribute.
+This is a portable presentation adapter, not a full copy of the original place. The original map, server map voting, admin authority, real damage, awakened dash, paired interactions, paired morphs and extra costumes are not installed in another game. The original mobile GetUp control remains hidden; Dash is connected to the local dash adapter. Others' gender labels appear only when their source character exposes an original gender attribute.
 
 ## Rebuild and verification
 
