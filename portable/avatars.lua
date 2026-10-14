@@ -138,20 +138,7 @@ return function(ctx)
         e.guard:set(hum,"DisplayDistanceType",Enum.HumanoidDisplayDistanceType.None)
         childScope:add(source.DescendantAdded:Connect(function(o)ignoreSource(e,o)end))
         childScope:add(source.AncestryChanged:Connect(function(_,parent)if not parent then module:remove(source)end end))
-        local prompt=Instance.new("ProximityPrompt");prompt.Name="FC_LocalCarry";prompt.ActionText="Carry";prompt.ObjectText=r.displayName
-        prompt.KeyboardKeyCode=Enum.KeyCode.T;prompt.HoldDuration=0.3;prompt.MaxActivationDistance=ctx.config.InteractDistance
-        prompt.RequiresLineOfSight=false;prompt.Enabled=false;prompt.Parent=e.parts.Torso;e.prompt=prompt
-        childScope:add(prompt.Triggered:Connect(function(sender)
-            if sender==localPlayer and ctx.controller then
-                if r.carriedBy==module.localRecord then ctx.controller:drop()else ctx.controller:carry(r)end
-            end
-        end))
-        local glory=Instance.new("ProximityPrompt");glory.Name="FC_LocalGlory";glory.ActionText="Glory";glory.ObjectText=r.displayName
-        glory.KeyboardKeyCode=Enum.KeyCode.E;glory.HoldDuration=0.3;glory.MaxActivationDistance=ctx.config.InteractDistance
-        glory.RequiresLineOfSight=false;glory.Enabled=false;glory.Parent=e.parts.Torso;e.gloryPrompt=glory
-        childScope:add(glory.Triggered:Connect(function(sender)
-            if sender==localPlayer and ctx.controller then ctx.controller:glory(r)end
-        end))
+        ctx.modules.prompts(ctx,e,localPlayer)
         module.building[source]=nil
         ctx.core:changed(r,"ready")
         return e
@@ -296,9 +283,7 @@ return function(ctx)
             else
                 module:setRagdoll(e,e.record.ragdolled==true)
                 local a=module.localRecord
-                e.prompt.ActionText=e.record.carriedBy==a and "Drop" or "Carry"
-                e.prompt.Enabled=a~=nil and e.record~=a and ((e.record.carriedBy==a) or ctx.core:canCarry(a,e.record,module:distance(a,e.record))) or false
-                e.gloryPrompt.Enabled=a~=nil and e.record~=a and ctx.core:canGlory(a,e.record,module:distance(a,e.record)) or false
+                e.updatePrompts(a,module:distance(a,e.record))
             end
         end
         for _,source in ipairs(remove)do module:remove(source)end

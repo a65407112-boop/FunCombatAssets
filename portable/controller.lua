@@ -91,7 +91,7 @@ return function(ctx)
         local second=carried and "bat/finishHoldVictim" or "bat/gripVictim"
         local actor=ctx.animations:preload(first);local victim=ctx.animations:preload(second)
         local ok,why=ctx.core:glory(a,target,tick(),ctx.avatars:distance(a,target),math.max(actor.duration,victim.duration))
-        if ok then self.active=nil;self.emoteRecord=nil;animation(a,first,false);animation(target,second,false);ctx.status("Glory · local combat finisher")end
+        if ok then self.active=nil;self.emoteRecord=nil;animation(a,first,false);animation(target,second,false);ctx.status("Execute · local combat finisher")end
         return ok,why
     end
     function module:dummy()

@@ -15,16 +15,20 @@ Choose **Female**, **Male** or **Fembxy** in the original Gender panel, then ope
 - Original emote panel: five original emote Pose sequences; moving cancels the emote.
 - **Q**, or the original mobile **Dash** button: horizontal dash after selecting a gender and equipping a weapon.
 - Hitbox toggle: show local target torso bounds.
-- A ragdolled/downed copy presents **Glory (E)** and **Carry (T)**. Hold 0.3 seconds within 6 studs.
+- A nearby ragdolled/downed copy presents three native source prompts: **Execute (Default) (E)**, **Carry (T)** and **:) (Default) (R)**. Hold 0.3 seconds within 6 studs. The attached source's UI offsets, OnePerButton exclusivity and gamepad ButtonX values are retained. Keyboard/touch prompts have three distinct positions; gamepad retains the source's shared button rather than inventing new controls.
 - While carrying: Drop prompt, T or Backspace.
 - Chat **spawn**, **:dummy** or **:spawndummy**: local practice dummy (maximum three).
 - End: unload. Touch users can unload by calling the current __FunCombatPortable_v1.destroy() through getgenv() or _G.
 
 There is no separate Execute button or custom combat HUD. Errors use the original subtitle label after initialization; initialization failures have a small closable text box.
 
+**The :) (Default) prompt restores its original UI only. Its paired action is not implemented in portable; selecting it reports that specific missing action. It does not silently substitute an execution or emote.** Execute routes the existing local combat finisher, and Carry/Drop remain functional. During carry, the source Drop and Execute (Finishing Hold) profiles replace the two corresponding downed profiles. This is not a complete restoration of all three mechanics.
+
+The prompt profiles come from `fun combat v1.2 fixed torso(1).rbxl`, SHA-256 `5872806f4484b2ef5d568cd4f94a114bee0c304b05d2f065dcfe76f6626b676e`, and are stored in prompt_templates.json. The source names and offsets are: Execute `(100,100)`, Carry `(-100,0)`, :) `(-100,100)`. ObjectText remains the original `Victim`.
+
 ## Local presentation
 
-Other players become blocky R6 copies on your screen. Damage, ragdoll, Glory, Carry and scores apply to those copies; other clients do not see these effects. Those actions do not change real health, roots or game state. Glory uses the original combat grip/finishing-hold clips, without paired morphs, paired clips or paired audio.
+Other players become blocky R6 copies on your screen. Damage, ragdoll, Execute, Carry and scores apply to those copies; other clients do not see these effects. Those actions do not change real health, roots or game state. Execute uses the original combat grip/finishing-hold clips, without paired morphs, paired clips or paired audio.
 
 Dash deliberately moves your own actual character horizontally. It uses the original 0.15-second startup, 0.3-second duration, 60-stud/second velocity (nominal distance 18 studs) and 1.35-second cooldown. MaxForce is (30000, 0, 30000); the script never teleports or anchors your actual root. It uses the original weapon DashSound/normal audio, limb trails, ground smoke and white flash. A short forward map ray stops it at obstacles; interactions, character replacement and unload remove its force. The host game's server can override local movement. Roblox/PC/mobile execution is unverified.
 
@@ -60,5 +64,15 @@ python3 portable/tests/run_checks.py
 ~~~
 
 The builder needs no RBXL. The checker needs liblua5.4 and runs Lua-subset syntax and offline boundary/state tests. See [Validation_Report.md](Validation_Report.md).
+
+To reproduce the prompt profile export from the attached source, run:
+
+~~~sh
+python3 portable/export_prompts.py "fun combat v1.2 fixed torso(1).rbxl"
+python3 portable/tests/verify_prompt_export.py "fun combat v1.2 fixed torso(1).rbxl"
+python3 portable/build.py
+~~~
+
+The exporter reads only instance names/parents and ProximityPrompt presentation properties, not script contents, meshes or animation poses. It refuses to overwrite its input. Compressed chunks require `lz4` or liblz4, and `zstandard` for Zstandard chunks. Unsupported source keys/property types fail explicitly.
 
 No Roblox/Studio engine is available here. PC/mobile executor rendering, native file imports, real asset permissions, dynamic facial animation, animation layering, actual ragdoll appearance and older-client compatibility have not been tested. Original model geometry was not inspected.

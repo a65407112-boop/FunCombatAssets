@@ -79,7 +79,9 @@ local ok,failure=pcall(function()
     end
     function ctx.json(path)return json(ctx.http(path),path)end
     ctx.config=json(own("portable/config.json"),"portable/config.json")
+    ctx.promptTemplates=json(own("portable/prompt_templates.json"),"portable/prompt_templates.json")
     assert(ctx.config.Timeout>=1 and ctx.config.Timeout<=30,"Invalid portable timeout")
+    assert(ctx.promptTemplates.version==1 and ctx.promptTemplates.pairedModeImplemented==false,"Unsupported original prompt profile")
     ctx.catalog=ctx.json("config/assets.json")
     assert(ctx.catalog.nativeMode=="external","Portable requires the external-resource catalog")
     ctx.modules={}
