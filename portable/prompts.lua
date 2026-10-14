@@ -31,14 +31,23 @@ return function(ctx,e,localPlayer)
         end
     end))
     e.scope:add(e.funPrompt.Triggered:Connect(function(sender)
-        if sender==localPlayer then ctx.report('Original :) (Default) action is not implemented in portable')end
+        if sender==localPlayer and ctx.controller then
+            local actor=ctx.avatars:getLocal();local link=actor and actor.dance
+            local ok,why
+            if link and link.a==actor and link.v==r then ok,why=ctx.controller:stopDance(r)
+            else ok,why=ctx.controller:pairedDance(r)end
+            if not ok then ctx.report(tostring(why))end
+        end
     end))
     function e.updatePrompts(actor,distance)
         local ownsCarry=ctx.core:valid(actor)and r.carriedBy==actor or false
+        local dance=ctx.core:valid(actor)and actor.dance
+        local ownsDance=dance and dance.a==actor and dance.v==r or false
         profile(e.prompt,ownsCarry and 'dropPrompt'or 'carryPrompt')
         profile(e.gloryPrompt,ownsCarry and 'finishHoldPrompt'or 'executePrompt')
+        profile(e.funPrompt,ownsDance and 'stopPrompt'or 'DefaultFun')
         e.prompt.Enabled=ownsCarry or ctx.core:canCarry(actor,r,distance)==true
         e.gloryPrompt.Enabled=ctx.core:canGlory(actor,r,distance)==true
-        e.funPrompt.Enabled=ctx.core:canCarry(actor,r,distance)==true
+        e.funPrompt.Enabled=ownsDance or ctx.core:canDance(actor,r,distance)==true
     end
 end

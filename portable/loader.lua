@@ -98,6 +98,7 @@ local ok,failure=pcall(function()
     local manifestPath="portable/manifest.json"
     local portable=json(fetch:get(prefix..REPOSITORY.Branch.."/"..manifestPath),manifestPath)
     assert(portable.version==2 and portable.mode=="local-only" and portable.executeButton==false,"Unsupported portable manifest; fetch a fresh portable loader")
+    assert(portable.danceActionImplemented==true and portable.danceAnimation=='Emotes/Boston Breakdance' and portable.pairedModeImplemented==false,"Missing paired-dance adaptation; fetch a fresh portable manifest")
     assert(type(portable.sharedCommit)=="string" and #portable.sharedCommit==40,"Missing immutable original-resource commit")
     ctx.portableManifest=portable
     local base=prefix..REPOSITORY.Branch.."/"

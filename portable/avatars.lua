@@ -144,9 +144,18 @@ return function(ctx)
         return e
     end
     function module:getLocal()return self.localRecord end
+    function module:sourceFrame(r)
+        local e=r and r.avatar
+        return e and e.root.Parent and e.root.CFrame or nil
+    end
     function module:frame(r)
         local e=r and r.avatar
         if not e or not e.model.Parent then return nil end
+        -- The dance adaptation arranges only our proxy; actual roots stay untouched.
+        if r.dance and r.dance.v==r then
+            local cf=self:sourceFrame(r.dance.a)
+            if cf then return cf*CFrame.new(3,0,0)end
+        end
         if e.ragdoll then return e.ragFrame or e.parts.Torso.CFrame end
         if r.link and r.link.v==r then
             local a=r.link.a.avatar;if a and a.root.Parent then return a.root.CFrame end

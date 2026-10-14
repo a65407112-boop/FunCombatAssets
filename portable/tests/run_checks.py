@@ -44,7 +44,7 @@ def main():
     os.chdir(ROOT)
     paths=sorted((ROOT/'portable').glob('*.lua'))
     for p in paths:check(p,False)
-    for name in ('core.spec.lua','bus.spec.lua','runtime.spec.lua','fetch.spec.lua','controller.spec.lua','weapons.spec.lua','ui.spec.lua','gender.spec.lua','ragdoll.spec.lua','presentation.spec.lua','locomotion.spec.lua','emote_interaction.spec.lua','passive.spec.lua','dash.spec.lua','flight_probe.spec.lua','dash_effects.spec.lua','prompts.spec.lua'):
+    for name in ('core.spec.lua','dance.spec.lua','dance_controller.spec.lua','dance_presentation.spec.lua','bus.spec.lua','runtime.spec.lua','fetch.spec.lua','controller.spec.lua','weapons.spec.lua','ui.spec.lua','gender.spec.lua','ragdoll.spec.lua','presentation.spec.lua','locomotion.spec.lua','emote_interaction.spec.lua','passive.spec.lua','dash.spec.lua','flight_probe.spec.lua','dash_effects.spec.lua','prompts.spec.lua'):
         p=ROOT/'portable/tests'/name
         setup=None
         if name=='prompts.spec.lua':setup='__TEST_PROMPT_DATA='+lua_value(json.loads((ROOT/'portable/prompt_templates.json').read_text()))

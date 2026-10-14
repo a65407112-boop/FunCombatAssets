@@ -59,6 +59,35 @@ function Core:drop(a,now)
     if self:valid(v) then v.downed=true;v.ragdolled=true;v.recoverAt=now+self.config.DownDuration;self:changed(v,"drop") end
     self:changed(a,"drop");return true
 end
+function Core:canDance(a,v,distance)
+    return self:canCarry(a,v,distance) and not v.carrying and not v.link and not v.dance
+end
+function Core:dance(a,v,now,distance,duration)
+    if not finite(now) or not finite(duration) or duration<=0 or duration>30 or not self:canDance(a,v,distance) then
+        return false,"Dance needs a nearby ragdolled target and an available original emote"
+    end
+    local remaining=finite(v.recoverAt) and math.max(0,v.recoverAt-now) or self.config.DownDuration
+    local link={a=a,v=v,finishAt=now+duration,downed=v.downed,ragdolled=v.ragdolled,remaining=remaining}
+    a.attack=nil;v.attack=nil;a.dance=link;v.dance=link;a.busy=true;v.busy=true
+    v.ragdolled=false;v.recoverAt=nil
+    self:changed(a,"dance");self:changed(v,"danceTarget");return true
+end
+function Core:releaseDance(link,now)
+    if not link or link.released or not finite(now) then return end
+    link.released=true
+    local a,v=link.a,link.v
+    for _,r in ipairs({a,v})do if r.dance==link then r.dance=nil;r.busy=false end end
+    if self:valid(v)then
+        v.downed=link.downed;v.ragdolled=link.ragdolled;v.recoverAt=now+link.remaining
+        self:changed(v,"danceEnd")
+    end
+    if self:valid(a)then self:changed(a,"danceEnd")end
+end
+function Core:stopDance(a,now)
+    local link=self:valid(a) and a.dance
+    if not finite(now) or not link or link.a~=a then return false,"You are not the initiator of this local dance"end
+    self:releaseDance(link,now);return true
+end
 function Core:canGlory(a,v,distance)
     local ownsCarry=self:valid(a) and self:valid(v) and a.carrying==v and v.carriedBy==a and not a.busy
     return (self:free(a) or ownsCarry) and self:valid(v) and a~=v and (v.downed or v.ragdolled) and not v.busy and not v.virtualDead
@@ -84,6 +113,7 @@ function Core:release(link,now,finished)
 end
 function Core:detach(r,now)
     if not self:valid(r) then return end
+    if r.dance then self:releaseDance(r.dance,now)end
     if r.link then self:release(r.link,now,false)end
     if r.carrying then self:drop(r,now) end
     if r.carriedBy then self:drop(r.carriedBy,now) end
@@ -93,6 +123,7 @@ end
 function Core:tick(now)
     if not finite(now) then return end
     for _,r in pairs(self.records) do
+        if r.dance and r.dance.a==r and now>=r.dance.finishAt then self:releaseDance(r.dance,now)end
         if r.link and r.link.a==r and now>=r.link.finishAt then self:release(r.link,now,true)end
         if r.attack and now>r.attack.ends then r.attack=nil end
         if r.recoverAt and now>=r.recoverAt and not r.carriedBy and not r.busy then

@@ -8,15 +8,19 @@ return function(ctx)
     local function sound(r,key)
         if r and r.character and r.character.Parent then ctx.network:emit("Sound",{character=r.character,key=key})end
     end
-    local function animation(r,key,loop)
+    local function animation(r,key,loop,start)
         if not r or not r.character then return end
         r.revision=r.revision+1
-        ctx.network:emit("Animation",{character=r.character,key=key,start=tick(),revision=r.revision,loop=loop})
+        ctx.network:emit("Animation",{character=r.character,key=key,start=start or tick(),revision=r.revision,loop=loop})
     end
     local function stop(r)
         if not r or not r.character then return end
         r.revision=r.revision+1;ctx.network:emit("StopAnimation",{character=r.character,revision=r.revision})
         ctx.weapons:setTrails(r.character,false)
+    end
+    local function sourceFrame(r)
+        if ctx.avatars.sourceFrame then return ctx.avatars:sourceFrame(r)end
+        return ctx.avatars:frame(r)
     end
     function module:equip(name)
         if not ctx.catalog.packages["weapons/"..tostring(name)] then return false,"Unknown original weapon"end
@@ -94,6 +98,31 @@ return function(ctx)
         if ok then self.active=nil;self.emoteRecord=nil;animation(a,first,false);animation(target,second,false);ctx.status("Execute · local combat finisher")end
         return ok,why
     end
+    function module:pairedDance(target)
+        if scope.dead or ctx.cleanup.dead then return false,"Dance controller has been unloaded"end
+        local a=ctx.avatars:getLocal();target=target or ctx.avatars:nearest(true)
+        if self.loading or not a or not genders[a.gender]then return false,"Choose a gender and finish loading your weapon first"end
+        if not target or not ctx.core:canDance(a,target,ctx.avatars:distance(a,target))then return false,"No nearby available ragdolled target for the local dance"end
+        local key='Emotes/Boston Breakdance'
+        local loaded,clip=pcall(function()return ctx.animations:preload(key)end)
+        if not loaded then return false,"Original dance emote failed: "..tostring(clip)end
+        if scope.dead or ctx.cleanup.dead then return false,"Dance cancelled: controller was unloaded while loading"end
+        if ctx.avatars:getLocal()~=a then return false,"Dance cancelled: your character changed while loading"end
+        local actorFrame,victimFrame=sourceFrame(a),sourceFrame(target)
+        if not actorFrame or not victimFrame then return false,"Dance cancelled: a participant's source root is unavailable"end
+        local now=tick()
+        local ok,why=ctx.core:dance(a,target,now,ctx.avatars:distance(a,target),clip.duration)
+        if not ok then return false,why end
+        self.active=nil;self.emoteRecord=nil;self.danceLink=a.dance
+        self.danceOrigins={actorFrame.Position,victimFrame.Position}
+        stop(a);stop(target);animation(a,key,false,now);animation(target,key,false,now)
+        ctx.status('Local dance · Boston Breakdance');return true
+    end
+    function module:stopDance(target)
+        local a=ctx.avatars:getLocal();local link=a and a.dance
+        if not link or link.a~=a or (target and link.v~=target)then return false,"You are not the initiator of this local dance"end
+        return ctx.core:stopDance(a,tick())
+    end
     function module:dummy()
         local ok,why=ctx.avatars:createDummy();if ok then ctx.status("Local practice dummy created")end;return ok,why
     end
@@ -133,13 +162,23 @@ return function(ctx)
             stop(r);animation(r,"other/carryGrabber",true)
         elseif reason=="carried" then
             stop(r);animation(r,"other/carryGrabbed",true);sound(r,"audio/Carry")
-        elseif reason=="drop" or reason=="recover" or reason=="remove" or reason=="gloryEnd" then
+        elseif reason=="drop" or reason=="recover" or reason=="remove" or reason=="gloryEnd" or reason=="danceEnd" then
             stop(r);if reason=="drop" and r.downed then sound(r,"audio/Uncarry")end
+            if reason=="danceEnd" and module.danceLink and (r==module.danceLink.a or r==module.danceLink.v)then module.danceLink=nil;module.danceOrigins=nil end
         end
     end))
     scope:add(Run.Heartbeat:Connect(function()
         local now=tick();ctx.core:tick(now)
         local a=ctx.avatars:getLocal()
+        local dance=module.danceLink
+        if dance and not dance.released then
+            local moved=not ctx.core:valid(dance.a) or not ctx.core:valid(dance.v) or a~=dance.a
+            for i,r in ipairs({dance.a,dance.v})do
+                local cf=sourceFrame(r)
+                if not r.character.Parent or not cf or (cf.Position-module.danceOrigins[i]).Magnitude>0.2 then moved=true end
+            end
+            if moved then ctx.core:releaseDance(dance,now)end
+        end
         if module.emoteRecord then
             local r=module.emoteRecord;local cf=ctx.avatars:frame(r)
             if not ctx.core:free(r)or r~=a or not cf or (module.emoteOrigin and (cf.Position-module.emoteOrigin).Magnitude>0.2)then
@@ -169,7 +208,17 @@ return function(ctx)
             end
         end
     end))
-    scope:add(function()module.equipTicket=module.equipTicket+1;module.active=nil end)
+    scope:add(function()
+        module.equipTicket=module.equipTicket+1;module.active=nil
+        local dance=module.danceLink
+        if dance then
+            ctx.core:releaseDance(dance,tick())
+            -- Maid may have already disconnected our danceEnd callback.
+            if module.danceLink==dance then
+                stop(dance.a);stop(dance.v);module.danceLink=nil;module.danceOrigins=nil
+            end
+        end
+    end)
     local initial=ctx.avatars:getLocal()
     if initial and ctx.core:valid(initial) and genders[ctx.gender]then
         initial.gender=ctx.gender;ctx.core:changed(initial,"gender");module:equip(module.selected)

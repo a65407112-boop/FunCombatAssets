@@ -23,6 +23,7 @@ def main():
     manifest={'version':2,'mode':'local-only','executeButton':False,'glory':'combat-finisher','buildId':build,'sharedCommit':SHARED,'sharedManifest':shared_source['manifest'],
         'modules':modules,'sharedModules':['cleanup','assets','animations','audio'],
         'presentation':'original-gui','physics':'anchored-visuals','nativePromptUI':'three-source-profiles','pairedModeImplemented':False,
+        'danceActionImplemented':True,'danceAnimation':'Emotes/Boston Breakdance','dancePlayback':'one-clip-local-adaptation',
         'preloadAnimations':['bat/swing_1','bat/swing_2','bat/swing_3','bat/flourish','other/carryGrabber','other/carryGrabbed','bat/gripAttacker','bat/gripVictim','bat/finishHoldAttacker','bat/finishHoldVictim','Emotes/Boston Breakdance','Emotes/Flex','Emotes/Rat','Emotes/Akiyama','Emotes/idk'],'files':files,'robloxTested':False}
     (DIR/'manifest.json').write_text(json.dumps(manifest,separators=(',',':'))+'\n')
     print(json.dumps({'buildId':build,'files':len(files),'loaderBytes':(DIR/'loader.lua').stat().st_size}))
