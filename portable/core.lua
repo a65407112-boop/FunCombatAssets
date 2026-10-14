@@ -67,10 +67,36 @@ function Core:dance(a,v,now,distance,duration)
         return false,"Dance needs a nearby ragdolled target and an available original emote"
     end
     local remaining=finite(v.recoverAt) and math.max(0,v.recoverAt-now) or self.config.DownDuration
-    local link={a=a,v=v,finishAt=now+duration,downed=v.downed,ragdolled=v.ragdolled,remaining=remaining}
+    local link={a=a,v=v,duration=duration,finishAt=now+duration,downed=v.downed,ragdolled=v.ragdolled,remaining=remaining}
     a.attack=nil;v.attack=nil;a.dance=link;v.dance=link;a.busy=true;v.busy=true
     v.ragdolled=false;v.recoverAt=nil
     self:changed(a,"dance");self:changed(v,"danceTarget");return true
+end
+function Core:beginDanceMeter(a,now)
+    local link=self:valid(a) and a.dance
+    if not finite(now) or not link or link.a~=a or link.meter or link.released then return false,"No new owned dance to attach the meter"end
+    -- Source meter thresholds and pulses; playback remains an ordinary-emote adaptation.
+    link.meter={points=0,stage=1,speed=1,interval=0.8,nextPulse=now+0.8,lastAction=now}
+    link.animationStart=now;link.animationSpeed=1;link.finishAt=now+60
+    self:changed(a,"danceProgress");return true
+end
+function Core:danceMeterView(a)
+    local link=self:valid(a) and a.dance
+    if not link or link.a~=a or link.released or not link.meter then return nil end
+    local m=link.meter
+    local nextStage=m.points>=50 and 4 or m.points>=30 and 3 or m.points>=13 and 2 or 1
+    return {progress=m.points/50,stage=m.stage,speed=m.speed,nextStage=nextStage,ready=nextStage>m.stage}
+end
+function Core:advanceDance(a,now)
+    if not finite(now) then return false,"Invalid dance action time"end
+    self:tick(now)
+    local view=self:danceMeterView(a)
+    if not view or not view.ready then return false,"The local dance meter is not ready"end
+    local link=a.dance;local m=link.meter
+    if now<m.lastAction then return false,"Stale dance action time"end
+    if view.nextStage==4 then self:releaseDance(link,now);return true end
+    m.stage=view.nextStage;m.speed=350/50;m.interval=m.interval*0.4;m.nextPulse=now+m.interval;m.lastAction=now
+    self:changed(a,"danceSpeed");return true
 end
 function Core:releaseDance(link,now)
     if not link or link.released or not finite(now) then return end
@@ -123,7 +149,16 @@ end
 function Core:tick(now)
     if not finite(now) then return end
     for _,r in pairs(self.records) do
-        if r.dance and r.dance.a==r and now>=r.dance.finishAt then self:releaseDance(r.dance,now)end
+        local dance=r.dance
+        if dance and dance.a==r then
+            if now>=dance.finishAt then self:releaseDance(dance,now)
+            elseif dance.meter then
+                local m=dance.meter;local before=m.points
+                -- At most 50 pulses, even after a stalled client frame.
+                while m.points<50 and now+1e-9>=m.nextPulse do m.points=m.points+1;m.nextPulse=m.nextPulse+m.interval end
+                if m.points~=before then self:changed(r,"danceProgress")end
+            end
+        end
         if r.link and r.link.a==r and now>=r.link.finishAt then self:release(r.link,now,true)end
         if r.attack and now>r.attack.ends then r.attack=nil end
         if r.recoverAt and now>=r.recoverAt and not r.carriedBy and not r.busy then

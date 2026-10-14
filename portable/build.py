@@ -13,7 +13,7 @@ def main():
     diagnostic=(DIR/'diagnose_flight.template.lua').read_text()
     assert diagnostic.count('--@FLIGHT_PROBE_MODULE@')==1
     (DIR/'diagnose_flight.lua').write_text(diagnostic.replace('--@FLIGHT_PROBE_MODULE@',(DIR/'flight_probe.lua').read_text()))
-    modules=['core','bus','visibility','appearance','passive','ragdoll','prompts','avatars','weapons','locomotion','dash_effects','dash','controller','ui']
+    modules=['core','bus','visibility','appearance','passive','ragdoll','prompts','avatars','weapons','locomotion','dash_effects','dash','controller','dance_meter','ui']
     paths=sorted(p for p in DIR.rglob('*') if p.is_file() and p.name not in ('manifest.json',) and '__pycache__' not in p.parts)
     files={p.relative_to(ROOT).as_posix():metadata(p.read_bytes()) for p in paths}
     code_bytes=b''.join((DIR/(m+'.lua')).read_bytes() for m in modules)+(DIR/'loader.lua').read_bytes()+(DIR/'config.json').read_bytes()+(DIR/'prompt_templates.json').read_bytes()
@@ -23,7 +23,7 @@ def main():
     manifest={'version':2,'mode':'local-only','executeButton':False,'glory':'combat-finisher','buildId':build,'sharedCommit':SHARED,'sharedManifest':shared_source['manifest'],
         'modules':modules,'sharedModules':['cleanup','assets','animations','audio'],
         'presentation':'original-gui','physics':'anchored-visuals','nativePromptUI':'three-source-profiles','pairedModeImplemented':False,
-        'danceActionImplemented':True,'danceAnimation':'Emotes/Boston Breakdance','dancePlayback':'one-clip-local-adaptation',
+        'danceActionImplemented':True,'danceAnimation':'Emotes/Boston Breakdance','dancePlayback':'meter-controlled-local-adaptation','danceMeterImplemented':True,
         'preloadAnimations':['bat/swing_1','bat/swing_2','bat/swing_3','bat/flourish','other/carryGrabber','other/carryGrabbed','bat/gripAttacker','bat/gripVictim','bat/finishHoldAttacker','bat/finishHoldVictim','Emotes/Boston Breakdance','Emotes/Flex','Emotes/Rat','Emotes/Akiyama','Emotes/idk'],'files':files,'robloxTested':False}
     (DIR/'manifest.json').write_text(json.dumps(manifest,separators=(',',':'))+'\n')
     print(json.dumps({'buildId':build,'files':len(files),'loaderBytes':(DIR/'loader.lua').stat().st_size}))

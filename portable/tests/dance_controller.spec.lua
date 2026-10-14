@@ -25,7 +25,7 @@ test('both proxies play the same original ordinary emote at one start time',func
     local ctx,ctrl,a,v,events=setup();assert(ctrl:pairedDance(v));assert(a.busy and v.busy)
     local clips={};for _,e in ipairs(events)do if e.kind=='Animation'then clips[#clips+1]=e.data end end
     assert(#clips==2 and clips[1].character==a.character and clips[2].character==v.character)
-    assert(clips[1].key=='Emotes/Boston Breakdance' and clips[2].key==clips[1].key and clips[1].start==clips[2].start and not clips[1].loop)
+    assert(clips[1].key=='Emotes/Boston Breakdance' and clips[2].key==clips[1].key and clips[1].start==clips[2].start and clips[1].loop)
     ctx.cleanup:destroy()
 end)
 test('transitioning from an emote cannot stop the newly started dance',function()
@@ -45,10 +45,18 @@ end)
 test('Stop and natural completion both release animations',function()
     for _,manual in ipairs({true,false})do
         local ctx,ctrl,a,v,events,services,clock=setup();assert(ctrl:pairedDance(v));local before=#events
-        if manual then assert(ctrl:stopDance(v))else clock(4);services.RunService.Heartbeat:fire(1/60)end
+        if manual then assert(ctrl:stopDance(v))else clock(61);services.RunService.Heartbeat:fire(1/60)end
         assert(not a.dance and not v.dance and #events==before+2 and a.kills==0 and v.health==100)
         ctx.cleanup:destroy()
     end
+end)
+test('speed changes keep both proxy animations on the same phase',function()
+    local ctx,ctrl,a,v,events,services,clock=setup();assert(ctrl:pairedDance(v));clock(10.4)
+    assert(ctrl:advanceDance());local first,second=events[#events-1].data,events[#events].data
+    assert(first.character==a.character and second.character==v.character and first.speed==7 and second.speed==7 and first.start==second.start)
+    assert(math.abs(((10.4-first.start)*first.speed)%4-(10.4%4))<1e-6,'Changing speed must not restart either copy at frame zero')
+    ctrl:destroy();assert(not ctrl:advanceDance(),'An unloaded controller must reject acceleration')
+    ctx.cleanup:destroy()
 end)
 test('character replacement departure and unload free the remaining participant',function()
     for _,kind in ipairs({'replacement','departure','unload'})do

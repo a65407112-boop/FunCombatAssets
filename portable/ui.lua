@@ -50,6 +50,9 @@ return function(ctx)
     local dash=find(roots.mobileButtons,"Dash");if dash then dash.Visible=false end
     bind(dash,function()return ctx.controller:dash()end)
     local unused=find(roots.mobileButtons,"R");if unused then unused.Visible=false end
+    if ctx.modules and ctx.modules.dance_meter then
+        module.danceMeter=ctx.modules.dance_meter(ctx,roots.mobileButtons);scope:add(module.danceMeter)
+    end
     local getUp=find(roots.mobileButtons,"GetUp");if getUp then getUp.Visible=false end
     local getUpFrame=find(roots.getUp,"Frame");if getUpFrame then getUpFrame.Visible=false end
     local subtitle=find(roots.Subtitles,"TextLabel")

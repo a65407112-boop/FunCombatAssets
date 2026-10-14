@@ -8,10 +8,10 @@ return function(ctx)
     local function sound(r,key)
         if r and r.character and r.character.Parent then ctx.network:emit("Sound",{character=r.character,key=key})end
     end
-    local function animation(r,key,loop,start)
+    local function animation(r,key,loop,start,speed)
         if not r or not r.character then return end
         r.revision=r.revision+1
-        ctx.network:emit("Animation",{character=r.character,key=key,start=start or tick(),revision=r.revision,loop=loop})
+        ctx.network:emit("Animation",{character=r.character,key=key,start=start or tick(),revision=r.revision,loop=loop,speed=speed or 1})
     end
     local function stop(r)
         if not r or not r.character then return end
@@ -113,15 +113,20 @@ return function(ctx)
         local now=tick()
         local ok,why=ctx.core:dance(a,target,now,ctx.avatars:distance(a,target),clip.duration)
         if not ok then return false,why end
+        ctx.core:beginDanceMeter(a,now)
         self.active=nil;self.emoteRecord=nil;self.danceLink=a.dance
         self.danceOrigins={actorFrame.Position,victimFrame.Position}
-        stop(a);stop(target);animation(a,key,false,now);animation(target,key,false,now)
+        stop(a);stop(target);animation(a,key,true,now);animation(target,key,true,now)
         ctx.status('Local dance · Boston Breakdance');return true
     end
     function module:stopDance(target)
         local a=ctx.avatars:getLocal();local link=a and a.dance
         if not link or link.a~=a or (target and link.v~=target)then return false,"You are not the initiator of this local dance"end
         return ctx.core:stopDance(a,tick())
+    end
+    function module:advanceDance()
+        if scope.dead or ctx.cleanup.dead then return false,"Dance controller has been unloaded"end
+        return ctx.core:advanceDance(ctx.avatars:getLocal(),tick())
     end
     function module:dummy()
         local ok,why=ctx.avatars:createDummy();if ok then ctx.status("Local practice dummy created")end;return ok,why
@@ -162,6 +167,12 @@ return function(ctx)
             stop(r);animation(r,"other/carryGrabber",true)
         elseif reason=="carried" then
             stop(r);animation(r,"other/carryGrabbed",true);sound(r,"audio/Carry")
+        elseif reason=="danceSpeed" and r.dance==module.danceLink then
+            local link=r.dance;local now=tick();local speed=link.meter.speed
+            local phase=((now-link.animationStart)*link.animationSpeed)%link.duration
+            link.animationStart=now-phase/speed;link.animationSpeed=speed
+            animation(link.a,'Emotes/Boston Breakdance',true,link.animationStart,speed)
+            animation(link.v,'Emotes/Boston Breakdance',true,link.animationStart,speed)
         elseif reason=="drop" or reason=="recover" or reason=="remove" or reason=="gloryEnd" or reason=="danceEnd" then
             stop(r);if reason=="drop" and r.downed then sound(r,"audio/Uncarry")end
             if reason=="danceEnd" and module.danceLink and (r==module.danceLink.a or r==module.danceLink.v)then module.danceLink=nil;module.danceOrigins=nil end
