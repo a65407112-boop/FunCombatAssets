@@ -32,7 +32,7 @@ local function signal()
 end
 local function node(class, name)
     local n = {ClassName=class, Name=name, children={}, attributes={}, Value=0,
-        AncestryChanged=signal(), Touched=signal()}
+        AncestryChanged=signal(), Touched=signal(), ChildAdded=signal(), ChildRemoved=signal()}
     function n:IsA(wanted)
         return class==wanted or (wanted=='BasePart' and (class=='Part' or class=='SpawnLocation'))
     end
@@ -123,7 +123,7 @@ end
 '''
 
 code = header
-for key, filename in [('Policy','Policy.lua'), ('Avatar','Avatar.lua'), ('World','World.lua'), ('Combat','CombatServer.lua'), ('Voting','Voting.lua')]:
+for key, filename in [('Policy','Policy.lua'), ('Ragdoll','Ragdoll.lua'), ('Avatar','Avatar.lua'), ('World','World.lua'), ('Combat','CombatServer.lua'), ('Voting','Voting.lua')]:
     code += '\nmodules[' + repr(key) + '] = (function()\n' + (ROOT / 'Builder/templates/server' / filename).read_text() + '\nend)()\n'
 
 code += r'''
@@ -202,62 +202,80 @@ assert(not combat.players[player] and not fetched and #errors==1 and now-awaitSt
 print('Spawn regression: a character that never mounts fails within ten seconds')
 
 player,character,hum,root,combat,world=fixture()
-local seen, pending
-fetch=function(id)
-    assert(id==123)
-    seen={anchored=root.Anchored,neck=hum.RequiresNeck,breaks=hum.BreakJointsOnDeath,
-        cframe=root.CFrame,velocity=root.Velocity,rot=root.RotVelocity,alreadyBound=combat.players[player]~=nil}
-    pending=coroutine.running();coroutine.yield();return {}
-end
+local fetched=0
+fetch=function() fetched+=1;error('Native player startup must not fetch account appearance') end
+local head=character:FindFirstChild('Head')
+head.TextureID='native-dynamic-head'
+local torso=character:FindFirstChild('Torso');torso.Color='morph-color'
+combat:bindPlayer(player)
+assert(combat.players[player] and hum.Health==100 and not root.Anchored,'Native R6 spawn did not become playable')
+assert(fetched==0 and not hum.description and character:FindFirstChild('Head')==head and torso.Color=='morph-color',
+    'Combat initialization overwrote a native avatar or existing morph')
+assert(hum.RequiresNeck==false and hum.BreakJointsOnDeath==false,'Combat death settings were not initialized')
+assert(math.abs(root.CFrame.X-228.578598)<=3 and math.abs(root.CFrame.Z+1407.97974)<=3,
+    'Native character did not use the original enabled spawn')
+assert(root.Velocity.Y==0 and root.RotVelocity.Y==0,'Spawn retained falling velocity')
+print('Native spawn: original placement, unanchored body and preserved head/morph without HTTP')
+
+player,character,hum,root,combat,world=fixture()
+hum.Health=0
+fetch=function() error('No account appearance needed') end
+combat:bindPlayer(player)
+assert(not combat.players[player] and not root.Anchored,'Dead native character entered gameplay or stayed anchored')
+print('Native spawn: dead character cannot initialize gameplay')
+
+player,character,hum,root,combat,world=fixture()
+local missing=character:FindFirstChild('Left Arm')
+for i,child in ipairs(character.children) do if child==missing then table.remove(character.children,i);break end end
+missing.Parent=nil
+local premature=combat:bind(character,player)
+assert(not premature and not combat.players[player],'Incomplete R6 body entered combat before its limb arrived')
+local delayed=false
 onWait=function()
-    if pending then local resumed=pending;pending=nil;assert(coroutine.resume(resumed)) end
+    if not delayed then
+        delayed=true;assert(not combat.players[player],'CharacterAdded bound before all R6 body parts arrived')
+        missing.Parent=character
+    end
 end
 combat:bindPlayer(player);onWait=nil
-assert(seen.anchored,'Character was free to fall while the avatar HTTP fetch yielded')
-assert(seen.neck==false and seen.breaks==false,'R6 neck/death settings were only applied after appearance loading')
-assert(math.abs(seen.cframe.X-228.578598)<=3 and math.abs(seen.cframe.Z+1407.97974)<=3,
-    'Character was left at the source template coordinates during avatar initialization')
-assert(math.abs(seen.cframe.Y-126.436943)<0.001,'Early spawn did not use the source spawn height')
-assert(seen.velocity.Y==0 and seen.rot.Y==0,'Spawn kept velocity from a previous fall')
-assert(not seen.alreadyBound,'Gameplay became available before appearance finished')
-assert(combat.players[player] and hum.Health==100 and not root.Anchored,'Successful preparation did not release a live gameplay character')
-print('Spawn regression: original spawn and safe R6 settings precede yielding appearance fetch')
+assert(combat.players[player] and combat.players[player].parts['Left Arm']==missing,
+    'Late limb was not included in complete R6 combat bindings')
+print('R6 readiness: incomplete startup waits for all body parts and tracks late limbs')
 
 player,character,hum,root,combat,world=fixture()
-fetch=function() return {Head=12345,Face=4567,MoodAnimation=88,StaticFacialAnimation=true,
-    LeftArm=11,LeftLeg=12,RightArm=13,RightLeg=14,Torso=15} end
 combat:bindPlayer(player)
-assert(hum.description.Head==12345,'R6 normalization discarded the actual avatar head asset')
-assert(hum.description.Face==4567 and hum.description.MoodAnimation==88,'Avatar face or mood asset was replaced')
-assert(hum.description.StaticFacialAnimation==false,'Dynamic head facial animation remains disabled')
-for _,name in ipairs({'LeftArm','LeftLeg','RightArm','RightLeg','Torso'}) do
-    assert(hum.description[name]==0,'A head update replaced the original R6 body: '..name)
-end
-assert(combat.players[player] and not root.Anchored,'Head preservation blocked gameplay initialization')
-print('Avatar regression: original head, face and mood survive R6 body normalization')
+local before=assert(combat.players[player]);before.weapon='Sword';player:SetAttribute('Gender','Male')
+local oldTorso=character:FindFirstChild('Torso')
+for i,child in ipairs(character.children) do if child==oldTorso then table.remove(character.children,i);break end end
+oldTorso.Name='RetiredTorso';oldTorso.Parent=nil
+oldTorso.Name='Torso';character.ChildRemoved:fire(oldTorso)
+assert(not combat:alive(before),'An incomplete morph remained available for combat')
+hum.WalkSpeed=0
+local replacement=attach(character,node('Part','Torso'));replacement.CFrame=point(700,400,900)
+local previousRoot=root.CFrame
+character.ChildAdded:fire(replacement)
+local after=assert(combat.players[player])
+assert(after~=before and before.removed and after.torso==replacement,'In-place R6 morph kept detached combat body bindings')
+assert(after.weapon=='Sword' and player:GetAttribute('Gender')=='Male','Morph refresh lost equipment or gender state')
+assert(after.walkSpeed==16 and hum.WalkSpeed==16,'Morph retained a temporary combat movement lock as its base speed')
+assert(root.CFrame==previousRoot,'In-place morph unexpectedly teleported to spawn')
+assert(#replacement.children==6,'Morph refresh did not rebuild one set of gameplay prompts')
+local held=after
+local hat=attach(character,node('Accessory','NewHat'));character.ChildAdded:fire(hat)
+assert(combat.players[player]==held,'An accessory arrival unnecessarily reset combat')
+print('Morph binding: replaced R6 parts refresh gameplay and prompts without losing appearance/equipment or teleporting')
 
 player,character,hum,root,combat,world=fixture()
-pending=nil
-fetch=function() pending=coroutine.running();coroutine.yield();return {} end
-onWait=function()
-    player.Character=node('Model','Replacement');player.Character.Parent=workspace
-    if pending then local resumed=pending;pending=nil;assert(coroutine.resume(resumed)) end
-end
-combat:bindPlayer(player);onWait=nil
-assert(not combat.players[player] and not hum.description,'Late appearance completion bound/mutated a replaced character')
-print('Spawn regression: respawn during appearance fetch cancels the old character')
-
-player,character,hum,root,combat,world=fixture()
-fetch=function() hum.Health=0;return {} end
 combat:bindPlayer(player)
-assert(not combat.players[player] and not hum.description,'A character killed during preparation was bound as live gameplay')
-print('Spawn regression: a dead character cannot finish initialization')
-
-player,character,hum,root,combat,world=fixture()
-fetch=function() error('HTTP unavailable') end
-combat:bindPlayer(player)
-assert(combat.players[player] and not root.Anchored,'Avatar HTTP failure left the original R6 body unbound/anchored')
-print('Spawn regression: an unavailable avatar service retains the original R6 body')
+local bouncing=assert(combat.players[player])
+bouncing.wallBounce=true;bouncing.busy=true;bouncing.wallUntil=now+1.5;root.Anchored=true
+local oldHead=character:FindFirstChild('Head');oldHead.Name='PreviousHead';oldHead.Parent=nil
+local newHead=attach(character,node('Part','Head'));character.ChildAdded:fire(newHead)
+local refreshed=assert(combat.players[player])
+assert(refreshed~=bouncing and not root.Anchored,'Morph during wall bounce permanently retained the anchored root')
+assert(not refreshed.wallBounce and not refreshed.wallUntil and not refreshed.busy,
+    'Morph retained an abandoned wall-bounce gameplay lock')
+print('Wall bounce: morph cleanup releases anchored roots and transient locks')
 
 local disabled=attach(spawns,node('SpawnLocation','Disabled'))
 disabled.CFrame=point(0,-1000,0);disabled.Enabled=false

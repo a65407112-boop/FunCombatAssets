@@ -5,7 +5,11 @@ return function(ctx)
     local module = {}
     function module:update(state)
         if type(state) ~= "table" or typeof(state.character) ~= "Instance" then return end
-        if removed[state.character] then return end
+        local cutoff=removed[state.character]
+        if cutoff then
+            if cutoff==true or (state.revision or 0)<=cutoff then return end
+            removed[state.character]=nil
+        end
         local previous = values[state.character]
         if previous and (state.revision or 0) <= (previous.revision or -1) then return end
         values[state.character] = state
@@ -33,7 +37,10 @@ return function(ctx)
     function module:localState() return values[game:GetService("Players").LocalPlayer.Character] end
     scope:add(ctx.network:on("State", function(state) module:update(state) end))
     scope:add(ctx.network:on("Remove", function(data)
-        if data.character then values[data.character] = nil; removed[data.character] = true end
+        if data.character then
+            values[data.character]=nil
+            removed[data.character]=data.rebind and (data.revision or 0) or true
+        end
     end))
     scope:add(function() values = {}; listeners = {} end)
     function module:destroy() scope:destroy() end

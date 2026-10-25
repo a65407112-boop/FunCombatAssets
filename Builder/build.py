@@ -533,4 +533,16 @@ if __name__=='__main__':
     else:
         import compact
         result=compact.build(opt.source,opt.rbxmk,opt.output)
+        import native_r6_upgrade
+        destination=Path(result['output'])
+        checks=native_r6_upgrade.upgrade(destination/'GitHub/server/funcombat_server.rbxl',destination/'GitHub',destination,opt.rbxmk)
+        result.update({'buildId':checks['buildId'],'checks':checks,'layoutVersion':6})
+        dump(destination/'Static_Checks.json',checks)
+        metadata=json.loads((destination/'Build_Metadata.json').read_text())
+        metadata.update({'buildId':checks['buildId'],'layoutVersion':6,'binarySha256':checks['serverSha256'],
+            'serverInstances':checks['serverInstances'],'savedPlayerCharacterModels':0,'savedNpcTemplates':2})
+        dump(destination/'Build_Metadata.json',metadata)
+        archive(destination/'Game_GitHub.zip',destination/'GitHub')
+        package_files=[p for p in destination.rglob('*') if p.is_file() and p.name not in {'Game_GitHub.zip','Game_ExecutorSide.zip'} and '.cache' not in p.relative_to(destination).parts]
+        archive(destination/'Game_ExecutorSide.zip',destination,package_files)
     print(json.dumps(result,ensure_ascii=False,indent=2))

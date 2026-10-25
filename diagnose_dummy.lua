@@ -30,7 +30,10 @@ local function find(parent,name,class)
     if not parent then return nil end
     local ok,result=pcall(function()
         if class then return parent:FindFirstChildOfClass(name) end
-        return parent:FindFirstChild(name)
+        local found=parent:FindFirstChild(name)
+        local active=environment["FunCombat_ExternalRuntime"]
+        local labels=active and active.identifiers and active.identifiers.objectNames
+        return found or (labels and labels[name] and parent:FindFirstChild(labels[name]))
     end)
     return ok and result or nil
 end

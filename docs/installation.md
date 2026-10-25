@@ -1,97 +1,54 @@
-# Установка — protocol 5
+# Установка blocky R6 / layout 6
 
-Откройте **funcombat_server.rbxl** либо **Game_Server.rbxlx** этой поставки
-и опубликуйте весь плейс. Настройте Avatar Type R6. Войдите в новый сервер:
-обновление GitHub не заменяет код старой публикации или запущенной сессии.
-Затем выполните:
+1. Откройте server/funcombat_server.rbxl в Roblox Studio и опубликуйте весь плейс.
+2. В Avatar Settings проверьте R6; в сохранённом файле уже включены native
+   appearance, dynamic heads и MeshPart-heads, отключены Avatar Unification
+   и upgrade-joints для совместимости исходных Motor6D-анимаций.
+3. Зайдите в новый сервер. Каждый клиент запускает loader.lua из этого
+   репозитория. Обычные имена и presentation восстанавливаются на этом клиенте.
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?t=" .. tostring(os.time())))()
 ```
 
-Плейс и manifest должны иметь одинаковые protocol 5 и buildId. При
-несовпадении loader прекращает запуск с конкретным сообщением. Успех dummy
-не открывает чёрный loading popup. Повторный loader удаляет прежние локальные
-ресурсы и соединения.
+Обновление репозитория само по себе не меняет опубликованный плейс и старую
+серверную сессию. Не смешивайте прежний .rbxl с новым client: loader проверяет
+buildId из manifest.json и config/protocol.json.
 
-## Состав и требования
+Нужны HTTP GET, loadstring, writefile, getcustomasset/getsynasset и настоящий
+локальный импорт RBXMX через getobjects/Game:GetObjects. 6 native packages
+сохраняют исходные MeshPart/UnionOperation/SurfaceAppearance; 123 остальных
+восстанавливаются из typed data. Поддержка конкретного executor не проверялась.
 
-В плейсе остаются исходная карта/окружение, физика, спавны, промпты и
-авторитетный сервер. Вне карты/окружения сохранена одна модель персонажа:
-StarterCharacter. Исходные DUMMY и DummyRig создаются из своих отдельных
-исходных данных во время игры. Crossroads сохранена один раз; её чистая
-резервная копия создаётся до голосования. Другой исходный вариант карты
-сохранён. В ReplicatedStorage нет native constructor оружия/костюма.
+Владелец настроен в config/admin.json: 11556197791. Команды spawn, :dummy,
+:spawndummy и :dummy 11556197791 создают серверных combat NPC; обычный Kohl
+:clone me не регистрирует их в combat. Для dummy действует cooldown 3 секунды,
+лимиты 4 на владельца и 20 на сервер. Hosted Kohl asset 1868400649 требует
+доступности и разрешений Roblox.
 
-Оригинальные 129 клиентских пакетов и 47 анимаций находятся во внешнем
-репозитории. Физические модели внутри карты/окружения, обязательные части
-R6 и native внешность Roblox-аватара остаются частью серверного мира.
+Диагностика запускается отдельно через diagnose.lua или diagnose_dummy.lua.
+Статические проверки и ограничения приведены в Validation_Report.md.
 
-Нужны loadstring, HTTP GET, writefile, getcustomasset либо getsynasset,
-и настоящий импорт локального RBXMX через getobjects/Game:GetObjects.
-Последнее проверяется реальным импортом оригинальных пакетов при warm-up.
-Без него строгая внешняя сборка сообщает ошибку; серверной копии или
-придуманного заменителя модели нет. Загрузка имеет deadline; поздние
-результаты отменённого импорта уничтожаются.
+## Пересборка имеющегося сервера
 
-Native MeshPart, UnionOperation и SurfaceAppearance импортируются вместе
-с исходными непрозрачными данными. Сопоставляются исходные node IDs, классы,
-имена и родители; применяются доступные исходные свойства и ссылки.
-Защищённые mesh/PBR данные не перезаписываются. Оригинальные
-mesh/texture/sound/animation references сохраняются.
-
-PC, телефон, старые Roblox-клиенты и конкретные executor здесь не
-тестировались. Движок Roblox недоступен. Каждый игрок запускает loader,
-чтобы видеть внешние интерфейсы, оружие, костюмы и эффекты.
-
-## Персонаж и управление
-
-Динамическая голова готовится сервером до выбора пола. R6-тело сохраняется;
-BodyPartDescription больше не удаляет цвета конечностей. Каждая часть
-сохраняет свой цвет аватара, включая намеренно чёрный. User-ID dummy
-использует тот же путь подготовки внешности.
-
-Выбор оружия — исходный GUI; удар — мышь/свободное касание; Q — dash;
-G — разрешённое сервером восстановление; G/H/J/K/L — исходные emotes.
-Клавиши, расстояния и удержание ProximityPrompt сохранены. R/мобильная R
-запрашивает следующий этап взаимодействия. `/e secretdoor` управляет
-исходной дверью Crossroads.
-
-Для боевого dummy: **spawn** без двоеточия. Админ-команды владельца:
-**:dummy**, **:spawndummy**, либо **:dummy 11556197791** для внешности по ID.
-Нужны живой свободный персонаж и включённая исходная AllowDummys;
-cooldown 3 секунды, до 4 dummy на игрока и 20 на сервер. **:clone me** —
-обычный клон Kohl; его создание не регистрирует combat NPC.
-
-Владелец 11556197791 задан в config/admin.json и проверяется сервером.
-Оригинальный Kohl загружается по зависимости 1868400649; её доступность
-и права Roblox отдельно не проверены. Settings, Custom Commands и legacy
-loader selector сохраняют совместимость upstream.
-
-## Диагностика и пересборка
-
-Диагностика отдельная, с Copy report; не меняет аватар и не запускается
-основным loader:
-
-```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/diagnose.lua?t=" .. tostring(os.time())))()
-```
-
-Owner/Repository/Branch находятся только в CONFIG наверху loader.lua.
-config/identifiers.json содержит публичные обратимые соответствия имён,
-атрибутов, stats и промптов; protocol.json — сетевые/presentation IDs.
-Это обфускация, а не секретное шифрование. leaderstats, части/суставы R6,
-сервисы и обязательные native имена сохранены. Понятные подписи промптов
-и stats восстанавливаются локальным клиентом.
-
-В полном архиве сохранён нетронутый исходник. Нужны Python 3, зависимости
-Builder/requirements.txt и rbxmk 0.9.1. Из полного архива:
+Нужны Python, зависимости Builder/requirements.txt и rbxmk 0.9.1.
+Команда проверяет совпадение исходного сервера и конфигурации репозитория:
 
 ```bash
-python3 Builder/build.py --source Source/FunCombat_Original.rbxl --rbxmk /path/to/rbxmk --output rebuilt
+python3 Builder/native_r6_upgrade.py --source server/funcombat_server.rbxl --repo . --output dist/native-r6 --rbxmk /absolute/path/to/rbxmk
 ```
 
-Для Game_GitHub.zip укажите путь к FunCombat_Renamed2.rbxl отдельно.
---classic-layout нужен только для сравнения старой компоновки protocol 4.
-Геометрия не анализируется. Static_Checks.json и Validation_Report.md
-разделяют офлайн-проверки и неподтверждённые live тесты.
+Она обновляет server/funcombat_server.rbxl, config и manifest, а также пишет
+binary/XML и Native_R6_Checks.json в output. До публикации запустите офлайн
+проверки и сохраните единый согласованный commit. Не меняйте client-файлы
+после запечатывания manifest без повторного обновления его контрольных сумм.
+
+Для полной сборки из оригинального FunCombat_Renamed2.rbxl с прежним
+проверенным checksum используйте Builder/build.py --source PATH --rbxmk PATH
+--output dist/full. Недоступное вложение FunCombat_Renamed.rbxl не подменяется
+старым оригиналом и не считается проверенным этим checksum.
+
+Проверка Python: FUNCOMBAT_LUAU=/path/to/luau python3 -m unittest discover -s
+Builder/tests -p 'test_*.py'. Runtime suites: Builder/tests/run_*.py --luau PATH.
+Перед выпуском проверьте в Studio два клиента, поздний вход, R6-морф,
+смену частей тела, одежду, dynamic head/face/mood, carry/drop, оружие и voting.

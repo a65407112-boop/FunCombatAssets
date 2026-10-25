@@ -1,4 +1,4 @@
-"""Exercise actual server Avatar code without Roblox asset/physics services."""
+"""Exercise the server NPC Avatar adapter without Roblox asset/physics services."""
 import argparse
 from pathlib import Path
 import subprocess
@@ -83,19 +83,19 @@ local function check(name,fn)
 end
 check('R6 normalization retains the actual head, face and mood IDs',function()
     local p,c,h,_,_,_,_,d=fixture(true)
-    assert(Avatar.prepare(p,c,h))
+    assert(Avatar.prepareDummy(p,c,h,123))
     assert(d.Head==12345 and d.Face==4567 and d.MoodAnimation==88,'Original head/face/mood was discarded')
     assert(d.StaticFacialAnimation==false,'Facial animation stayed disabled')
     for _,key in ipairs({'LeftArm','LeftLeg','RightArm','RightLeg','Torso'}) do assert(d[key]==0,'R6 body was replaced') end
 end)
 check('existing FaceControls do not retain the stale classic-template head',function()
     local p,c,h,old,_,_,_,_,donor=fixture(true)
-    assert(Avatar.prepare(p,c,h));assert(c:FindFirstChild('Head')~=old and donor() and donor().destroyed,
+    assert(Avatar.prepareDummy(p,c,h,123));assert(c:FindFirstChild('Head')~=old and donor() and donor().destroyed,
         'FaceControls presence kept the stale head instead of the fresh native R6 head')
 end)
 check('R6 head adapter keeps original facial data and rewires neck, hair and prompt',function()
     local p,c,h,old,neck,hair,prompt,_,donor=fixture(false)
-    assert(Avatar.prepare(p,c,h))
+    assert(Avatar.prepareDummy(p,c,h,123))
     local head=assert(c:FindFirstChild('Head'))
     assert(head~=old and head:IsA('MeshPart') and head:FindFirstChildOfClass('FaceControls'),'Dynamic head was not installed')
     assert(head.MeshId=='fixture-original-head-mesh' and head:FindFirstChild('OriginalFacialBone'),'Original facial resource was altered')
@@ -106,7 +106,7 @@ check('R6 head adapter keeps original facial data and rewires neck, hair and pro
     assert(c:GetAttribute('FunCombatMoodAnimation')==88,'External client cannot restore the actual facial mood')
 end)
 check('fresh native head retains its texture and PBR without classic visual overlays',function()
-    local p,c,h,old=fixture(true);assert(Avatar.prepare(p,c,h))
+    local p,c,h,old=fixture(true);assert(Avatar.prepareDummy(p,c,h,123))
     local head=c:FindFirstChild('Head');local surface=head:FindFirstChildOfClass('SurfaceAppearance')
     assert(head~=old and head.TextureID=='native-head-texture' and head.Color=='avatar-color',
         'Fresh native visual properties were replaced by classic template values')
@@ -115,7 +115,7 @@ check('fresh native head retains its texture and PBR without classic visual over
         'The old classic mesh or face decal was copied over the dynamic head')
 end)
 check('mood package resolves to its contained animation and native Animate hook',function()
-    local p,c,h=fixture(true);assert(Avatar.prepare(p,c,h))
+    local p,c,h=fixture(true);assert(Avatar.prepareDummy(p,c,h,123))
     local animate=c:FindFirstChild('Animate');local mood=animate and animate:FindFirstChild('mood')
     local animation=mood and mood:FindFirstChildOfClass('Animation')
     assert(animate and animate:IsA('LocalScript') and animation and animation.AnimationId=='rbxassetid://89',
@@ -126,7 +126,7 @@ end)
 check('an unavailable head asset retains a playable R6 character with a specific error',function()
     local p,c,h,old=fixture(false)
     Players.CreateHumanoidModelFromDescription=function() error('asset access denied') end
-    local ready,why=Avatar.prepare(p,c,h)
+    local ready,why=Avatar.prepareDummy(p,c,h,123)
     assert(ready and c:FindFirstChild('Head')==old and why and why:find('12345') and why:find('asset access denied'),
         'Head failure was silent or prevented the R6 character from binding')
 end)
@@ -134,18 +134,18 @@ check('appearance warnings persist for a client arriving after the original serv
     local p,c,h=fixture(false)
     local create=Players.CreateHumanoidModelFromDescription
     Players.CreateHumanoidModelFromDescription=function() error('asset access denied') end
-    local ready,why=Avatar.prepare(p,c,h)
+    local ready,why=Avatar.prepareDummy(p,c,h,123)
     assert(ready and why and c:GetAttribute('FunCombatAvatarDiagnostic')==why,
         'Late clients cannot recover the original head loading failure')
     Players.CreateHumanoidModelFromDescription=create
-    assert(Avatar.prepare(p,c,h))
+    assert(Avatar.prepareDummy(p,c,h,123))
     assert(c:GetAttribute('FunCombatAvatarDiagnostic')=='','A successful preparation retained a stale head warning')
 end)
 check('retained head trails keep valid references when a donor attachment replaces the old attachment',function()
     local p,c,h,old=fixture(false)
     local attachment=node('Attachment','HairAttachment');attachment.Parent=old
     local trail=node('Trail','OriginalTrail');trail.Attachment0=attachment;trail.Attachment1=attachment;trail.Parent=old
-    assert(Avatar.prepare(p,c,h))
+    assert(Avatar.prepareDummy(p,c,h,123))
     local head=c:FindFirstChild('Head');local actual=head:FindFirstChild('HairAttachment')
     assert(trail.Parent==head and trail.Attachment0==actual and trail.Attachment1==actual and actual.Parent==head,
         'Original Trail still references destroyed head attachments')
@@ -160,7 +160,7 @@ check('late head loading after respawn disposes the donor without replacing the 
     wait=function(s)
         now+=s or 0.05;p.Character=node('Model','Replacement');p.Character.Parent=true
     end
-    local ready=Avatar.prepare(p,c,h);wait=originalWait
+    local ready=Avatar.prepareDummy(p,c,h,123);wait=originalWait
     assert(not ready,'Replaced character finished initialization')
     assert(pending,'Isolated loading of the actual head was never requested')
     assert(coroutine.resume(pending));assert(c:FindFirstChild('Head')==old and donor().destroyed,'Late donor mutated the cancelled character or leaked')
@@ -169,7 +169,7 @@ check('a slow isolated head request times out without locking gameplay',function
     local p,c,h,old,_,_,_,_,donor=fixture(false)
     local create=Players.CreateHumanoidModelFromDescription;local pending
     Players.CreateHumanoidModelFromDescription=function(...) pending=coroutine.running();coroutine.yield();return create(...) end
-    local ready,why=Avatar.prepare(p,c,h)
+    local ready,why=Avatar.prepareDummy(p,c,h,123)
     assert(ready and why and now<=108.1,'Isolated head loading did not release initialization within its deadline')
     assert(c:GetAttribute('FunCombatAvatarDiagnostic')==why,'Late clients cannot recover the original head timeout')
     assert(coroutine.resume(pending));assert(c:FindFirstChild('Head')==old and donor().destroyed,'Timed-out donor changed the bound body')
@@ -197,7 +197,7 @@ check('modern head metadata survives while unrelated body metadata cannot replac
         assert(value:FindFirstChild('NativeHead').HeadShape=='owned-head-shape','Head donor discarded the actual HeadShape')
         return create(self,value,rig)
     end
-    local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+    local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
 end)
 local function bodyColorFixture()
     local p,c,h,old,neck,hair,prompt,desc=fixture(true)
@@ -236,7 +236,7 @@ local function bodyColorFixture()
 end
 check('R6 preparation preserves distinct torso and limb colors when description children synchronize properties',function()
     local p,c,h,desc,palette,restore=bodyColorFixture()
-    local ready,why=Avatar.prepare(p,c,h);restore();assert(ready and not why,why)
+    local ready,why=Avatar.prepareDummy(p,c,h,123);restore();assert(ready and not why,why)
     for _,entry in ipairs(palette) do
         assert(c:FindFirstChild(entry.part).Color==entry.color,'Original '..entry.part..' color was reset during R6 normalization')
     end
@@ -262,7 +262,7 @@ check('a classic default head is generated natively and retains its actual face 
         return donor
     end
     AssetService.LoadAssetAsync=function() error('Classic head must not request a facial mood') end
-    local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+    local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
     local head=c:FindFirstChild('Head')
     assert(head~=old and head:FindFirstChild('face').Texture=='original-classic-face','Actual classic face was replaced by the template')
     assert(neck.Part1==head and prompt.Parent==head and c:GetAttribute('FunCombatMoodClipId')==0,'Classic head broke gameplay or acquired a fabricated mood')
@@ -276,19 +276,19 @@ check('an engine-provided mood hook is reused without another hosted package req
         return donor
     end
     AssetService.LoadAssetAsync=function() error('Native hook already contains the actual original animation') end
-    local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+    local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
     assert(c:GetAttribute('FunCombatMoodClipId')==91,'Native hook was replaced by an assumed package mapping')
 end)
 check('old servers use InsertService when the modern asset method is absent',function()
     local p,c,h=fixture(true);local load=AssetService.LoadAssetAsync;AssetService.LoadAssetAsync=nil
     InsertService.LoadAsset=load
-    local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+    local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
     assert(c:GetAttribute('FunCombatMoodClipId')==89,'Legacy package resolution failed')
 end)
 check('invalid hosted mood keeps the genuine head and exposes its exact package error',function()
     local p,c,h,old=fixture(true);local loaded
     AssetService.LoadAssetAsync=function() loaded=node('Model','InvalidPackage');return loaded end
-    local ready,why=Avatar.prepare(p,c,h)
+    local ready,why=Avatar.prepareDummy(p,c,h,123)
     assert(ready and c:FindFirstChild('Head')~=old and why and why:find('88') and why:find('mood StringValue'),
         'Mood error was silent, discarded the native head, or locked gameplay')
     assert(loaded.destroyed and c:GetAttribute('FunCombatMoodClipId')==0,'Malformed package leaked or became a playable ID')
@@ -302,7 +302,7 @@ check('hosted mood data cannot bring executable descendants into the live charac
         local script=node('Script','Untrusted');script.Parent=weight
         return asset
     end
-    local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+    local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
     local mood=c:FindFirstChild('Animate'):FindFirstChild('mood')
     assert(not mood:FindFirstChild('Untrusted',true) and mood:FindFirstChild('Weight',true).Value==10 and asset.destroyed,
         'Hosted executable data escaped sanitization or original weighting was lost')
@@ -312,7 +312,7 @@ check('a late hosted mood after respawn cannot update the old head and releases 
     AssetService.LoadAssetAsync=function(...) pending=coroutine.running();coroutine.yield();asset=load(...);return asset end
     local originalWait=wait
     wait=function(s) now+=s or 0.05;p.Character=node('Model','NewCharacter');p.Character.Parent=true end
-    local ready=Avatar.prepare(p,c,h);wait=originalWait
+    local ready=Avatar.prepareDummy(p,c,h,123);wait=originalWait
     assert(not ready and pending,'Respawn did not cancel mood initialization')
     assert(coroutine.resume(pending));assert(asset.destroyed and c:GetAttribute('FunCombatMoodClipId')==0,
         'Late mood changed the old character or leaked the package')
@@ -320,13 +320,13 @@ end)
 check('a slow mood request releases gameplay and rejects its late completion',function()
     local p,c,h=fixture(true);local load=AssetService.LoadAssetAsync;local pending,asset
     AssetService.LoadAssetAsync=function(...) pending=coroutine.running();coroutine.yield();asset=load(...);return asset end
-    local ready,why=Avatar.prepare(p,c,h)
+    local ready,why=Avatar.prepareDummy(p,c,h,123)
     assert(ready and why and why:find('mood package 88') and now<=108.1,'Mood request locked gameplay or gave an unrelated timeout')
     assert(coroutine.resume(pending));assert(asset.destroyed and c:GetAttribute('FunCombatMoodClipId')==0,'Late mood mutated the bound character')
 end)
 check('a missing original Neck prevents a destructive head swap',function()
     local p,c,h,old,neck,_,_,_,donor=fixture(true);neck:Destroy()
-    local ready,why=Avatar.prepare(p,c,h)
+    local ready,why=Avatar.prepareDummy(p,c,h,123)
     assert(ready and c:FindFirstChild('Head')==old and why and why:find('Neck is missing') and donor().destroyed,
         'A missing original connection destroyed the old head or hid the actual error')
 end)
@@ -335,7 +335,7 @@ check('old facial Bones are not grafted into the native head as gameplay attachm
         local p,c,h,old=fixture(true)
         local bone=node('Bone',name);bone.Parent=old
         local nested=node('Bone','OldFacialSubtree');nested.Parent=bone
-        local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+        local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
         local head=c:FindFirstChild('Head')
         assert(head:FindFirstChild('OriginalFacialBone') and not head:FindFirstChild('OldFacialSubtree',true)
             and not head:FindFirstChild('OldUniqueBone'),
@@ -348,7 +348,7 @@ check('gameplay attachments retain their prompts without bringing nested old fac
         local p,c,h,old,_,_,prompt=fixture(true)
         local attachment=node('Attachment',name);attachment.Parent=old;prompt.Parent=attachment
         local bone=node('Bone','NestedOldBone');bone.Parent=attachment
-        local ready,why=Avatar.prepare(p,c,h);assert(ready and not why,why)
+        local ready,why=Avatar.prepareDummy(p,c,h,123);assert(ready and not why,why)
         local head=c:FindFirstChild('Head')
         assert(prompt.Parent==head:FindFirstChild(name) and not head:FindFirstChild('NestedOldBone',true) and bone.destroyed,
             'Gameplay attachment lost its prompt or copied old facial bones into the genuine head')

@@ -52,7 +52,7 @@ local function sameFrame(a,want)
 end
 local methods={}
 local function node(class,name)
-    local props={Name=name or class,ClassName=class,children={},attributes={},ChildAdded=signal(),AncestryChanged=signal(),
+    local props={Name=name or class,ClassName=class,children={},attributes={},ChildAdded=signal(),ChildRemoved=signal(),AncestryChanged=signal(),
         CFrame=frame(),Transform=frame(),Enabled=true,Archivable=true,Size={Y=2},Health=100}
     local object={kind="Instance",props=props}
     return setmetatable(object,{__index=function(_,key) return methods[key] or props[key] end,

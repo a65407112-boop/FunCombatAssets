@@ -5,6 +5,12 @@ return function(ctx)
     local prompts,names={},{}
     for logical,definition in pairs(ctx.identifiers.prompts) do names[definition.name]={logical=logical,definition=definition} end
     for name,definition in pairs(ctx.identifiers.mapPrompts or {}) do names[name]={logical="nativeWall",definition=definition} end
+    local readableNames={}
+    for name,entry in pairs(names) do
+        local readable=ctx.identifiers.objectNames and ctx.identifiers.objectNames[name]
+        if readable then readableNames[readable]=entry end
+    end
+    for name,entry in pairs(readableNames) do names[name]=entry end
     local module={}
     local function characterOf(prompt)
         local parent=prompt.Parent

@@ -1,14 +1,12 @@
-# Protocol 5 release changes
+# Native blocky R6 and runtime names
 
-This release replaces the protocol-4 stored-rig/native-constructor layout. Publish the whole new place and join a fresh server before loading the matching client.
+- Remove the saved StarterCharacter; enable native R6 appearance and dynamic heads.
+- Strip only non-head R6 CharacterMesh body packages, including late arrivals.
+- Preserve current player morph/head/facial data instead of refetching account appearance.
+- Keep native Animate and morph-owned tracks; retain fallback for characters without it.
+- Rebind in-place R6 body changes without teleporting, losing weapon/cooldown or retiring the live character permanently.
+- Retain all 338 map/environment models and save the two distinct NPC templates.
+- Use opaque saved names; restore normal client-visible names only when the external loader runs, including late replication and reload cleanup.
+- Preserve opaque map properties/references through binary roundtrip and keep manifest/server build identities matched.
 
-- One saved original StarterCharacter outside original map/environment; both distinct original NPC rigs reconstruct at runtime.
-- Original Crossroads is saved once and cloned into a pristine runtime voting template; the other source map remains.
-- All 129 presentation packages and 47 animations remain external. Six original native packages use local RBXMX import; no replicated constructor fallback remains.
-- Opaque saved names, prompt labels, stats, game attributes, presentation keys and packed server sources use public consistent bindings. Required engine/Kohl names remain.
-- Native dynamic head handling remains. R6 body normalization keeps individual torso/limb colors instead of destroying synchronized BodyPartDescription colors.
-- Protocol 5 codecs preserve authoritative state, late joins, respawns and local-readable labels. Manual diagnostics show readable fields; dummy diagnostics use forward server attribute aliases.
-- Existing carry, observer locomotion, voting and silent dummy-success behavior remain.
-- Builder archives are written atomically, file membership is deterministic, and the original source is retained unchanged.
-
-21 offline suites, 44 generated/client script compiles, 23 embedded source compiles and full archive reproduction passed. No Roblox engine, executor rendering, hosted permissions, PC/phone or legacy-client test ran. Geometry was not inspected. Obfuscation is reversible and is not a moderation or secrecy guarantee.
+Base: repository server at c10245231cc4decc05cc3b8f7cfa7ec7a9a92986. The reattached FunCombat_Renamed.rbxl was unavailable. Roblox Studio/multiplayer/dynamic-head rendering have not been run here.

@@ -142,8 +142,8 @@ return function(ctx)
         mood(record);diagnostic(record)
         if next(record.pending) then schedule(record) end
     end
-    local function remove(character)
-        retired[character]=true
+    local function remove(character,rebind)
+        retired[character]=not rebind or nil
         local record=characters[character]
         if record then characters[character]=nil;record.scope:destroy() end
     end
@@ -188,7 +188,7 @@ return function(ctx)
         if character then attach(character,players:GetPlayerFromCharacter(character)) end
     end))
     for character in pairs(ctx.state:all()) do attach(character,players:GetPlayerFromCharacter(character)) end
-    scope:add(ctx.network:on("Remove",function(data) if data.character then remove(data.character) end end))
+    scope:add(ctx.network:on("Remove",function(data) if data.character then remove(data.character,data.rebind) end end))
     local module={}
     function module:destroy() scope:destroy();characters={};owners={} end
     return module

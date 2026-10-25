@@ -36,6 +36,11 @@ assert(state:get(character)==nil,"Removed character returned from delayed event"
 local replacement=instance("Model","Respawn")
 state:update({character=replacement,revision=1,health=100})
 assert(state:get(replacement).health==100,"Respawn instance inherited old tombstone")
+network:dispatch("Remove",{character=replacement,revision=2,rebind=true})
+state:update({character=replacement,revision=1,health=20})
+assert(state:get(replacement)==nil,"A pre-morph state crossed the rebind revision fence")
+state:update({character=replacement,revision=3,health=90})
+assert(state:get(replacement) and state:get(replacement).health==90,"Morph rebind permanently retired the same live character")
 print("Client runtime: buffer, snapshot ordering, build mismatch, encoding and respawn/removal checks passed")
 network:destroy()
 protocol.eventIds.Error="encoded-error"

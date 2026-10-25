@@ -9,6 +9,8 @@ return function(ctx)
     local function find(parent,name,class)
         repeat
             local child=parent:FindFirstChild(name)
+            local readable=ctx.identifiers and ctx.identifiers.objectNames and ctx.identifiers.objectNames[name]
+            if not child and readable then child=parent:FindFirstChild(readable) end
             if child then assert(child:IsA(class),"Wrong protocol class: "..name);return child end
             wait(0.05)
         until tick()>=deadline or ctx.cleanup.dead
@@ -50,7 +52,7 @@ return function(ctx)
         return function() group[callback]=nil end
     end
     function module:dispatch(kind,data)
-        if kind=="Remove" and data.character then removedCharacters[data.character]=true end
+        if kind=="Remove" and data.character then removedCharacters[data.character]=not data.rebind or nil end
         if kind=="Error" and not self:reportError(data) then return end
         for callback in pairs(listeners[kind] or {}) do
             local ok,why=pcall(callback,data)

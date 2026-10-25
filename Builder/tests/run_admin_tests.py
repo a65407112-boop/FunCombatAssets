@@ -109,9 +109,10 @@ end
 local function rig(name)
     local c=node('Model',name or 'Rig');local root=node('Part','HumanoidRootPart');root.Parent=c;root.Anchored=false
     local torso=node('Part','Torso');torso.Parent=c;local head=node('Part','Head');head.Parent=c
+    for _,name in ipairs({'Left Arm','Right Arm','Left Leg','Right Leg'}) do local part=node('Part',name);part.Parent=c end
     local hum=node('Humanoid');hum.Parent=c;hum.HealthChanged=signal();hum.Died=signal();hum.WalkSpeed=16;hum.JumpPower=50;hum.JumpHeight=7.2;hum.MaxHealth=100
     function hum:ApplyDescriptionAsync(desc) self.appliedUserId=desc.userId end
-    for _,part in ipairs({root,torso,head}) do part.Touched=signal();function part:SetNetworkOwner(owner) self.networkOwner=owner end end
+    for _,part in ipairs(c:GetChildren()) do if part:IsA('BasePart') then part.Touched=signal();function part:SetNetworkOwner(owner) self.networkOwner=owner end end end
     return c
 end
 local function dummyWorld(owner)

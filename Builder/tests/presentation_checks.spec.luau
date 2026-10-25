@@ -152,6 +152,22 @@ check("local lean retains original input direction rather than a remote velocity
     assert(math.abs(joint.C0[9]+math.sin(0.065))<0.00001,'Local authored lean changed to the root velocity direction')
     characters:destroy();ctx.cleanup:destroy()
 end)
+check("native Animate and morph-owned tracks survive external combat startup",function()
+    local ctx=context();ctx.animations=animationsFactory(ctx);local c,hum=walkingFigure(ctx,false)
+    local animate=node('LocalScript','Animate');animate.Disabled=false;animate.Parent=c
+    local animation=node('Animation','MorphIdle');animation.AnimationId='rbxassetid://987654'
+    local native=hum:LoadAnimation(animation);native:Play()
+    local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)
+    assert(not animate.Disabled,'External client disabled native Animate and its facial controller')
+    assert(not native.stopped,'External client stopped a native or morph-owned track')
+    local count=0
+    for _,track in ipairs(hum:GetPlayingAnimationTracks()) do
+        if track.Animation.AnimationId=='fixture-original-gait' then count+=1 end
+    end
+    assert(count==0,'External client duplicated native locomotion with its fallback')
+    characters:destroy();assert(not animate.Disabled and not native.stopped,'Cleanup touched native animation ownership')
+    ctx.cleanup:destroy()
+end)
 check("original facial mood loads and continues under a full-body combat lock",function()
     local ctx=context();ctx.animations=animationsFactory(ctx);local c,_,tracks=walkingFigure(ctx,false)
     local characters=charactersFactory(ctx);run.Heartbeat:fire(0.016)

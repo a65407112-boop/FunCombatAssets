@@ -16,6 +16,18 @@ local function timeNow() return tick() end
 local function cancelConnections(list) for _,v in ipairs(list) do v:Disconnect() end end
 local function owner(root,player) if root and root.Parent and not root.Anchored then pcall(function() root:SetNetworkOwner(player) end) end end
 local function delay(seconds,fn) coroutine.wrap(function() wait(seconds);fn() end)() end
+local requiredParts={"HumanoidRootPart","Torso","Head","Left Arm","Right Arm","Left Leg","Right Leg"}
+local partNames={}
+for _,name in ipairs(requiredParts) do partNames[name]=true end
+local function completeParts(character)
+    local parts={}
+    for _,name in ipairs(requiredParts) do
+        local part=character:FindFirstChild(name)
+        if not part or not part:IsA("BasePart") then return nil end
+        parts[name]=part
+    end
+    return parts
+end
 function C.new(protocol,templates)
     local self=setmetatable({protocol=protocol,templates=templates,records={},players={},gates={},snapshotGates={},
         holds={},dummyOwners={},noRespawn={},connections={},epoch=0,ready=false},C)
@@ -29,7 +41,7 @@ function C:emit(kind,data,player)
     local id=assert(self.protocol.config.events[eventIndex[kind]],"Unknown presentation")
     if player then self.event:FireClient(player,id,data) else self.event:FireAllClients(id,data) end
 end
-function C:alive(r) return r and self.records[r.character]==r and r.character.Parent~=nil and r.humanoid.Health>0 and not r.removed end
+function C:alive(r) return r and self.records[r.character]==r and r.character.Parent~=nil and r.humanoid.Health>0 and not r.removed and not r.refreshing and not r.rigMissing end
 function C:view(r)
     if not r then return nil end
     local now=timeNow()
@@ -156,33 +168,83 @@ function C:release(interaction)
         end
     end
 end
-function C:remove(character)
+function C:remove(character,rebind)
     if self.world then self.world.teleports[character]=nil end
     local r=self.records[character]
     if not r or r.removed then return end
     if r.interaction then self:release(r.interaction) end
     if r.carrying then self:drop(r) end
     if r.carriedBy then self:drop(r.carriedBy) end
+    if r.wallBounce or r.wallUntil then
+        if r.root and r.root.Parent then r.root.Anchored=false end
+        r.wallBounce=false;r.wallUntil=nil
+    end
     self:cancelAttack(r);self:clearHolds(character)
     r.removed=true;cancelConnections(r.connections);Ragdoll.remove(character)
     self.records[character]=nil
     if r.player and self.players[r.player]==r then self.players[r.player]=nil end
     if self.dummyOwners[character] then self.dummyOwners[character]=nil end
-    self:emit("Remove",{character=character,revision=r.revision+1})
+    self:emit("Remove",{character=character,revision=r.revision+1,rebind=rebind==true})
 end
-function C:bind(character,player,displayName)
+function C:refreshRig(r)
+    if r.removed or r.refreshing then return end
+    r.refreshing=true
+    coroutine.wrap(function()
+        wait(0.05)
+        local deadline=timeNow()+5
+        repeat
+            local character=r.character
+            if r.removed or not character.Parent or (r.player and r.player.Character~=character) then return end
+            local humanoid=character:FindFirstChildOfClass("Humanoid")
+            local complete,changed=true,humanoid~=r.humanoid
+            for _,name in ipairs(requiredParts) do
+                local part=character:FindFirstChild(name)
+                if not part or not part:IsA("BasePart") then complete=false end
+                if part~=r.parts[name] then changed=true end
+            end
+            r.rigMissing=not complete or not humanoid
+            if complete and humanoid and humanoid.Health>0 then
+                if changed then
+                    local dummyOwner=self.dummyOwners[character]
+                    self:remove(character,true)
+                    local current=self:bind(character,r.player,r.displayName,r)
+                    if current then
+                        if dummyOwner then self.dummyOwners[character]=dummyOwner end
+                        if r.ragdolled then self:setRagdoll(current,true) end
+                    else self:emit("Remove",{character=character,revision=r.revision+2})
+                    end
+                else r.refreshing=false end
+                return
+            end
+            wait(0.05)
+        until timeNow()>=deadline
+        r.refreshing=false
+    end)()
+end
+function C:bind(character,player,displayName,previous)
     if self.records[character] then return self.records[character] end
     local hum=character:FindFirstChildOfClass("Humanoid")
     local root=character:FindFirstChild("HumanoidRootPart")
     local torso=character:FindFirstChild("Torso")
-    if not hum or not root or not torso then return nil,"The source requires a complete R6 character" end
+    local parts=completeParts(character)
+    if not hum or not parts then return nil,"The source requires a complete R6 character" end
     if hum.Health<=0 then return nil,"A dead R6 character cannot initialize gameplay" end
     self.epoch=self.epoch+1
     local r={character=character,player=player,displayName=displayName or (player and player.DisplayName) or character.Name,
         humanoid=hum,root=root,torso=torso,revision=0,animationRevision=0,connections={},attacks={},prompts={},
         weapon="",downed=false,ragdolled=false,busy=false,awakened=false,stunUntil=0,ragdollUntil=0,
         getUpCount=0,nextGetUp=0,nextSwing=0,nextDash=0,nextEquip=0,combo=1,lastSwing=-100,
-        walkSpeed=hum.WalkSpeed,jumpPower=hum.JumpPower,jumpHeight=hum.JumpHeight,regenAt=timeNow()+1,epoch=self.epoch,funMeter=0}
+        walkSpeed=hum.WalkSpeed,jumpPower=hum.JumpPower,jumpHeight=hum.JumpHeight,regenAt=timeNow()+1,epoch=self.epoch,funMeter=0,parts={}}
+    r.parts=parts
+    if previous then
+        for _,key in ipairs({"weapon","awakened","downed","stunUntil","nextSwing","nextDash","nextEquip","lastSwing","combo","nextInteraction","getUpCount"}) do
+            r[key]=previous[key]
+        end
+        r.revision=previous.revision+1;r.animationRevision=previous.animationRevision+1
+        if hum==previous.humanoid then
+            r.walkSpeed=previous.walkSpeed;r.jumpPower=previous.jumpPower;r.jumpHeight=previous.jumpHeight
+        end
+    end
     self.records[character]=r
     if player then self.players[player]=r end
     hum.BreakJointsOnDeath=false;hum.RequiresNeck=false
@@ -233,6 +295,12 @@ function C:bind(character,player,displayName)
         if not player and self.dummyOwners[character] then delay(5,function() if character.Parent then character:Destroy() end end) end
     end)
     r.connections[#r.connections+1]=character.AncestryChanged:Connect(function(_,parent) if not parent then self:remove(character) end end)
+    local function bodyChanged(child)
+        if player and child:IsA("CharacterMesh") then Avatar.blocky(character);return end
+        if child:IsA("Humanoid") or (child:IsA("BasePart") and partNames[child.Name]) then self:refreshRig(r) end
+    end
+    r.connections[#r.connections+1]=character.ChildAdded:Connect(bodyChanged)
+    r.connections[#r.connections+1]=character.ChildRemoved:Connect(bodyChanged)
     for _,part in ipairs(character:GetChildren()) do
         if part:IsA("BasePart") then
             r.connections[#r.connections+1]=part.Touched:Connect(function(other)
@@ -240,7 +308,7 @@ function C:bind(character,player,displayName)
             end)
         end
     end
-    if self.world and player then self.world:spawn(r) end
+    if self.world and player and not previous then self.world:spawn(r) end
     if not player then owner(root,nil) end
     self:publish(r)
     return r
@@ -596,11 +664,10 @@ function C:bindPlayer(player)
                 if player.Character~=character or not player.Parent then return end
                 -- CharacterAdded precedes parenting to Workspace. Parent=nil
                 -- here means the new body is still mounting, not cancellation.
-                if character:IsDescendantOf(workspace) and character:FindFirstChildOfClass("Humanoid") and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Torso") then
+                if character:IsDescendantOf(workspace) and character:FindFirstChildOfClass("Humanoid") and completeParts(character) then
                     local humanoid=character:FindFirstChildOfClass("Humanoid")
                     local initialRoot=character:FindFirstChild("HumanoidRootPart")
-                    -- ApplyDescription can yield and rebuild the neck. Stage the
-                    -- original body on its map before allowing either operation.
+                    -- Mount the complete native R6 body before placing/binding it.
                     humanoid.RequiresNeck=false;humanoid.BreakJointsOnDeath=false
                     initialRoot.Anchored=true
                     local placed,spawnError
@@ -636,7 +703,7 @@ function C:bindPlayer(player)
                 end
                 wait(0.05)
             until timeNow()>=deadline
-            local why="R6 character did not enter Workspace with Humanoid, HumanoidRootPart and Torso within 10 seconds"
+            local why="R6 character did not enter Workspace with Humanoid and all seven R6 body parts within 10 seconds"
             self:emit("Error",{text=why,character=character,userId=player.UserId},player)
             warn("FunCombat character initialization: "..player.Name..": "..why)
         end)()

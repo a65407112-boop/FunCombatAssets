@@ -37,6 +37,28 @@ assert(kills.Name=='opaque_kills' and done.Name=='opaque_completions','Cleanup f
 local nextCtx={identifiers=ctx.identifiers};nextCtx.cleanup=Cleanup(nextCtx)
 local nextModule=Labels(nextCtx);assert(kills.Name=='Kills' and done.Name=='Completions','Rerun duplicated or lost local labels')
 nextModule:destroy()
+local world=observed('Model','opaque_map');world.Parent=true
+local part=observed('Part','opaque_part');part.Parent=world
+local root=observed('DataModel','game');root.Parent=true
+world.Parent=root
+root.DescendantAdded=signal()
+function game:GetDescendants() return root:GetDescendants() end
+game.DescendantAdded=root.DescendantAdded
+local identifiers={stats=ctx.identifiers.stats,objectNames={opaque_map='Crossroads',opaque_part='Wall'}}
+local mapCtx={identifiers=identifiers};mapCtx.cleanup=Cleanup(mapCtx)
+local mapLabels=Labels(mapCtx)
+assert(world.Name=='Crossroads' and part.Name=='Wall','Loader did not restore saved map/object names')
+local laterPart=observed('Part','opaque_part');laterPart.Parent=world
+root.DescendantAdded:fire(laterPart)
+assert(laterPart.Name=='Wall','Late map descendant kept its opaque saved name')
+part.Name='CustomMorphName'
+mapLabels:destroy()
+assert(world.Name=='opaque_map' and laterPart.Name=='opaque_part','Unload did not restore aliases for loader reexecution')
+assert(part.Name=='CustomMorphName','Unload overwrote a name changed by another morph/script')
+local rerun={identifiers=identifiers};rerun.cleanup=Cleanup(rerun)
+local labelsAgain=Labels(rerun)
+assert(world.Name=='Crossroads' and laterPart.Name=='Wall','Repeated loader could not restore map names')
+labelsAgain:destroy()
 print('Labels: late stats, late players, unchanged values, cleanup and reexecution passed')
 '''
 with tempfile.TemporaryDirectory(dir=ROOT.parent) as d:

@@ -155,22 +155,22 @@ return function(ctx)
                 table.insert(record.animations[mode], {instance = animation, weight = entry.weight or 1})
             end
         end
-        local function disableDefault(child)
-            if child:IsA("LocalScript") and child.Name == "Animate" and record.animate[child] == nil then
-                if child:GetAttribute("0bc3bbc6f0b3")==true then return end
-                record.animate[child] = child.Disabled
-                child.Disabled = true
-            end
+        local function refreshNative()
+            local animate=character:FindFirstChild("Animate")
+            record.native=animate and animate:IsA("LocalScript") and not animate.Disabled
+                and animate:GetAttribute("0bc3bbc6f0b3")~=true or false
+            if record.native then stop(record) end
         end
-        for _, child in ipairs(character:GetChildren()) do disableDefault(child) end
-        localScope:add(character.ChildAdded:Connect(disableDefault))
-        pcall(function()
+        record.refreshNative=refreshNative
+        refreshNative()
+        localScope:add(character.ChildAdded:Connect(refreshNative))
+        if not record.native then pcall(function()
             for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
                 if not ctx.animations:ownsTrack(track)
                     and not (record.remote and isLocomotionTrack(record,track))
                     and not (moodId(character)>0 and trackId(track)==moodId(character)) then track:Stop(0.1) end
             end
-        end)
+        end) end
         localScope:add(humanoid.Running:Connect(function(speed) record.speed = speed; record.pose = speed > 0.01 and "Running" or "Standing" end))
         localScope:add(humanoid.Jumping:Connect(function(active) if active then record.pose = "Jumping"; record.jumpUntil = tick() + 0.3 end end))
         localScope:add(humanoid.Climbing:Connect(function(speed) record.pose = "Climbing"; record.speed = speed end))
@@ -202,7 +202,8 @@ return function(ctx)
                     updateMood(record)
                 end
                 local locked = state.downed or state.ragdolled or state.stunned or state.carriedBy or ctx.animations:blocksLocomotion(character)
-                if locked or record.humanoid.Health <= 0 then stop(record)
+                record.refreshNative()
+                if locked or record.humanoid.Health <= 0 or record.native then stop(record)
                 else
                     -- Running may not fire again when a carry/physics lock ends,
                     -- and remote server-owned characters can keep a stale speed.

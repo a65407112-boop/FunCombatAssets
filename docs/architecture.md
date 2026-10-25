@@ -1,23 +1,33 @@
-# Устройство protocol 5
+# Устройство layout 6
 
-Builder читает исходный Roblox DOM, экспортирует оригинальное клиентское представление и сохраняет карты, физику, спавны и серверные зависимости. Geometry/CSG/mesh payloads передаются как непрозрачные исходные данные без исследования геометрии. SHA256 исходника проверяется до и после сборки. Компактная финализация находится в Builder/compact.py; --classic-layout предназначен только для сравнения предыдущей компоновки.
+См. [native-r6.md](native-r6.md) для персонажей и переименования.
 
-Вне карты/окружения сохранён один Model — оригинальный StarterCharacter. Его Humanoid, R6-части, шесть суставов и обязательные native имена сохранены. Исходные DUMMY и DummyRig экспортируются отдельно в типизированный RigData и создаются RigFactory во время игры. Factory восстанавливает родителей и ссылки; отказ обязательной части/сустава уничтожает все частично созданные Instances. Runtime player/NPC Models ожидаемы.
+Сервер хранит исходные карты/окружение, spawn/физику, два NPC-шаблона и
+авторитетные модули боя. Удалён собственный player StarterCharacter. Внешний
+клиент загружает оригинальные 129 presentation packages и 47 анимаций.
 
-Crossroads сохранена один раз в Workspace. World создаёт её чистый шаблон в серверном хранилище перед запуском голосования; другой оригинальный вариант карты остаётся сохранён. Выбор карты и очистка действуют на реальные игровые карты и не удаляют персонажей. CharacterAdded ожидает mounting актуального полного R6-тела до десяти секунд, затем применяет исходный spawn и освобождает root.
+Policy/CombatServer проверяют запросы, состояние, дистанции, цели, cooldown и
+hit windows. Сервер определяет результаты, carry/drop, финальные атаки,
+awakening, ragdoll и взаимодействия. World/Voting определяют карты и погоду.
+Snapshots и broadcasts передают общие состояния, Instance-ссылки и серверное
+время. WireCodec сохраняет протокол закодированных resource keys.
 
-Policy и CombatServer проверяют намерения, состояние, дистанции, цели, ownership, задержки и hit windows. Сервер определяет урон, stun/counter, cooldown, downing/recovery, carry/drop, исполнения, awakening, парные состояния и результаты. PairSystem сохраняет исходные варианты и пороги шкалы. World/Voting ведут общие объекты, погоду и голосование. ProximityPrompt сохраняют реальные исходные положения, клавиши, дальности и удержание; сервер повторяет необходимые проверки.
+Сеть protocol 5 требует точного buildId. Layout 6 меняет устройство плейса и
+жизненный цикл морфов. Remove с rebind=true очищает прежнее представление,
+но допускает новое состояние того же Model с revision выше установленного
+порога. Окончательное удаление остаётся tombstone для запоздалых событий.
 
-Combat-сеть состоит из запроса RemoteEvent, presentation RemoteEvent и snapshot RemoteFunction с закодированными именами. Version/buildId проверяются до запуска. WireCodec кодирует внешние resource keys и имена карт, сохраняет Instance identity и ограничивает размер/глубину входных действий. Клиент декодирует snapshot и broadcasts, буферизует события во время bootstrap и восстанавливает состояние периодическим snapshot. Выход и респавн освобождают взаимодействия, anchors, welds и эффекты.
+Все обычные сохранённые имена непрозрачны; внешний клиент восстанавливает
+readable labels локально. Engine-контейнеры и обязательные настройки Kohl
+сохраняют upstream-имена. Это обратимые публичные привязки, а не шифрование.
 
-Имена сохранённых неслужебных объектов/модулей, prompt labels, stats и игровые атрибуты имеют согласованные публичные bindings. Leaderstats и обязательные имена Roblox остаются обычными. Client labels восстанавливает понятные Kills/Killstreak/Completions локально, включая поздних игроков; cleanup возвращает исходные bindings. Server Sources используют обратимый пул литералов и компактный текст без VM/loadstring. Semantic roundtrip проверяет смысл токенов до/после упаковки. Эти изменения не заменяют серверную авторизацию и не дают секретности.
+Builder/native_r6_upgrade.py читает literal-only данные существующего сервера,
+сохраняет два разных NPC как настоящие Model-шаблоны и обновляет runtime-модули.
+Сериализованные имена/типы свойств новых частей берутся из исходной binary
+schema, чтобы не изменить общие таблицы свойств карты. Хеши непрозрачных
+свойств и структурных ссылок карт сравниваются до/после binary roundtrip.
+Builder/build.py применяет этот шаг после исходного экспорта при полной сборке.
 
-Внешние JSON-пакеты восстанавливают Instances, свойства, родителей и ссылки. Все шесть пакетов с native MeshPart/UnionOperation/SurfaceAppearance загружаются из оригинального RBXMX через writefile, getcustomasset/getsynasset и настоящий local getobjects/Game:GetObjects. Source node markers проверяют ID, класс, имя и родителя, затем удаляются. Доступные оригинальные свойства/ссылки применяются; защищённые mesh/PBR данные сохраняются из native импорта. Replicated constructor folders удалены. Импорт ограничен deadline; запоздалый результат отменённой загрузки уничтожается.
-
-Preload проверяет возможности executor и готовит ресурсы до боевого ввода. AnimationPlayer применяет оригинальные Pose.CFrame по серверному времени после Animator; при отсутствии PreSimulation используется Stepped с предупреждением. Верхние позы без движения ног оставляют походку; authored full-body позы остаются полными. Наблюдатель сохраняет реплицированную походку и убирает только собственный fallback. R6 хват использует оригинальный Tool.Grip. Carry сохраняет управление carrier и отключает конфликтующую state machine жертвы до drop/cleanup.
-
-Avatar сохраняет Head/Face/MoodAnimation, metadata и отдельные цвета torso/конечностей. BodyPartDescription остаются с Color; меняются только body asset/instance bindings для R6. Настоящая голова из изолированного native donor подключается к исходному телу с переподключением Neck/hair/attachments/prompts. Classic визуальные потомки не закрывают native head. Mood package разрешается в настоящий Animation child; native track сохраняется, fallback освобождается после его появления. User-ID dummy использует тот же путь. Avatar_content наблюдает реальные ссылки и поздние изменения, ограничивает preload и очищает старое поколение.
-
-AdminAccess проверяет опубликованного creator и явно настроенного owner 11556197791. Group lookup имеет deadline и закрытый доступ при ошибке. Оригинальный hosted Kohl 1868400649 запускается с native Settings/Custom Commands и legacy selector; :dummy/:spawndummy ведут к проверенному server-only bridge. Hosted код не содержится полностью в исходнике и может создавать собственные runtime UI/remotes. In-flight hosted require нельзя отменить полностью; live доступность отдельно не подтверждена.
-
-Original scripts в source/scripts сохранены для просмотра и не исполняются loader. Рабочие адаптации находятся в Builder/templates/server и client. Diagnose и dummy probe остаются самостоятельными ручными скриптами. Отчёт отделяет статические/API-double проверки от отсутствующих Roblox/PC/phone/старых-client/hosted-permission тестов.
+Админ-доступ, hosted Kohl dependency, client asset import и ограниченные
+ожидания остаются в существующих модулях. Инструменты diagnose.lua и
+diagnose_dummy.lua запускаются вручную и поддерживают восстановленные имена.

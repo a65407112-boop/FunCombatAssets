@@ -1,5 +1,11 @@
 -- Reconstruct the two distinct source rigs; no saved NPC Model is required.
 local F={}
+function F.clone(template,aliases)
+    local model=assert(template:Clone(),"Saved NPC template cannot be cloned")
+    for _,item in ipairs(model:GetDescendants()) do item.Name=aliases[item.Name] or item.Name end
+    model.Name=aliases[model.Name] or model.Name
+    return model
+end
 local reported={}
 local allowed={Model=true,Part=true,Humanoid=true,Motor6D=true,Weld=true,WeldConstraint=true,
     Attachment=true,SpecialMesh=true,BodyColors=true,Decal=true,BoolValue=true,StringValue=true,NumberValue=true,IntValue=true,Folder=true}

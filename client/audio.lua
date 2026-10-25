@@ -95,7 +95,7 @@ return function(ctx)
     end))
     scope:add(ctx.network:on("Sound", function(data) module:play(data) end))
     scope:add(ctx.network:on("Remove", function(data)
-        if data and data.character then removed[data.character] = true; module:stop(data.character) end
+        if data and data.character then removed[data.character] = not data.rebind or nil; module:stop(data.character) end
     end))
     scope:add(function() alive = false end)
     function module:destroy() scope:destroy() end

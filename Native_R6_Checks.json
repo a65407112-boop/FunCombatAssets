@@ -1,0 +1,239 @@
+{
+  "passed": true,
+  "protocolVersion": 5,
+  "layoutVersion": 6,
+  "buildId": "f482ff99012fc0fc13c56d7a",
+  "baseServerSha256": "ede359d212e1286a95b77f4231567974f0099e6f63815db8ec484ad978d4e12a",
+  "serverSha256": "b9a9911526860eecc3c1d44716ac4fe35229423bcc9c94caa21cf8e9445b256d",
+  "sourceAttachmentAvailable": false,
+  "serverInstances": 20802,
+  "mapEnvironmentModelsBefore": 338,
+  "mapPayloadsUnchanged": true,
+  "mapRoots": 6,
+  "savedPlayerCharacterModels": 0,
+  "savedNpcTemplates": 2,
+  "renamableNamesOpaque": true,
+  "runtimeObjectLabels": 878,
+  "requiredEngineOrUpstreamNames": [
+    {
+      "class": "Workspace",
+      "name": "Workspace"
+    },
+    {
+      "class": "Terrain",
+      "name": "Terrain"
+    },
+    {
+      "class": "TimerService",
+      "name": "TimerService"
+    },
+    {
+      "class": "SoundService",
+      "name": "SoundService"
+    },
+    {
+      "class": "VideoCaptureService",
+      "name": "VideoCaptureService"
+    },
+    {
+      "class": "NonReplicatedCSGDictionaryService",
+      "name": "NonReplicatedCSGDictionaryService"
+    },
+    {
+      "class": "CSGDictionaryService",
+      "name": "CSGDictionaryService"
+    },
+    {
+      "class": "Chat",
+      "name": "Chat"
+    },
+    {
+      "class": "Players",
+      "name": "Players"
+    },
+    {
+      "class": "ReplicatedFirst",
+      "name": "ReplicatedFirst"
+    },
+    {
+      "class": "TweenService",
+      "name": "TweenService"
+    },
+    {
+      "class": "MaterialService",
+      "name": "MaterialService"
+    },
+    {
+      "class": "TextChatService",
+      "name": "TextChatService"
+    },
+    {
+      "class": "PermissionsService",
+      "name": "PermissionsService"
+    },
+    {
+      "class": "PlayerEmulatorService",
+      "name": "PlayerEmulatorService"
+    },
+    {
+      "class": "StudioData",
+      "name": "StudioData"
+    },
+    {
+      "class": "StarterPlayer",
+      "name": "StarterPlayer"
+    },
+    {
+      "class": "StarterPlayerScripts",
+      "name": "StarterPlayerScripts"
+    },
+    {
+      "class": "StarterCharacterScripts",
+      "name": "StarterCharacterScripts"
+    },
+    {
+      "class": "StarterPack",
+      "name": "StarterPack"
+    },
+    {
+      "class": "StarterGui",
+      "name": "StarterGui"
+    },
+    {
+      "class": "LocalizationService",
+      "name": "LocalizationService"
+    },
+    {
+      "class": "TeleportService",
+      "name": "Teleport Service"
+    },
+    {
+      "class": "CollectionService",
+      "name": "CollectionService"
+    },
+    {
+      "class": "PhysicsService",
+      "name": "PhysicsService"
+    },
+    {
+      "class": "InsertService",
+      "name": "InsertService"
+    },
+    {
+      "class": "GamePassService",
+      "name": "GamePassService"
+    },
+    {
+      "class": "Debris",
+      "name": "Debris"
+    },
+    {
+      "class": "CookiesService",
+      "name": "CookiesService"
+    },
+    {
+      "class": "Selection",
+      "name": "Selection"
+    },
+    {
+      "class": "VRService",
+      "name": "VRService"
+    },
+    {
+      "class": "ContextActionService",
+      "name": "ContextActionService"
+    },
+    {
+      "class": "ScriptService",
+      "name": "ScriptService"
+    },
+    {
+      "class": "AssetService",
+      "name": "AssetService"
+    },
+    {
+      "class": "TouchInputService",
+      "name": "TouchInputService"
+    },
+    {
+      "class": "LuaWebService",
+      "name": "LuaWebService"
+    },
+    {
+      "class": "ProcessInstancePhysicsService",
+      "name": "ProcessInstancePhysicsService"
+    },
+    {
+      "class": "ReplicatedStorage",
+      "name": "ReplicatedStorage"
+    },
+    {
+      "class": "ServerScriptService",
+      "name": "ServerScriptService"
+    },
+    {
+      "class": "ModuleScript",
+      "name": "Settings"
+    },
+    {
+      "class": "ModuleScript",
+      "name": "Custom Commands"
+    },
+    {
+      "class": "ServerStorage",
+      "name": "ServerStorage"
+    },
+    {
+      "class": "ServiceVisibilityService",
+      "name": "ServiceVisibilityService"
+    },
+    {
+      "class": "HttpService",
+      "name": "HttpService"
+    },
+    {
+      "class": "Lighting",
+      "name": "Lighting"
+    },
+    {
+      "class": "LodDataService",
+      "name": "Instance"
+    },
+    {
+      "class": "ProximityPromptService",
+      "name": "ProximityPromptService"
+    },
+    {
+      "class": "Teams",
+      "name": "Teams"
+    },
+    {
+      "class": "TestService",
+      "name": "TestService"
+    },
+    {
+      "class": "UGCAvatarService",
+      "name": "UGCAvatarService"
+    },
+    {
+      "class": "VideoService",
+      "name": "VideoService"
+    },
+    {
+      "class": "VirtualInputManager",
+      "name": "VirtualInputManager"
+    },
+    {
+      "class": "VoiceChatService",
+      "name": "VoiceChatService"
+    }
+  ],
+  "robloxEngineTested": false,
+  "multiplayerTested": false,
+  "dynamicHeadRenderingTested": false,
+  "geometryInspected": false,
+  "referenceBaseCommit": "c10245231cc4decc05cc3b8f7cfa7ec7a9a92986",
+  "referenceServerSha256": "436789bc31c35e9e881280cec85d2106587e1998e19437f894e460ef1790defe",
+  "mapPayloadsMatchPublishedBaseline": true,
+  "serializedReferencesValid": true
+}

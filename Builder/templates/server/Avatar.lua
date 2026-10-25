@@ -1,6 +1,5 @@
--- Keep the source R6 combat body, with the user's actual head/face/accessories.
--- Generate the actual head on a fresh native R6 avatar, then attach it without
--- copying the classic template's mesh, decal or render state onto it.
+-- Players keep their engine/morph-owned avatars. The isolated head adapter below
+-- is used only when an administrator explicitly creates a user-ID NPC.
 local Players=game:GetService("Players")
 local A={}
 local function optionalCopy(from,to,key)
@@ -216,6 +215,7 @@ local function loadHead(character,description,valid)
     return moodCopy
 end
 local function prepare(player,character,humanoid,userId,playerCharacter)
+    local ownerCharacter=player.Character
     local done,safeToBind,complete,cancelled=false,true,false,false
     local failure,phase=nil,"Avatar description"
     local function diagnostic(message)
@@ -227,6 +227,7 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
     pcall(function() character:SetAttribute("FunCombatMoodClipId",0) end)
     local function valid()
         return not cancelled and player.Parent and character.Parent and humanoid.Health>0
+            and player.Character==ownerCharacter
             and (not playerCharacter or player.Character==character)
     end
     coroutine.wrap(function()
@@ -285,8 +286,19 @@ local function prepare(player,character,humanoid,userId,playerCharacter)
     diagnostic(failure)
     return complete,failure
 end
+function A.blocky(character)
+    for _,child in ipairs(character:GetChildren()) do
+        if child:IsA("CharacterMesh") and child.BodyPart~=Enum.BodyPart.Head then child:Destroy() end
+    end
+end
 function A.prepare(player,character,humanoid)
-    return prepare(player,character,humanoid,player.UserId,true)
+    -- Roblox and compatible morph systems own a player's current appearance.
+    -- Reapplying the account description here overwrites a morph and replaces
+    -- its head. Native R6 loading already supplies the head and facial data.
+    if not player.Parent or player.Character~=character or not character.Parent
+        or humanoid.Parent~=character or humanoid.Health<=0 then return false end
+    A.blocky(character)
+    return true
 end
 function A.prepareDummy(owner,character,humanoid,userId)
     humanoid.RequiresNeck=false;humanoid.BreakJointsOnDeath=false

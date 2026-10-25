@@ -62,12 +62,12 @@ print("Server lifecycle: dash cancellation, ragdoll ownership, release cleanup a
 avatar=(ROOT/'Builder/templates/server/Avatar.lua').read_text()
 header+='\nlocal function wait(seconds) now=now+(seconds or 0.05) end\nlocal A=(function()\n'+avatar+'\nend)()\n'
 header+='''
-local subject={Parent=true,UserId=123,Character={Parent=true}}
+local subject={UserId=123,Character={Parent=true}}
 local applied=false
 function Players:GetHumanoidDescriptionFromUserId() subject.Parent=nil;return {} end
 local ready=A.prepare(subject,subject.Character,{Health=100,ApplyDescription=function() applied=true end})
-assert(not ready and not applied,"Departed player was normalized/bound after asynchronous fetch")
-print("Avatar lifecycle: departed player continuation is cancelled")
+assert(not ready and not applied,"Departed player was accepted by native preparation")
+print("Avatar lifecycle: departed native player is rejected")
 '''
 with tempfile.TemporaryDirectory(dir=ROOT.parent) as tmp:
  f=Path(tmp)/'server.luau';f.write_text(header)
