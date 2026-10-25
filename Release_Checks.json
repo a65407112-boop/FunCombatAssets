@@ -177,5 +177,12 @@
     "fixedFindings": 2,
     "regressionSuite": "run_spawn_tests",
     "redGreenObserved": true
+  },
+  "publicationWorkflow": {
+    "offlineTestsPassed": 6,
+    "livePublicationTested": false,
+    "universeId": 10767751574,
+    "placeId": 80093785985728,
+    "independentReviewPassed": true
   }
 }

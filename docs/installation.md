@@ -7,6 +7,8 @@
 3. Зайдите в новый сервер. Каждый клиент запускает loader.lua из этого
    репозитория. Обычные имена и presentation восстанавливаются на этом клиенте.
 
+Для публикации готового файла с телефона см. [инструкцию GitHub Actions](mobile-publishing.md).
+
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?t=" .. tostring(os.time())))()
 ```
