@@ -183,7 +183,8 @@ return function(ctx)
         local assetFunction=getcustomasset or getsynasset
         assert(type(writefile)=="function" and type(assetFunction)=="function",
             "Original native model in "..key.." requires writefile and getcustomasset/getsynasset on this executor")
-        local path="funcombat_"..ctx.manifest.buildId.."_"..key:gsub("[^%w_]","_")..".rbxmx"
+        local extension=entry.modelFormat=="rbxm" and ".rbxm" or ".rbxmx"
+        local path="funcombat_"..ctx.manifest.buildId.."_"..key:gsub("[^%w_]","_")..extension
         writefile(path,ctx.http(entry.modelPath))
         local done,result,failure=false,nil,nil
         local timedOut=false
@@ -205,7 +206,7 @@ return function(ctx)
         timedOut=not done
         if type(delfile)=="function" then pcall(delfile,path) end
         assert(done and not failure and type(result)=="table",
-            "Original model deserialization failed for "..key..": "..tostring(failure or "timeout; executor must support local .rbxmx in GetObjects"))
+            "Original model deserialization failed for "..key..": "..tostring(failure or "timeout; executor must support local models in GetObjects"))
         if #result~=1 then
             for _,object in ipairs(result) do object:Destroy() end
             error("Original model returned "..#result.." roots: "..key)

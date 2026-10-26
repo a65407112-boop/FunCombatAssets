@@ -173,6 +173,7 @@ local ok, failure = pcall(function()
         ctx.load(name)
     end
     assert(not ctx.cancelled, "Initialization cancelled")
+    if ctx.world and ctx.world.activate then ctx.world:activate() end
     ctx.initialized=true
     print("[Fun Combat] External combat runtime initialized. Engine asset warnings, if any, are above.")
 end)

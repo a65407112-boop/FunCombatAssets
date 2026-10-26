@@ -1,0 +1,62 @@
+{
+  "passed": true,
+  "buildId": "546b84fb1ae8034bd4b68fb2",
+  "serverSha256": "0c5ae41880c96fc5b99a80f5bf7b772dde00c3452af9aa09a975a9cbfe269aee",
+  "baseServerSha256": "2c7d35ccaa89ff9fd8cd584d874f3f522d689eb140d52044afe253e0e8db1b30",
+  "serverInstances": 20812,
+  "exports": [
+    {
+      "key": "world/Crossroads",
+      "instances": 6514,
+      "bytes": 1965658,
+      "nativeTypesPreserved": true,
+      "scriptFree": true
+    },
+    {
+      "key": "world/OriginalMap",
+      "instances": 13970,
+      "bytes": 230705,
+      "nativeTypesPreserved": true,
+      "scriptFree": true
+    },
+    {
+      "key": "world/Environment",
+      "instances": 113,
+      "bytes": 150121,
+      "nativeTypesPreserved": true,
+      "scriptFree": true
+    }
+  ],
+  "collisionPartsPreserved": 4901,
+  "collisionGeometryUnchanged": true,
+  "eligibleNamesOpaque": true,
+  "unrelatedRuntimeSourcesUnchanged": true,
+  "morphBehaviorInspected": false,
+  "morphFilesChanged": false,
+  "nativeScalarPropertiesChecked": 6,
+  "robloxStudioTested": false,
+  "executorTested": false,
+  "multiplayerPhysicsTested": false,
+  "publishedToRoblox": false,
+  "changedScriptsCompiled": 9,
+  "nativePlayerSettingsUnchanged": true,
+  "roomBlockGeometryDecoded": true,
+  "offlineChecks": {
+    "exportUnitTests": 3,
+    "nativeScalarUnitTests": 6,
+    "publishWorkflowTests": 7,
+    "worldSessionAndVisibility": "passed",
+    "nativeMapImport": "passed",
+    "loaderRegressions": 4,
+    "localLabels": "passed",
+    "cancellationAndVisibilityMutations": 2
+  },
+  "review": {
+    "independentReviewCompleted": true,
+    "importantFindingsFixed": 2,
+    "fixes": [
+      "Guard cancelled requests and revoke stale loader session identities",
+      "Suspend local participant filtering on world failure and resume on reentry"
+    ]
+  }
+}

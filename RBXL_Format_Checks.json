@@ -81,5 +81,6 @@
     "scalarPropertiesChecked": 6,
     "mapPayloadsUnchanged": true
   },
-  "independentReviewPassed": true
+  "independentReviewPassed": true,
+  "supersededBy": "Client_World_Checks.json"
 }

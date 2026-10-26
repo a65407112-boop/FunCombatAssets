@@ -1,11 +1,18 @@
-# Установка blocky R6 / layout 6
+# Установка blocky R6 / layout 7
 
 1. Откройте server/funcombat_server.rbxl в Roblox Studio и опубликуйте весь плейс.
 2. В Avatar Settings проверьте R6; в сохранённом файле уже включены native
    appearance, dynamic heads и MeshPart-heads, отключены Avatar Unification
    и upgrade-joints для совместимости исходных Motor6D-анимаций.
-3. Зайдите в новый сервер. Каждый клиент запускает loader.lua из этого
-   репозитория. Обычные имена и presentation восстанавливаются на этом клиенте.
+3. При обычном входе игрок появляется в закрытой комнате с полом, без подсказок.
+   Loader скачивает видимую карту из GitHub. После полного успешного запуска
+   сервер переносит игрока на исходный спавн карты.
+4. На клиенте с loader видны только игроки с готовой картой. После респавна
+   участие сохраняется. При смене карты, ошибке загрузки или выгрузке loader
+   игрок возвращается в комнату до следующего успешного подключения.
+
+В RBXL сохранены невидимые исходные коллизии и триггеры карты для общей физики.
+Видимые карты лежат в `assets/world/*.rbxm`; код морфов этим обновлением не менялся.
 
 Для публикации готового файла с телефона см. [инструкцию GitHub Actions](mobile-publishing.md).
 Если старая копия не открывается с ошибкой `BodyTypeScale / Unexpected format 5`,
@@ -20,9 +27,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCom
 buildId из manifest.json и config/protocol.json.
 
 Нужны HTTP GET, loadstring, writefile, getcustomasset/getsynasset и настоящий
-локальный импорт RBXMX через getobjects/Game:GetObjects. 6 native packages
-сохраняют исходные MeshPart/UnionOperation/SurfaceAppearance; 123 остальных
-восстанавливаются из typed data. Поддержка конкретного executor не проверялась.
+локальный импорт RBXMX/RBXM через getobjects/Game:GetObjects. Native packages
+сохраняют исходные MeshPart/UnionOperation/SurfaceAppearance. Карты загружаются
+по необходимости; все карты сразу не прогреваются. Поддержка конкретного
+executor и физика в настоящем сервере Roblox здесь не проверялись.
 
 Владелец настроен в config/admin.json: 11556197791. Команды spawn, :dummy,
 :spawndummy и :dummy 11556197791 создают серверных combat NPC; обычный Kohl
@@ -36,14 +44,15 @@ buildId из manifest.json и config/protocol.json.
 ## Пересборка имеющегося сервера
 
 Нужны Python, зависимости Builder/requirements.txt и rbxmk 0.9.1.
-Команда проверяет совпадение исходного сервера и конфигурации репозитория:
+Для этой сборки нужен сохранённый сервер layout 6 до переноса карты.
+Не подавайте текущий layout 7 повторно: его видимая геометрия уже скрыта.
 
 ```bash
-python3 Builder/native_r6_upgrade.py --source server/funcombat_server.rbxl --repo . --output dist/native-r6 --rbxmk /absolute/path/to/rbxmk
+python3 Builder/client_world_upgrade.py --source /path/to/layout6-baseline.rbxl --repo . --output dist/client-world --rbxmk /absolute/path/to/rbxmk
 ```
 
-Она обновляет server/funcombat_server.rbxl, config и manifest, а также пишет
-binary/XML и Native_R6_Checks.json в output. До публикации запустите офлайн
+Она обновляет server/funcombat_server.rbxl, native-модели карт, config,
+manifest и Client_World_Checks.json. До публикации запустите офлайн
 проверки и сохраните единый согласованный commit. Не меняйте client-файлы
 после запечатывания manifest без повторного обновления его контрольных сумм.
 

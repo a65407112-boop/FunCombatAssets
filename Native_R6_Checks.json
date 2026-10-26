@@ -242,5 +242,6 @@
     "apiTypeMismatches": 0,
     "report": "RBXL_Format_Checks.json",
     "robloxStudioTested": false
-  }
+  },
+  "supersededBy": "Client_World_Checks.json"
 }
