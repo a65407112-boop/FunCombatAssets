@@ -1,7 +1,7 @@
 {
   "passed": true,
   "buildId": "546b84fb1ae8034bd4b68fb2",
-  "serverSha256": "0c5ae41880c96fc5b99a80f5bf7b772dde00c3452af9aa09a975a9cbfe269aee",
+  "serverSha256": "8e76d76b63c06da27cb28c5426b1fec4c0aea1f7fbde34b0678bf4f61be5a3f8",
   "baseServerSha256": "2c7d35ccaa89ff9fd8cd584d874f3f522d689eb140d52044afe253e0e8db1b30",
   "serverInstances": 20812,
   "exports": [
@@ -44,7 +44,7 @@
   "offlineChecks": {
     "exportUnitTests": 3,
     "nativeScalarUnitTests": 6,
-    "publishWorkflowTests": 7,
+    "publishWorkflowTests": 8,
     "worldSessionAndVisibility": "passed",
     "nativeMapImport": "passed",
     "loaderRegressions": 4,
@@ -58,5 +58,10 @@
       "Guard cancelled requests and revoke stale loader session identities",
       "Suspend local participant filtering on world failure and resume on reentry"
     ]
+  },
+  "nativePlaceServices": {
+    "passed": true,
+    "servicesChecked": 48,
+    "report": "Place_Service_Checks.json"
   }
 }

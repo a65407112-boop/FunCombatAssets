@@ -54,9 +54,10 @@ jobs:
           if not payload.startswith(b'<roblox!\x89\xff\r\n\x1a\n'):
               raise SystemExit('The server place is not a binary RBXL file.')
           sys.path.insert(0, str(Path('tools/outfits').resolve()))
-          from model_io import validate_saved_scalar_types
+          from model_io import validate_saved_scalar_types, validate_place_services
           try:
               validate_saved_scalar_types(place)
+              validate_place_services(place)
           except ValueError as error:
               raise SystemExit(str(error)) from None
           key = os.environ.get('ROBLOX_API_KEY', '').strip()

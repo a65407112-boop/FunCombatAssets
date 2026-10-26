@@ -23,6 +23,8 @@ CLASS_ALIASES={'WeldConstraint':{'Part0Internal':'Part0','Part1Internal':'Part1'
 # https://setup.rbxcdn.com/version-7aaa6838d36c4448-API-Dump.json
 SAVED_SCALAR_TYPES={('HumanoidDescription',name):('float',0x04) for name in (
     'BodyTypeScale','DepthScale','HeadScale','HeightScale','ProportionScale','WidthScale')}
+CORE_PLACE_SERVICES={'Workspace','Lighting','Players','ReplicatedStorage',
+                     'ServerScriptService','ServerStorage','StarterPlayer'}
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def dump(path,value):
@@ -116,10 +118,12 @@ def source_strings(path):
     classes={};nodes={};property_types={}
     for name,r in chunks:
         if name==b'INST':
-            cid=r.u32();cn=r.string().decode();r.read(1);n=r.u32();refs=r.refs(n);classes[cid]=(cn,refs)
+            cid=r.u32();cn=r.string().decode();has_services=r.read(1)[0];n=r.u32();refs=r.refs(n);classes[cid]=(cn,refs)
+            services=r.read(n) if has_services else bytes(n)
+            if any(flag not in (0,1) for flag in services):raise ValueError('Invalid instance service flag')
             types={}
             property_types[cid]=types
-            for i in refs:nodes[i]={'id':i,'class':cn,'parent':-1,'props':{},'types':types}
+            for i,service in zip(refs,services):nodes[i]={'id':i,'class':cn,'service':bool(service),'parent':None,'props':{},'types':types}
     for name,r in chunks:
         if name==b'PROP':
             cid=r.u32();pn=r.string().decode();typ=r.read(1)[0]
@@ -130,6 +134,55 @@ def source_strings(path):
             r.read(1);n=r.u32();children=r.refs(n);parents=r.refs(n)
             for a,b in zip(children,parents):nodes[a]['parent']=b
     return nodes
+
+def validate_place_services(path,expected_services=None):
+    """A class/name match does not make a root instance a native service."""
+    expected=set(CORE_PLACE_SERVICES if expected_services is None else expected_services)
+    nodes=source_strings(path)
+    for name in sorted(expected):
+        items=[node for node in nodes.values() if node['class']==name]
+        if len(items)!=1 or not items[0]['service'] or items[0]['parent']!=-1:
+            raise ValueError(name+' is not encoded as exactly one native root service')
+    return {'passed':True,'servicesChecked':len(expected)}
+
+def repair_place_services(path,expected_services):
+    """Restore verified DataModel services, preserving every non-INST raw chunk.
+
+    XML roundtrips without a descriptor discard IsService metadata in rbxmk.
+    Callers must supply the verified root-service classes for a full place;
+    presentation model exports must never use this repair.
+    """
+    path=Path(path);expected=set(expected_services);nodes=source_strings(path)
+    for name in expected:
+        items=[node for node in nodes.values() if node['class']==name]
+        if len(items)!=1 or items[0]['parent']!=-1:raise ValueError('Missing/duplicate root service: '+name)
+    raw=path.read_bytes();pieces=[raw[:32]];position=32;changed=0
+    for tag,body in binary_chunks(path):
+        raw_tag,compressed,length,reserved=struct.unpack_from('<4sIII',raw,position)
+        end=position+16+(compressed or length)
+        if raw_tag!=tag:raise ValueError('Binary chunk order changed during service repair')
+        replacement=None
+        if tag==b'INST':
+            reader=Reader(body);reader.u32();cls=reader.string().decode();flag_offset=reader.p
+            has_services=reader.read(1)[0];count=reader.u32();reader.refs(count);refs_end=reader.p
+            flags=reader.read(count) if has_services else bytes(count)
+            if cls in expected and (not has_services or flags!=bytes([1])*count):
+                if reader.p!=len(body):raise ValueError('Unexpected INST service payload')
+                replacement=body[:flag_offset]+b'\1'+body[flag_offset+1:refs_end]+bytes([1])*count
+        if replacement is None:pieces.append(raw[position:end])
+        else:
+            pieces.append(struct.pack('<4sIII',tag,0,len(replacement),reserved)+replacement);changed+=1
+        position=end
+    if position!=len(raw):raise ValueError('Unexpected binary trailer')
+    if changed:
+        temporary=path.with_name(path.name+'.services.partial')
+        try:
+            temporary.write_bytes(b''.join(pieces));validate_place_services(temporary,expected)
+            temporary.replace(path)
+        finally:
+            if temporary.exists():temporary.unlink()
+    result=validate_place_services(path,expected);result['chunksChanged']=changed
+    return result
 
 class Source:
     def __init__(self,binary,rbxmk,cache):
