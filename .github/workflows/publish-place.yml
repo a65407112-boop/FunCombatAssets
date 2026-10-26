@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           persist-credentials: false
+      - name: Install RBXL validation dependencies
+        run: python3 -m pip install --disable-pip-version-check -r Builder/requirements.txt
       - name: Verify release and publish the place
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
@@ -28,6 +30,7 @@ jobs:
           import hashlib
           import json
           import os
+          import sys
           from pathlib import Path
           import urllib.error
           import urllib.request
@@ -50,6 +53,12 @@ jobs:
           payload = place.read_bytes()
           if not payload.startswith(b'<roblox!\x89\xff\r\n\x1a\n'):
               raise SystemExit('The server place is not a binary RBXL file.')
+          sys.path.insert(0, str(Path('tools/outfits').resolve()))
+          from model_io import validate_saved_scalar_types
+          try:
+              validate_saved_scalar_types(place)
+          except ValueError as error:
+              raise SystemExit(str(error)) from None
           key = os.environ.get('ROBLOX_API_KEY', '').strip()
           if not key:
               raise SystemExit('Add ROBLOX_API_KEY in repository Settings > Secrets and variables > Actions.')

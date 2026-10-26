@@ -14,13 +14,15 @@ def serialized_property_value(element):
             tuple(serialized_property_value(child) for child in element))
 
 def binary_property_types(source,output):
-    from model_io import binary_property_schema
+    from model_io import binary_property_schema,validate_saved_scalar_types
     original=binary_property_schema(source);encoded=binary_property_schema(output)
     compared={key for key in encoded if key in original}
     differences=[f'{cls}.{name}: source type {original[cls,name]}, exported type {encoded[cls,name]}'
                  for cls,name in sorted(compared) if original[cls,name]!=encoded[cls,name]]
     require(not differences,'Binary property type mismatch: '+'; '.join(differences))
+    saved_scalars=validate_saved_scalar_types(output)
     return {'passed':True,'propertiesCompared':len(compared),
+            'savedScalarPropertiesChecked':saved_scalars['propertiesChecked'],
             'spawnTeamColorType':encoded.get(('SpawnLocation','TeamColor')),
             'intValueValueType':encoded.get(('IntValue','Value'))}
 

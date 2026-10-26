@@ -8,6 +8,8 @@
    репозитория. Обычные имена и presentation восстанавливаются на этом клиенте.
 
 Для публикации готового файла с телефона см. [инструкцию GitHub Actions](mobile-publishing.md).
+Если старая копия не открывается с ошибкой `BodyTypeScale / Unexpected format 5`,
+скачайте текущий `server/funcombat_server.rbxl`: см. [исправление формата](rbxl-format-fix.md).
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?t=" .. tostring(os.time())))()

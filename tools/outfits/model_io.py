@@ -18,6 +18,11 @@ ALIASES={'size':'Size','shape':'Shape','formFactorRaw':'FormFactor','Color3uint8
 # Studio serializes these endpoints under names unavailable to Luau. Keep the
 # same original target IDs, but expose the public scripting properties in JSON.
 CLASS_ALIASES={'WeldConstraint':{'Part0Internal':'Part0','Part1Internal':'Part1'}}
+# Native storage types for numeric properties absent from the compact source.
+# Verified against Roblox Studio version-7aaa6838d36c4448 API-Dump.json:
+# https://setup.rbxcdn.com/version-7aaa6838d36c4448-API-Dump.json
+SAVED_SCALAR_TYPES={('HumanoidDescription',name):('float',0x04) for name in (
+    'BodyTypeScale','DepthScale','HeadScale','HeightScale','ProportionScale','WidthScale')}
 
 def sha(path):return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def dump(path,value):
@@ -96,6 +101,15 @@ def binary_property_schema(path):
             if key in schema and schema[key]!=typ:raise ValueError('Conflicting binary property types: '+'.'.join(key))
             schema[key]=typ
     return schema
+
+def validate_saved_scalar_types(path):
+    """Check reconstructed numeric properties against native engine storage."""
+    schema=binary_property_schema(path)
+    checked={key for key in SAVED_SCALAR_TYPES if key in schema}
+    errors=[f'{cls}.{name}: expected native type {SAVED_SCALAR_TYPES[cls,name][1]}, got {schema[cls,name]}'
+            for cls,name in sorted(checked) if schema[cls,name]!=SAVED_SCALAR_TYPES[cls,name][1]]
+    if errors:raise ValueError('Invalid saved scalar property type: '+'; '.join(errors))
+    return {'passed':True,'propertiesChecked':len(checked)}
 
 def source_strings(path):
     chunks=[(name,Reader(body)) for name,body in binary_chunks(path)]

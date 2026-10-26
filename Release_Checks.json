@@ -168,7 +168,7 @@
   "embeddedScripts": 22,
   "compileErrors": [],
   "buildId": "f482ff99012fc0fc13c56d7a",
-  "serverSha256": "b9a9911526860eecc3c1d44716ac4fe35229423bcc9c94caa21cf8e9445b256d",
+  "serverSha256": "2c7d35ccaa89ff9fd8cd584d874f3f522d689eb140d52044afe253e0e8db1b30",
   "sourceAttachmentAvailable": false,
   "robloxEngineTested": false,
   "multiplayerTested": false,
@@ -179,10 +179,17 @@
     "redGreenObserved": true
   },
   "publicationWorkflow": {
-    "offlineTestsPassed": 6,
+    "offlineTestsPassed": 7,
     "livePublicationTested": false,
     "universeId": 10767751574,
     "placeId": 80093785985728,
     "independentReviewPassed": true
+  },
+  "scalarSerialization": {
+    "propertiesChecked": 6,
+    "apiFloatDoublePropertiesCompared": 250,
+    "apiTypeMismatches": 0,
+    "report": "RBXL_Format_Checks.json",
+    "robloxStudioTested": false
   }
 }

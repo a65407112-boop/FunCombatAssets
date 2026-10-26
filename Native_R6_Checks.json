@@ -4,7 +4,7 @@
   "layoutVersion": 6,
   "buildId": "f482ff99012fc0fc13c56d7a",
   "baseServerSha256": "ede359d212e1286a95b77f4231567974f0099e6f63815db8ec484ad978d4e12a",
-  "serverSha256": "b9a9911526860eecc3c1d44716ac4fe35229423bcc9c94caa21cf8e9445b256d",
+  "serverSha256": "2c7d35ccaa89ff9fd8cd584d874f3f522d689eb140d52044afe253e0e8db1b30",
   "sourceAttachmentAvailable": false,
   "serverInstances": 20802,
   "mapEnvironmentModelsBefore": 338,
@@ -235,5 +235,12 @@
   "referenceBaseCommit": "c10245231cc4decc05cc3b8f7cfa7ec7a9a92986",
   "referenceServerSha256": "436789bc31c35e9e881280cec85d2106587e1998e19437f894e460ef1790defe",
   "mapPayloadsMatchPublishedBaseline": true,
-  "serializedReferencesValid": true
+  "serializedReferencesValid": true,
+  "scalarSerialization": {
+    "propertiesChecked": 6,
+    "apiFloatDoublePropertiesCompared": 250,
+    "apiTypeMismatches": 0,
+    "report": "RBXL_Format_Checks.json",
+    "robloxStudioTested": false
+  }
 }

@@ -5,6 +5,8 @@ import io
 import json
 import os
 from pathlib import Path
+import struct
+import sys
 import tempfile
 import textwrap
 import unittest
@@ -27,7 +29,8 @@ class PublishWorkflowTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
-        self.payload = b'<roblox!\x89\xff\r\n\x1a\n' + bytes(32)
+        self.payload = (b'<roblox!\x89\xff\r\n\x1a\n' + struct.pack('<HII8s', 0, 0, 0, bytes(8))
+                        + b'END\0' + struct.pack('<III', 0, 9, 0) + b'</roblox>')
         for name, raw in {
             'server/funcombat_server.rbxl': self.payload,
             'config/protocol.json': b'{"version":5,"buildId":"example-build"}',
@@ -66,7 +69,8 @@ class PublishWorkflowTests(unittest.TestCase):
             with patch.dict(os.environ, {
                 'ROBLOX_API_KEY': key,
                 'GITHUB_STEP_SUMMARY': str(self.root / 'summary.md'),
-            }), patch('urllib.request.build_opener', return_value=Endpoint()), \
+            }), patch('sys.path', [str(REPO / 'tools/outfits')] + sys.path), \
+                    patch('urllib.request.build_opener', return_value=Endpoint()), \
                     contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
                 try:
                     exec(self.code, {'__name__': '__main__'})
@@ -101,6 +105,28 @@ class PublishWorkflowTests(unittest.TestCase):
         status, output, requests = self.execute()
         self.assertNotEqual(status, 0)
         self.assertIn('client/example.lua', str(status) + output)
+        self.assertEqual(requests, [])
+
+    def test_invalid_scalar_type_stops_even_with_a_matching_manifest(self):
+        def string(value):
+            raw = value.encode()
+            return struct.pack('<I', len(raw)) + raw
+
+        def chunk(name, body):
+            return name + struct.pack('<III', 0, len(body), 0) + body
+
+        raw = b'<roblox!\x89\xff\r\n\x1a\n' + struct.pack('<HII8s', 0, 1, 1, bytes(8))
+        raw += chunk(b'INST', struct.pack('<I', 0) + string('HumanoidDescription') + b'\0' + struct.pack('<I', 1) + bytes(4))
+        raw += chunk(b'PROP', struct.pack('<I', 0) + string('BodyTypeScale') + b'\x05' + struct.pack('<d', 0.5))
+        raw += chunk(b'END\0', b'</roblox>')
+        (self.root / 'server/funcombat_server.rbxl').write_bytes(raw)
+        self.manifest['files']['server/funcombat_server.rbxl'] = {
+            'bytes': len(raw), 'sha256': hashlib.sha256(raw).hexdigest(),
+        }
+        self.save_manifest()
+        status, output, requests = self.execute()
+        self.assertNotEqual(status, 0)
+        self.assertIn('HumanoidDescription.BodyTypeScale', str(status) + output)
         self.assertEqual(requests, [])
 
     def test_mismatched_build_stops_publication(self):

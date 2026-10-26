@@ -1,0 +1,85 @@
+{
+  "passed": true,
+  "sourceSha256": "b9a9911526860eecc3c1d44716ac4fe35229423bcc9c94caa21cf8e9445b256d",
+  "serverSha256": "2c7d35ccaa89ff9fd8cd584d874f3f522d689eb140d52044afe253e0e8db1b30",
+  "serverBytes": 2310379,
+  "modifiedPropertyChunks": [
+    {
+      "class": "HumanoidDescription",
+      "property": "BodyTypeScale",
+      "instances": 2,
+      "oldType": 5,
+      "newType": 4,
+      "maxFloat32RoundingError": 7.907102750337458e-11
+    },
+    {
+      "class": "HumanoidDescription",
+      "property": "DepthScale",
+      "instances": 2,
+      "oldType": 5,
+      "newType": 4,
+      "maxFloat32RoundingError": 0.0
+    },
+    {
+      "class": "HumanoidDescription",
+      "property": "HeadScale",
+      "instances": 2,
+      "oldType": 5,
+      "newType": 4,
+      "maxFloat32RoundingError": 0.0
+    },
+    {
+      "class": "HumanoidDescription",
+      "property": "HeightScale",
+      "instances": 2,
+      "oldType": 5,
+      "newType": 4,
+      "maxFloat32RoundingError": 0.0
+    },
+    {
+      "class": "HumanoidDescription",
+      "property": "ProportionScale",
+      "instances": 2,
+      "oldType": 5,
+      "newType": 4,
+      "maxFloat32RoundingError": 0.0
+    },
+    {
+      "class": "HumanoidDescription",
+      "property": "WidthScale",
+      "instances": 2,
+      "oldType": 5,
+      "newType": 4,
+      "maxFloat32RoundingError": 0.0
+    }
+  ],
+  "allOtherChunkBytesIdentical": true,
+  "headerBytesIdentical": true,
+  "binaryPropertyTables": 1875,
+  "scalarGuard": {
+    "passed": true,
+    "propertiesChecked": 6
+  },
+  "robloxStudioTested": false,
+  "apiFloatDoublePropertiesCompared": 250,
+  "apiTypeMismatches": [],
+  "rbxmkDecodedInstances": 20802,
+  "apiDumpUrl": "https://setup.rbxcdn.com/version-7aaa6838d36c4448-API-Dump.json",
+  "apiDumpSha256": "2c2441134f26d6b172ad862afb86552c9d2d1b0a53ca10d67ea9abb7bdc2f906",
+  "builderRegressionTestsPassed": 6,
+  "builderUnitTestsPassed": 41,
+  "publicationWorkflowTestsPassed": 7,
+  "buildId": "f482ff99012fc0fc13c56d7a",
+  "livePublicationPerformed": false,
+  "apiKnownPropertiesCompared": 1345,
+  "apiPropertiesWithoutPublicDeclaration": 530,
+  "apiKnownPropertyTypeMismatches": [],
+  "rebuildFromInvalidInput": {
+    "passed": true,
+    "inputSha256": "b9a9911526860eecc3c1d44716ac4fe35229423bcc9c94caa21cf8e9445b256d",
+    "outputSha256": "cf20e3da560b49f60c6da64baec37249e4c194703363f7785a5c569f9663809f",
+    "scalarPropertiesChecked": 6,
+    "mapPayloadsUnchanged": true
+  },
+  "independentReviewPassed": true
+}

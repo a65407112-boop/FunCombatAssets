@@ -21,7 +21,7 @@ from lxml import etree as E
 import build as base
 from compact import DATA_DOTS, STATS, replace_once, rewrite_bindings
 from luau_pack import pack, restore, string_bytes, tokens
-from model_io import Source, dump, repository_files, sha
+from model_io import Source, dump, repository_files, sha, SAVED_SCALAR_TYPES, validate_saved_scalar_types
 
 
 def literal_table(code):
@@ -108,7 +108,9 @@ def property_xml(parent,key,prop,refs,serialized_tag=None):
         E.SubElement(parent,'Ref',name=key).text=refs.get(value,'null')
         return
     if kind in {'string','bool','number','int','int64','token','BrickColor'}:
-        tag=serialized_tag or {'number':'double'}.get(kind,kind)
+        if kind=='number' and serialized_tag not in {'float','double'}:
+            raise ValueError('Missing native numeric property type: '+key)
+        tag=serialized_tag or kind
         text=('true' if value else 'false') if kind=='bool' else str(value)
         E.SubElement(parent,tag,name=key).text=text
         return
@@ -150,7 +152,8 @@ def saved_rig(data,namespace,schema=None):
             fields=(schema or {}).get(node['class'],{})
             raw={'Size':'size','Shape':'shape','FormFactor':'formFactorRaw','Color':'Color3uint8'}.get(key,key)
             key=raw if raw in fields else key
-            property_xml(properties,key,prop,refs,fields.get(key))
+            native=SAVED_SCALAR_TYPES.get((node['class'],key))
+            property_xml(properties,key,prop,refs,native[0] if native else fields.get(key))
         attributes=node.get('attributes',{})
         if attributes:
             def string(text):
@@ -325,6 +328,7 @@ def upgrade(source_path,repo,output,rbxmk):
     converter.write_text("local a,b=...\nfs.write(b,fs.read(a,'rbxlx'),'rbxl')\n")
     binary=output/'funcombat_server.rbxl'
     subprocess.run([str(Path(rbxmk).resolve()),'run','--allow-insecure-paths',str(converter),str(xml),str(binary)],check=True,capture_output=True,timeout=120)
+    scalar_types=validate_saved_scalar_types(binary)
     decoded=Source(binary,rbxmk,cache/'roundtrip')
     # Validate independently decoded binary, including native property types.
     sp=decoded.tree.find('Item[@class="StarterPlayer"]')
@@ -352,6 +356,7 @@ def upgrade(source_path,repo,output,rbxmk):
         'serverInstances':len(decoded.by),'mapEnvironmentModelsBefore':before_models-old_starters-len(previous_templates),
         'mapPayloadsUnchanged':True,'mapRoots':len(before_maps),'savedPlayerCharacterModels':0,
         'savedNpcTemplates':2,'renamableNamesOpaque':True,'runtimeObjectLabels':len(object_names),
+        'serializedScalarPropertiesChecked':scalar_types['propertiesChecked'],
         'requiredEngineOrUpstreamNames':required,'robloxEngineTested':False,'multiplayerTested':False,
         'dynamicHeadRenderingTested':False,'geometryInspected':False}
     dump(output/'Native_R6_Checks.json',report)
