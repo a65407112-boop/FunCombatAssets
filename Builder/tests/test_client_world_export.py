@@ -1,6 +1,9 @@
 """World export must not alter the geometry that keeps server physics shared."""
 import sys
 import unittest
+import os
+import shutil
+import tempfile
 from pathlib import Path
 from lxml import etree as E
 
@@ -9,6 +12,20 @@ import client_world_upgrade as world
 
 
 class ClientWorldExportTests(unittest.TestCase):
+    def test_native_encoder_keeps_an_omitted_model_reference_null(self):
+        rbxmk=os.environ.get('FUNCOMBAT_RBXMK') or shutil.which('rbxmk')
+        if not rbxmk:self.skipTest('Set FUNCOMBAT_RBXMK to run the real native encoder check')
+        tree=E.fromstring(b'<roblox version="4"><Item class="Workspace"><Properties><string name="Name">Workspace</string></Properties><Item class="Model"><Properties><Ref name="PrimaryPart">null</Ref></Properties></Item><Item class="Model"><Properties/></Item></Item><Item class="ServerScriptService"><Properties><string name="Name">ServerScriptService</string></Properties></Item></roblox>')
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);binary=root/'place.rbxl'
+            world.encode(tree,root/'place.rbxlx',binary,rbxmk,'rbxl')
+            self.assertEqual(world.validate_saved_reference_types(binary)['referencesChecked'],2)
+            from model_io import Source
+            decoded=Source(binary,rbxmk,root/'decoded')
+            models=decoded.tree.findall('.//Item[@class="Model"]')
+            self.assertEqual(len(models),2)
+            self.assertTrue(all(m.findtext('Properties/Ref[@name="PrimaryPart"]')=='null' for m in models))
+
     def test_hiding_presentation_preserves_collision_and_world_transform(self):
         root = E.fromstring(b'''<Item class="Model"><Properties/>
         <Item class="Part"><Properties><bool name="CanCollide">true</bool>
@@ -33,6 +50,8 @@ class ClientWorldExportTests(unittest.TestCase):
 
     def test_waiting_room_has_closed_walls_roof_and_supported_neutral_spawn(self):
         room = world.waiting_room()
+        self.assertEqual(room.findtext('Properties/Ref[@name="PrimaryPart"]'),'null',
+                         'A new model must not default its PrimaryPart reference to instance zero')
         parts = [p for p in room.iter('Item') if p.get('class') in {'Part', 'SpawnLocation'}]
         solids = [p for p in parts if p.findtext('Properties/bool[@name="CanCollide"]') == 'true']
         self.assertEqual(len(solids), 6)

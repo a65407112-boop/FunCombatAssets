@@ -1,0 +1,36 @@
+{
+  "passed": true,
+  "buildId": "546b84fb1ae8034bd4b68fb2",
+  "beforeSha256": "8e76d76b63c06da27cb28c5426b1fec4c0aea1f7fbde34b0678bf4f61be5a3f8",
+  "serverSha256": "c632c6cad1c2c6d10e5affbec0f36a678ec175b151910b39cbd63c07e6fa29cb",
+  "changedChunks": 1,
+  "property": "Model.PrimaryPart",
+  "owner": "WaitingRoom",
+  "instanceRef": 6634,
+  "oldTarget": "Workspace",
+  "newTarget": null,
+  "everyOtherRawChunkUnchanged": true,
+  "rootServicesChecked": 48,
+  "referenceValidation": {
+    "passed": true,
+    "propertiesChecked": 45,
+    "referencesChecked": 5850,
+    "nonNullTargetsChecked": 5206
+  },
+  "gameScriptsUnchanged": true,
+  "morphBehaviorInspected": false,
+  "robloxStudioTested": false,
+  "publishedToRoblox": false,
+  "verification": {
+    "referenceTypeTests": 5,
+    "serviceFlagTests": 5,
+    "publicationWorkflowTests": 9,
+    "nativeScalarTests": 6,
+    "worldExportTests": 4,
+    "totalFocusedTests": 29,
+    "realNativeEncoderRoundtripPassed": true,
+    "selfReviewCompleted": true,
+    "independentReviewCompleted": false,
+    "independentReviewAvailability": "unavailable"
+  }
+}

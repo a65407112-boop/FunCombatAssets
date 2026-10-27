@@ -17,17 +17,21 @@ import urllib.error
 REPO = Path(__file__).resolve().parents[2]
 WORKFLOW = REPO / '.github/workflows/publish-place.yml'
 
-def service_place(enabled=True):
+def service_place(enabled=True,bad_primary_part=False):
     names=['Workspace','Lighting','Players','ReplicatedStorage','ServerScriptService','ServerStorage','StarterPlayer']
     def chunk(tag,body):return tag+struct.pack('<III',0,len(body),0)+body
-    raw=b'<roblox!\x89\xff\r\n\x1a\n'+struct.pack('<HII8s',0,len(names),len(names),bytes(8))
+    count=len(names)+int(bad_primary_part)
+    raw=b'<roblox!\x89\xff\r\n\x1a\n'+struct.pack('<HII8s',0,count,count,bytes(8))
     for i,name in enumerate(names):
         text=name.encode()
         raw+=chunk(b'INST',struct.pack('<II',i,len(text))+text+bytes([enabled])+struct.pack('<I',1)
                    +struct.pack('>I',i*2)+(b'\1' if enabled else b''))
-    n=len(names)
+    if bad_primary_part:
+        raw+=chunk(b'INST',struct.pack('<II',len(names),5)+b'Model\0'+struct.pack('<I',1)+struct.pack('>I',len(names)*2))
+        raw+=chunk(b'PROP',struct.pack('<II',len(names),11)+b'PrimaryPart\x13'+bytes(4))
+    n=count
     raw+=chunk(b'PRNT',b'\0'+struct.pack('<I',n)+bytes(n*3)+bytes([0]+[2]*(n-1))
-               +bytes(n*3)+bytes([1]+[0]*(n-1)))
+               +bytes(n*3)+bytes([1]+[0]*(n-2)+[2 if bad_primary_part else 0]))
     return raw+chunk(b'END\0',b'</roblox>')
 
 
@@ -150,6 +154,17 @@ class PublishWorkflowTests(unittest.TestCase):
         status,output,requests=self.execute()
         self.assertNotEqual(status,0)
         self.assertIn('native root service',str(status)+output)
+        self.assertEqual(requests,[])
+
+    def test_wrong_reference_type_stops_even_with_a_matching_manifest(self):
+        raw=service_place(bad_primary_part=True)
+        (self.root/'server/funcombat_server.rbxl').write_bytes(raw)
+        self.manifest['files']['server/funcombat_server.rbxl']={
+            'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+        self.save_manifest()
+        status,output,requests=self.execute()
+        self.assertNotEqual(status,0)
+        self.assertIn('Model.PrimaryPart',str(status)+output)
         self.assertEqual(requests,[])
 
     def test_mismatched_build_stops_publication(self):

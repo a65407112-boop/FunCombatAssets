@@ -113,6 +113,53 @@ def validate_saved_scalar_types(path):
     if errors:raise ValueError('Invalid saved scalar property type: '+'; '.join(errors))
     return {'passed':True,'propertiesChecked':len(checked)}
 
+def complete_reference_properties(tree):
+    """Explicitly encode missing nullable refs instead of instance-zero defaults."""
+    fields={}
+    for item in tree.iter('Item'):
+        fields.setdefault(item.get('class'),set()).update(p.get('name') for p in item.findall('Properties/Ref'))
+    added=0
+    for item in tree.iter('Item'):
+        properties=item.find('Properties')
+        if properties is None:properties=E.SubElement(item,'Properties')
+        present={p.get('name') for p in properties}
+        for name in sorted(fields[item.get('class')]-present):
+            E.SubElement(properties,'Ref',name=name).text='null';added+=1
+    return added
+
+def validate_saved_reference_types(path,schema=None):
+    """Check every native reference against the Studio class inheritance schema."""
+    if schema is None:
+        schema=json.loads((Path(__file__).resolve().parents[2]/'config/rbxl_reference_types.json').read_text())
+    def ancestry(cls):
+        seen=set()
+        while cls and cls not in seen:
+            yield cls;seen.add(cls);cls=schema['parents'].get(cls)
+    nodes=source_strings(path);groups={};chunks=binary_chunks(path)
+    for tag,body in chunks:
+        if tag==b'INST':
+            reader=Reader(body);cid=reader.u32();cls=reader.string().decode();reader.read(1)
+            count=reader.u32();groups[cid]=(cls,reader.refs(count))
+    tables=slots=targets=0
+    for tag,body in chunks:
+        if tag!=b'PROP':continue
+        reader=Reader(body);cid=reader.u32();name=reader.string().decode();kind=reader.read(1)[0]
+        if kind!=0x13:continue
+        cls,owners=groups[cid];values=reader.refs(len(owners))
+        public=CLASS_ALIASES.get(cls,{}).get(name,name)
+        expected=next((schema['properties'].get(parent,{}).get(public) for parent in ancestry(cls)
+                       if public in schema['properties'].get(parent,{})),None)
+        if expected is None:raise ValueError('Unknown native reference declaration: '+cls+'.'+name)
+        tables+=1;slots+=len(values)
+        for owner,target in zip(owners,values):
+            if target==-1:continue
+            if target not in nodes:raise ValueError(f'{cls}.{name}: unresolved referent {target}')
+            actual=nodes[target]['class']
+            if expected not in ancestry(actual):
+                raise ValueError(f'{cls}.{name}: expected {expected}, got {actual} (instance {owner})')
+            targets+=1
+    return {'passed':True,'propertiesChecked':tables,'referencesChecked':slots,'nonNullTargetsChecked':targets}
+
 def source_strings(path):
     chunks=[(name,Reader(body)) for name,body in binary_chunks(path)]
     classes={};nodes={};property_types={}

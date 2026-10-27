@@ -8,7 +8,7 @@ import copy, hashlib, json, re, shutil, subprocess, base64, struct
 from lxml import etree as E
 import build as base
 from luau_pack import pack, restore, tokens, normalize_tokens, string_bytes, quote_bytes
-from model_io import Source, package, dump, sha, repository_files, repair_place_services
+from model_io import Source, package, dump, sha, repository_files, repair_place_services, complete_reference_properties, validate_saved_reference_types
 
 VERSION=5
 ENGINE={'StarterCharacter','Humanoid','HumanoidRootPart','Torso','Head','Left Arm','Right Arm','Left Leg','Right Leg',
@@ -278,6 +278,7 @@ def build(source_path,rbxmk,output):
         used={x.text for x in tree.iter('SharedString')}
         for item in list(shared):
             if item.get('md5') not in used:shared.remove(item)
+    complete_reference_properties(tree)
     (output/'Game_Server.rbxlx').write_bytes(E.tostring(tree,encoding='utf8',xml_declaration=False))
     generated=output/'Builder/generated/server'
     for label,code in readable.items():
@@ -285,6 +286,7 @@ def build(source_path,rbxmk,output):
     executable=str(Path(shutil.which(str(rbxmk)) or rbxmk).resolve())
     subprocess.run([executable,'run','--allow-insecure-paths',str(output/'.cache/to_binary.lua'),str(output/'Game_Server.rbxlx'),str(output/'funcombat_server.rbxl')],check=True,capture_output=True,timeout=120)
     repair_place_services(output/'funcombat_server.rbxl',{item.get('class') for item in tree.findall('Item')})
+    validate_saved_reference_types(output/'funcombat_server.rbxl')
     shutil.copy2(output/'funcombat_server.rbxl',repo/'server/funcombat_server.rbxl')
     manifest=json.loads((repo/'manifest.json').read_text());manifest['protocolVersion']=5;manifest['buildId']=buildid;manifest['serializationVersion']=3
     manifest['namesPreserved']='required engine/upstream names only; public bindings in config/identifiers.json'

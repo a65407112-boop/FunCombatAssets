@@ -19,6 +19,8 @@
 скачайте текущий `server/funcombat_server.rbxl`: см. [исправление формата](rbxl-format-fix.md).
 Пустота при запуске прежней сборки также связана с потерянными флагами служб:
 см. [исправление служб Studio](studio-service-fix.md) и скачайте обновлённый RBXL.
+Ошибка `Model.PrimaryPart / Expected BasePart got Workspace` исправлена
+в текущем файле: см. [исправление ссылок](studio-reference-fix.md).
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?t=" .. tostring(os.time())))()

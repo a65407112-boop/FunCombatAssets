@@ -68,5 +68,6 @@
     "publicationWorkflowTests": 8,
     "independentReviewCompleted": true,
     "criticalOrImportantFindings": 0
-  }
+  },
+  "supersededBy": "Native_Reference_Checks.json"
 }

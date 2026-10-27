@@ -16,7 +16,8 @@ import build as base
 from luau_pack import pack, restore
 from native_r6_upgrade import literal_table
 from model_io import (Source, binary_property_schema, decode_attributes, dump,
-                      repository_files, sha, validate_saved_scalar_types, repair_place_services)
+                      repository_files, sha, validate_saved_scalar_types, repair_place_services,
+                      complete_reference_properties, validate_saved_reference_types)
 
 PARTS={'Part','WedgePart','CornerWedgePart','TrussPart','MeshPart','UnionOperation',
        'NegateOperation','SpawnLocation','Seat','VehicleSeat'}
@@ -70,6 +71,7 @@ def presentation_copy(root):
 def waiting_room():
     room=base.instance('Model',base.code_id('client-world','WaitingRoom'))
     base.set_property(room,'Archivable','bool','true')
+    base.set_property(room,'PrimaryPart','Ref','null')
     # The interior has a 48x48 floor, four walls and a roof; no text or UI.
     surfaces=[('Floor',(0,1000,0),(50,2,50)),('Roof',(0,1024,0),(50,2,50)),
         ('Left',(-25,1012,0),(2,24,50)),('Right',(25,1012,0),(2,24,50)),
@@ -108,6 +110,7 @@ def collision_signature(root):
 
 
 def encode(tree,xml,binary,rbxmk,format):
+    complete_reference_properties(tree)
     xml.write_bytes(E.tostring(tree,encoding='utf8'))
     script=xml.parent/'encode.lua'
     script.write_text('local a,b,c,d=...\nfs.write(b,fs.read(a,c),d)\n')
@@ -122,6 +125,7 @@ def encode(tree,xml,binary,rbxmk,format):
         raise RuntimeError('Native encoder produced no model: '+result.stderr.decode(errors='replace'))
     if format=='rbxl':
         repair_place_services(binary,{item.get('class') for item in tree.findall('Item')})
+    validate_saved_reference_types(binary)
 
 
 def upgrade(source_path,repo,output,rbxmk):
