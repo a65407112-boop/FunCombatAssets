@@ -32,5 +32,6 @@
     "selfReviewCompleted": true,
     "independentReviewCompleted": false,
     "independentReviewAvailability": "unavailable"
-  }
+  },
+  "supersededBy": "Unique_Id_Checks.json"
 }

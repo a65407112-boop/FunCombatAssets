@@ -21,7 +21,7 @@ from lxml import etree as E
 import build as base
 from compact import DATA_DOTS, STATS, replace_once, rewrite_bindings
 from luau_pack import pack, restore, string_bytes, tokens
-from model_io import Source, dump, repository_files, sha, SAVED_SCALAR_TYPES, validate_saved_scalar_types, repair_place_services, complete_reference_properties, validate_saved_reference_types
+from model_io import Source, dump, repository_files, sha, SAVED_SCALAR_TYPES, validate_saved_scalar_types, repair_place_services, complete_reference_properties, validate_saved_reference_types, repair_saved_unique_ids
 
 
 def literal_table(code):
@@ -330,6 +330,7 @@ def upgrade(source_path,repo,output,rbxmk):
     binary=output/'funcombat_server.rbxl'
     subprocess.run([str(Path(rbxmk).resolve()),'run','--allow-insecure-paths',str(converter),str(xml),str(binary)],check=True,capture_output=True,timeout=120)
     repair_place_services(binary,{item.get('class') for item in tree.findall('Item')})
+    repair_saved_unique_ids(binary)
     validate_saved_reference_types(binary)
     scalar_types=validate_saved_scalar_types(binary)
     decoded=Source(binary,rbxmk,cache/'roundtrip')

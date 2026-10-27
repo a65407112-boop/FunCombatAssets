@@ -17,7 +17,7 @@ from luau_pack import pack, restore
 from native_r6_upgrade import literal_table
 from model_io import (Source, binary_property_schema, decode_attributes, dump,
                       repository_files, sha, validate_saved_scalar_types, repair_place_services,
-                      complete_reference_properties, validate_saved_reference_types)
+                      complete_reference_properties, validate_saved_reference_types, repair_saved_unique_ids)
 
 PARTS={'Part','WedgePart','CornerWedgePart','TrussPart','MeshPart','UnionOperation',
        'NegateOperation','SpawnLocation','Seat','VehicleSeat'}
@@ -125,6 +125,7 @@ def encode(tree,xml,binary,rbxmk,format):
         raise RuntimeError('Native encoder produced no model: '+result.stderr.decode(errors='replace'))
     if format=='rbxl':
         repair_place_services(binary,{item.get('class') for item in tree.findall('Item')})
+        repair_saved_unique_ids(binary)
     validate_saved_reference_types(binary)
 
 

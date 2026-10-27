@@ -25,6 +25,10 @@ class ClientWorldExportTests(unittest.TestCase):
             models=decoded.tree.findall('.//Item[@class="Model"]')
             self.assertEqual(len(models),2)
             self.assertTrue(all(m.findtext('Properties/Ref[@name="PrimaryPart"]')=='null' for m in models))
+            ids=[item.findtext('Properties/UniqueId[@name="UniqueId"]') for item in decoded.tree.iter('Item')]
+            self.assertEqual(len(ids),4)
+            self.assertTrue(all(value and value!='0'*32 for value in ids))
+            self.assertEqual(len(set(ids)),4)
 
     def test_hiding_presentation_preserves_collision_and_world_transform(self):
         root = E.fromstring(b'''<Item class="Model"><Properties/>

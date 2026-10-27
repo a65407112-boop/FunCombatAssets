@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "buildId": "546b84fb1ae8034bd4b68fb2",
+  "beforeSha256": "c632c6cad1c2c6d10e5affbec0f36a678ec175b151910b39cbd63c07e6fa29cb",
+  "serverSha256": "bc67113492f00b3099c2e6c8b64ca95119f79744944ef787a9d65b258f6d8c9c",
+  "bytes": 2505832,
+  "identityRepair": {
+    "passed": true,
+    "instancesChecked": 20812,
+    "uniqueIdsChecked": 20812,
+    "idsAssigned": 133,
+    "zeroIdsReplaced": 95,
+    "duplicateIdsReplaced": 2,
+    "missingIdsAdded": 36,
+    "chunksChanged": 12,
+    "chunksAdded": 9
+  },
+  "allOtherRawChunksUnchanged": true,
+  "rootServicesChecked": 48,
+  "referenceSlotsChecked": 5850,
+  "nativeScalarPropertiesChecked": 6,
+  "thirdPartyDecoderUniqueIdsChecked": 20812,
+  "idempotentRepair": true,
+  "gameScriptsUnchanged": true,
+  "morphBehaviorInspected": false,
+  "robloxStudioTested": false,
+  "publishedToRoblox": false,
+  "verification": {
+    "uniqueIdTests": 8,
+    "referenceTypeTests": 5,
+    "serviceFlagTests": 5,
+    "publicationWorkflowTests": 11,
+    "nativeScalarTests": 6,
+    "worldExportTests": 4,
+    "totalFocusedTests": 39,
+    "realNativeEncoderRoundtripPassed": true,
+    "independentReviewCompleted": true,
+    "reviewFindings": 0,
+    "unrelatedRawChunksChecked": 1889
+  }
+}

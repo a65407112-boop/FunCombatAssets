@@ -1,7 +1,7 @@
 {
   "passed": true,
   "buildId": "546b84fb1ae8034bd4b68fb2",
-  "serverSha256": "c632c6cad1c2c6d10e5affbec0f36a678ec175b151910b39cbd63c07e6fa29cb",
+  "serverSha256": "bc67113492f00b3099c2e6c8b64ca95119f79744944ef787a9d65b258f6d8c9c",
   "baseServerSha256": "2c7d35ccaa89ff9fd8cd584d874f3f522d689eb140d52044afe253e0e8db1b30",
   "serverInstances": 20812,
   "exports": [
@@ -44,13 +44,14 @@
   "offlineChecks": {
     "exportUnitTests": 4,
     "nativeScalarUnitTests": 6,
-    "publishWorkflowTests": 9,
+    "publishWorkflowTests": 11,
     "worldSessionAndVisibility": "passed",
     "nativeMapImport": "passed",
     "loaderRegressions": 4,
     "localLabels": "passed",
     "cancellationAndVisibilityMutations": 2,
-    "nativeReferenceTypeTests": 5
+    "nativeReferenceTypeTests": 5,
+    "nativeUniqueIdTests": 8
   },
   "review": {
     "independentReviewCompleted": true,
@@ -71,5 +72,11 @@
     "referencesChecked": 5850,
     "nonNullTargetsChecked": 5206,
     "report": "Native_Reference_Checks.json"
+  },
+  "savedUniqueIds": {
+    "passed": true,
+    "instancesChecked": 20812,
+    "uniqueIdsChecked": 20812,
+    "report": "Unique_Id_Checks.json"
   }
 }

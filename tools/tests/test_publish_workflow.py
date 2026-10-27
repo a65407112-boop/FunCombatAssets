@@ -17,7 +17,7 @@ import urllib.error
 REPO = Path(__file__).resolve().parents[2]
 WORKFLOW = REPO / '.github/workflows/publish-place.yml'
 
-def service_place(enabled=True,bad_primary_part=False):
+def service_place(enabled=True,bad_primary_part=False,duplicate_ids=False,missing_id=False):
     names=['Workspace','Lighting','Players','ReplicatedStorage','ServerScriptService','ServerStorage','StarterPlayer']
     def chunk(tag,body):return tag+struct.pack('<III',0,len(body),0)+body
     count=len(names)+int(bad_primary_part)
@@ -29,6 +29,10 @@ def service_place(enabled=True,bad_primary_part=False):
     if bad_primary_part:
         raw+=chunk(b'INST',struct.pack('<II',len(names),5)+b'Model\0'+struct.pack('<I',1)+struct.pack('>I',len(names)*2))
         raw+=chunk(b'PROP',struct.pack('<II',len(names),11)+b'PrimaryPart\x13'+bytes(4))
+    for i in range(count):
+        if missing_id and i==0:continue
+        index=1 if duplicate_ids and i==1 else i+1
+        raw+=chunk(b'PROP',struct.pack('<II',i,8)+b'UniqueId\x1f'+struct.pack('>IIQ',index,2,6))
     n=count
     raw+=chunk(b'PRNT',b'\0'+struct.pack('<I',n)+bytes(n*3)+bytes([0]+[2]*(n-1))
                +bytes(n*3)+bytes([1]+[0]*(n-2)+[2 if bad_primary_part else 0]))
@@ -165,6 +169,28 @@ class PublishWorkflowTests(unittest.TestCase):
         status,output,requests=self.execute()
         self.assertNotEqual(status,0)
         self.assertIn('Model.PrimaryPart',str(status)+output)
+        self.assertEqual(requests,[])
+
+    def test_duplicate_unique_ids_stop_even_with_a_matching_manifest(self):
+        raw=service_place(duplicate_ids=True)
+        (self.root/'server/funcombat_server.rbxl').write_bytes(raw)
+        self.manifest['files']['server/funcombat_server.rbxl']={
+            'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+        self.save_manifest()
+        status,output,requests=self.execute()
+        self.assertNotEqual(status,0)
+        self.assertIn('Duplicate UniqueId',str(status)+output)
+        self.assertEqual(requests,[])
+
+    def test_missing_unique_id_stops_even_with_a_matching_manifest(self):
+        raw=service_place(missing_id=True)
+        (self.root/'server/funcombat_server.rbxl').write_bytes(raw)
+        self.manifest['files']['server/funcombat_server.rbxl']={
+            'bytes':len(raw),'sha256':hashlib.sha256(raw).hexdigest()}
+        self.save_manifest()
+        status,output,requests=self.execute()
+        self.assertNotEqual(status,0)
+        self.assertIn('Missing UniqueId',str(status)+output)
         self.assertEqual(requests,[])
 
     def test_mismatched_build_stops_publication(self):

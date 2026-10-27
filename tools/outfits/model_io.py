@@ -160,6 +160,96 @@ def validate_saved_reference_types(path,schema=None):
             targets+=1
     return {'passed':True,'propertiesChecked':tables,'referencesChecked':slots,'nonNullTargetsChecked':targets}
 
+def _saved_unique_id_tables(chunks):
+    groups={};tables={};owners_seen=set()
+    for tag,body in chunks:
+        if tag!=b'INST':continue
+        reader=Reader(body);cid=reader.u32();cls=reader.string().decode();reader.read(1)
+        owners=reader.refs(reader.u32())
+        if cid in groups:raise ValueError('Duplicate instance class table')
+        for owner in owners:
+            if owner<0 or owner in owners_seen:raise ValueError('Invalid/duplicate instance referent')
+            owners_seen.add(owner)
+        groups[cid]=(cls,owners)
+    for index,(tag,body) in enumerate(chunks):
+        if tag!=b'PROP':continue
+        reader=Reader(body);cid=reader.u32();name=reader.string();kind=reader.read(1)[0]
+        if name!=b'UniqueId':continue
+        if kind!=0x1f:raise ValueError('UniqueId has an invalid native type')
+        if cid not in groups or cid in tables:raise ValueError('Invalid/duplicate UniqueId class table')
+        count=len(groups[cid][1]);payload=reader.read(count*16)
+        if reader.p!=len(body):raise ValueError('Invalid UniqueId payload length')
+        values=[bytes(payload[plane*count+i] for plane in range(16)) for i in range(count)]
+        tables[cid]={'chunk':index,'prefix':body[:len(body)-len(payload)],'values':values}
+    return groups,tables
+
+def validate_saved_unique_ids(path):
+    """Require a nonzero, globally unique saved identity for every instance."""
+    groups,tables=_saved_unique_id_tables(binary_chunks(path));seen={};count=0
+    for cid,(cls,owners) in groups.items():
+        if cid not in tables:raise ValueError('Missing UniqueId table for '+cls)
+        for owner,value in zip(owners,tables[cid]['values']):
+            if value==bytes(16):raise ValueError(f'Zero UniqueId on {cls} (instance {owner})')
+            if value in seen:raise ValueError(f'Duplicate UniqueId on instances {seen[value]} and {owner}')
+            seen[value]=owner;count+=1
+    return {'passed':True,'instancesChecked':count,'uniqueIdsChecked':len(seen)}
+
+def repair_saved_unique_ids(path):
+    """Finalize exported identities without changing any other native chunk.
+
+    XML copies retain the original UniqueId; newly constructed instances omit it.
+    Preserve the first valid occurrence, and assign identities to duplicates,
+    zero values and missing class tables. HistoryId is deliberately untouched.
+    """
+    path=Path(path);raw=path.read_bytes();chunks=binary_chunks(path)
+    groups,tables=_saved_unique_id_tables(chunks)
+    occupied={value for table in tables.values() for value in table['values'] if value!=bytes(16)}
+    kept=set();seed=hashlib.sha256(raw).digest();replacements={};additions=[]
+    counters={'idsAssigned':0,'zeroIdsReplaced':0,'duplicateIdsReplaced':0,'missingIdsAdded':0}
+    for cid,(_,owners) in groups.items():
+        table=tables.get(cid);old=table['values'] if table else [None]*len(owners);values=[]
+        for owner,value in zip(owners,old):
+            if value is not None and value!=bytes(16) and value not in kept:
+                kept.add(value);values.append(value);continue
+            reason='missingIdsAdded' if value is None else 'zeroIdsReplaced' if value==bytes(16) else 'duplicateIdsReplaced'
+            attempt=0
+            while True:
+                digest=hashlib.sha256(b'FunCombatUniqueId\0'+seed+struct.pack('<II',owner,attempt)).digest()
+                random=(int.from_bytes(digest[:8],'big')&0x7fffffffffffffff) or 1
+                # Native record: BE index, BE time, zigzag-encoded BE random;
+                # the complete 16-byte records are interleaved below.
+                value=struct.pack('>IIQ',owner+1,0,random<<1)
+                if value not in occupied:break
+                attempt+=1
+            occupied.add(value);kept.add(value);values.append(value)
+            counters['idsAssigned']+=1;counters[reason]+=1
+        if table and values==old:continue
+        payload=bytes(value[plane] for plane in range(16) for value in values)
+        prefix=table['prefix'] if table else struct.pack('<II',cid,8)+b'UniqueId\x1f'
+        body=prefix+payload
+        if table:replacements[table['chunk']]=body
+        else:additions.append(struct.pack('<4sIII',b'PROP',0,len(body),0)+body)
+    if counters['idsAssigned']:
+        pieces=[raw[:32]];offset=32;inserted=False
+        for index,(tag,body) in enumerate(chunks):
+            _,compressed,length,reserved=struct.unpack_from('<4sIII',raw,offset)
+            end=offset+16+(compressed or length)
+            if additions and not inserted and tag in {b'PRNT',b'END\0'}:
+                pieces.extend(additions);inserted=True
+            replacement=replacements.get(index)
+            pieces.append(raw[offset:end] if replacement is None else
+                          struct.pack('<4sIII',tag,0,len(replacement),reserved)+replacement)
+            offset=end
+        if offset!=len(raw) or (additions and not inserted):raise ValueError('Incomplete native place')
+        temporary=path.with_name(path.name+'.identities.partial')
+        try:
+            temporary.write_bytes(b''.join(pieces));validate_saved_unique_ids(temporary)
+            temporary.replace(path)
+        finally:
+            if temporary.exists():temporary.unlink()
+    return {**validate_saved_unique_ids(path),**counters,
+            'chunksChanged':len(replacements),'chunksAdded':len(additions)}
+
 def source_strings(path):
     chunks=[(name,Reader(body)) for name,body in binary_chunks(path)]
     classes={};nodes={};property_types={}

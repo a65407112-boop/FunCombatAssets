@@ -12,7 +12,7 @@ from lxml import etree as E
 ROOT=Path(__file__).resolve().parents[1]
 if not (ROOT/'tools/outfits').exists() and (ROOT/'GitHub/tools/outfits').exists():ROOT=ROOT/'GitHub'
 sys.path.insert(0,str(ROOT/'tools/outfits'))
-from model_io import Source,package,animation,dump,sha,repository_files,repair_place_services,complete_reference_properties,validate_saved_reference_types
+from model_io import Source,package,animation,dump,sha,repository_files,repair_place_services,complete_reference_properties,validate_saved_reference_types,repair_saved_unique_ids
 
 SOURCE_SHA='a14ab714b5b3233a8e05fc5567ce1b9a7dc700ced2ccb2e13771c025f64142b0'
 VERSION=4
@@ -505,6 +505,7 @@ def build(source_path,rbxmk,output):
     if not binary.exists() or not binary.read_bytes().startswith(b'<roblox!'):
         raise RuntimeError('rbxmk did not write a binary place: '+encoded.stderr.decode(errors='replace'))
     repair_place_services(binary,{item.get('class') for item in E.parse(str(output/'Game_Server.rbxlx')).getroot().findall('Item')})
+    repair_saved_unique_ids(binary)
     validate_saved_reference_types(binary)
     metadata=json.loads((output/'Build_Metadata.json').read_text());metadata['binarySha256']=sha(binary);dump(output/'Build_Metadata.json',metadata)
     server_binary=repo/'server/funcombat_server.rbxl';server_binary.parent.mkdir(parents=True,exist_ok=True)

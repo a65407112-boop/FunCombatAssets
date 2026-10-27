@@ -21,6 +21,8 @@
 см. [исправление служб Studio](studio-service-fix.md) и скачайте обновлённый RBXL.
 Ошибка `Model.PrimaryPart / Expected BasePart got Workspace` исправлена
 в текущем файле: см. [исправление ссылок](studio-reference-fix.md).
+Ошибка `DM contains duplicate Unique ids` также исправлена в текущем файле:
+см. [исправление идентификаторов](studio-unique-id-fix.md).
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/a65407112-boop/FunCombatAssets/main/loader.lua?t=" .. tostring(os.time())))()
